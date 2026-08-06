@@ -53,7 +53,6 @@ async function main() {
                   correctAnswer: 'walk into mordor',
                   acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
                   hints: ['Властелин колец', 'Boromir meme'],
-                  explanation: 'Boromir meme',
                 },
                 {
                   sortOrder: 1,

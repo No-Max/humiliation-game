@@ -45,7 +45,6 @@ export interface RoomState {
   tourTitle?: string;
   questionPrompt?: string;
   correctAnswer?: string;
-  explanation?: string;
   /** Командные слоты — ссылки активны до конца игры */
   teamSlots: TeamSlot[];
   pausedBy?: string;

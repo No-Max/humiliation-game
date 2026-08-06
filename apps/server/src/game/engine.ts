@@ -140,7 +140,6 @@ export class GameEngine {
       tourTitle: tour?.title,
       questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
-      explanation: showAnswer ? question?.explanation ?? undefined : undefined,
       teamSlots: this.state.teamOrder.map((id) => {
         const team = this.teams.get(id)!;
         return { teamId: id, name: team.name };

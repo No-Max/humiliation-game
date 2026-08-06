@@ -12,7 +12,6 @@ interface Question {
   sortOrder: number;
   correctAnswer: string;
   hints?: string[];
-  explanation?: string | null;
   acceptableAnswers?: string[];
   timeLimitSec?: number | null;
   contentType?: string;
@@ -54,7 +53,6 @@ const form = ref({
   prompt: '',
   correctAnswer: '',
   hints: [] as string[],
-  explanation: '',
   acceptableAnswers: [] as string[],
   timeLimitSec: '',
 });
@@ -72,7 +70,6 @@ function resetForm() {
     prompt: '',
     correctAnswer: '',
     hints: [] as string[],
-    explanation: '',
     acceptableAnswers: [] as string[],
     timeLimitSec: '',
   };
@@ -113,7 +110,6 @@ function openEditQuestion(tour: Tour, question: Question) {
   form.value.prompt = question.prompt ?? '';
   form.value.correctAnswer = question.correctAnswer;
   form.value.hints = [...(question.hints ?? [])];
-  form.value.explanation = question.explanation ?? '';
   form.value.acceptableAnswers = [...(question.acceptableAnswers ?? [])];
   form.value.timeLimitSec =
     question.timeLimitSec != null ? String(question.timeLimitSec) : '';
@@ -154,7 +150,6 @@ function buildQuestionPayload() {
     prompt,
     correctAnswer,
     hints: form.value.hints.map((item) => item.trim()).filter(Boolean),
-    explanation: form.value.explanation.trim() || null,
     acceptableAnswers: form.value.acceptableAnswers
       .map((item) => item.trim())
       .filter(Boolean),
@@ -399,13 +394,6 @@ function formatTime(sec: number) {
         />
         <AnswerVariantsInput v-model="form.acceptableAnswers" />
         <HintsInput v-model="form.hints" />
-        <label class="label" for="question-explanation">Пояснение после раскрытия</label>
-        <textarea
-          id="question-explanation"
-          v-model="form.explanation"
-          class="textarea"
-          placeholder="Необязательно"
-        />
         <label class="label" for="question-time">Время на ответ (сек)</label>
         <input
           id="question-time"

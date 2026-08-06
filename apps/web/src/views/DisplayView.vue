@@ -78,9 +78,6 @@ onUnmounted(() => cleanup?.());
       <div v-if="state.phase === 'REVEAL'" class="banner wrong">
         Правильный ответ: {{ state.correctAnswer }}
       </div>
-      <p v-if="state.explanation && (state.phase === 'REVEAL' || state.phase === 'CORRECT')" style="text-align: center; margin-top: 1rem">
-        {{ state.explanation }}
-      </p>
     </div>
 
     <div v-if="state?.phase === 'FINISHED'" class="card">

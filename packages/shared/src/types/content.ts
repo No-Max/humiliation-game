@@ -46,7 +46,6 @@ export interface Question {
   correctAnswer: string;
   acceptableAnswers?: string[];
   hints?: string[];
-  explanation?: string;
   timeLimitSec?: number;
   createdAt: string;
   updatedAt: string;

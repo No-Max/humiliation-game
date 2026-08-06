@@ -104,7 +104,6 @@ model Question {
   correctAnswer      String
   acceptableAnswers  String[]            @default([])
   hints              String[]            @default([])
-  explanation        String?
   timeLimitSec       Int?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt

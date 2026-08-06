@@ -420,7 +420,6 @@ function confirmExit() {
       <p v-if="state.correctAnswer">
         Правильный ответ: <strong>{{ state.correctAnswer }}</strong>
       </p>
-      <p v-if="state.explanation" style="color: #6b7280; margin-top: 0.5rem">{{ state.explanation }}</p>
       <button class="btn" style="margin-top: 1rem" @click="nextQuestion">Следующий вопрос</button>
     </div>
 

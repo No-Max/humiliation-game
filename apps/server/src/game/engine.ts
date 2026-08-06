@@ -1,0 +1,372 @@
+import type { QuestionPhase, RoomState, TeamState } from '@humiliation-game/shared';
+import type { GameTeam, Question, Series, Tour } from '@prisma/client';
+
+type SeriesWithContent = Series & {
+  tours: (Tour & { questions: Question[] })[];
+};
+
+interface InMemoryQuestionState {
+  phase: QuestionPhase;
+  teamOrder: string[];
+  currentTeamIndex: number;
+  questionValue: 2 | 3;
+  valueReduced: boolean;
+  hintShown: boolean;
+  firstRoundComplete: boolean;
+  passedTeamIds: Set<string>;
+  attemptedTeamIds: Set<string>;
+  currentTourIndex: number;
+  currentQuestionIndex: number;
+}
+
+export class GameEngine {
+  private series: SeriesWithContent;
+  private teams: Map<string, GameTeam & { connected: boolean }>;
+  private state: InMemoryQuestionState;
+  private paused = false;
+  private pausedByTeamId?: string;
+  displayCount = 0;
+
+  constructor(
+    public roomCode: string,
+    series: SeriesWithContent,
+    teams: GameTeam[],
+  ) {
+    this.series = series;
+    this.teams = new Map(
+      teams.map((t) => [t.id, { ...t, connected: false }]),
+    );
+
+    const teamOrder = shuffle([...teams.map((t) => t.id)]);
+    this.state = {
+      phase: 'TOUR_INTRO',
+      teamOrder,
+      currentTeamIndex: 0,
+      questionValue: 3,
+      valueReduced: false,
+      hintShown: false,
+      firstRoundComplete: false,
+      passedTeamIds: new Set(),
+      attemptedTeamIds: new Set(),
+      currentTourIndex: 0,
+      currentQuestionIndex: 0,
+    };
+  }
+
+  setTeamConnected(teamId: string, connected: boolean) {
+    const team = this.teams.get(teamId);
+    if (team) team.connected = connected;
+  }
+
+  addTeam(team: GameTeam) {
+    this.teams.set(team.id, { ...team, connected: false });
+    this.state.teamOrder.push(team.id);
+  }
+
+  isGameFinished(): boolean {
+    return this.state.phase === 'FINISHED';
+  }
+
+  isPaused(): boolean {
+    return this.paused;
+  }
+
+  pause(teamId: string): { ok: boolean; error?: string } {
+    if (this.isGameFinished()) {
+      return { ok: false, error: 'Игра уже завершена' };
+    }
+    this.paused = true;
+    this.pausedByTeamId = teamId;
+    return { ok: true };
+  }
+
+  resume(): { ok: boolean; error?: string } {
+    if (this.isGameFinished()) {
+      return { ok: false, error: 'Игра уже завершена' };
+    }
+    if (!this.paused) {
+      return { ok: false, error: 'Игра не на паузе' };
+    }
+    this.paused = false;
+    this.pausedByTeamId = undefined;
+    return { ok: true };
+  }
+
+  getPublicState(): RoomState {
+    const question = this.getCurrentQuestion();
+    const tour = this.series.tours[this.state.currentTourIndex];
+    const showAnswer = this.state.phase === 'REVEAL' || this.state.phase === 'CORRECT';
+
+    const status = this.state.phase === 'FINISHED'
+      ? 'FINISHED'
+      : this.paused
+        ? 'PAUSED'
+        : 'PLAYING';
+
+    return {
+      roomCode: this.roomCode,
+      seriesId: this.series.id,
+      seriesTitle: this.series.title,
+      status,
+      phase: this.state.phase,
+      teams: this.buildTeamStates(),
+      teamOrder: this.state.teamOrder,
+      currentTeamIndex: this.state.currentTeamIndex,
+      activeTeamId: this.getActiveTeamId(),
+      currentTourIndex: this.state.currentTourIndex,
+      currentQuestionIndex: this.state.currentQuestionIndex,
+      questionValue: this.state.questionValue,
+      valueReduced: this.state.valueReduced,
+      hintShown: this.state.hintShown,
+      displayCount: this.displayCount,
+      tourTitle: tour?.title,
+      questionPrompt: question?.prompt ?? undefined,
+      hint: this.state.hintShown ? question?.hint ?? undefined : undefined,
+      correctAnswer: showAnswer ? question?.correctAnswer : undefined,
+      explanation: showAnswer ? question?.explanation ?? undefined : undefined,
+      teamSlots: this.state.teamOrder.map((id) => {
+        const team = this.teams.get(id)!;
+        return { teamId: id, name: team.name };
+      }),
+      pausedBy: this.pausedByTeamId
+        ? this.teams.get(this.pausedByTeamId)?.name
+        : undefined,
+    };
+  }
+
+  private ensurePlaying(): { ok: boolean; error?: string } {
+    if (this.isGameFinished()) {
+      return { ok: false, error: 'Игра уже завершена' };
+    }
+    if (this.paused) {
+      return { ok: false, error: 'Игра на паузе' };
+    }
+    return { ok: true };
+  }
+
+  startTour(): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (this.state.phase !== 'TOUR_INTRO') {
+      return { ok: false, error: 'Not in tour intro phase' };
+    }
+    this.resetQuestionState();
+    this.state.phase = 'QUESTION';
+    return { ok: true };
+  }
+
+  submitAnswer(teamId: string, answer: string): { ok: boolean; error?: string; correct?: boolean } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (!this.canAct(teamId)) {
+      return { ok: false, error: 'Not your turn' };
+    }
+
+    const question = this.getCurrentQuestion();
+    if (!question) return { ok: false, error: 'No active question' };
+
+    this.ensureStealRoundStarted();
+
+    this.state.attemptedTeamIds.add(teamId);
+    const correct = checkAnswer(answer, question);
+
+    if (correct) {
+      this.awardPoints(teamId);
+      this.state.phase = 'CORRECT';
+      return { ok: true, correct: true };
+    }
+
+    if (!this.state.valueReduced) {
+      this.state.questionValue = Math.max(1, this.state.questionValue - 1) as 2 | 3;
+      this.state.valueReduced = true;
+    }
+
+    this.advanceToNextTeam();
+    this.maybeCompleteFirstRound(question);
+    return { ok: true, correct: false };
+  }
+
+  pass(teamId: string): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (!this.canAct(teamId)) {
+      return { ok: false, error: 'Not your turn' };
+    }
+
+    this.ensureStealRoundStarted();
+
+    this.state.passedTeamIds.add(teamId);
+    this.state.attemptedTeamIds.add(teamId);
+    this.advanceToNextTeam();
+
+    const question = this.getCurrentQuestion();
+    if (question) this.maybeCompleteFirstRound(question);
+
+    if (this.allTeamsPassed()) {
+      this.state.phase = 'REVEAL';
+    } else if (this.getActiveTeamId()) {
+      this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
+    }
+
+    return { ok: true };
+  }
+
+  nextQuestion(): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (this.state.phase !== 'CORRECT' && this.state.phase !== 'REVEAL') {
+      return { ok: false, error: 'Cannot advance now' };
+    }
+
+    const tour = this.series.tours[this.state.currentTourIndex];
+    if (!tour) return { ok: false, error: 'No tour' };
+
+    if (this.state.currentQuestionIndex + 1 < tour.questions.length) {
+      this.state.currentQuestionIndex += 1;
+      this.state.currentTeamIndex =
+        (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
+      this.resetQuestionState();
+      this.state.phase = 'QUESTION';
+      return { ok: true };
+    }
+
+    if (this.state.currentTourIndex + 1 < this.series.tours.length) {
+      this.state.currentTourIndex += 1;
+      this.state.currentQuestionIndex = 0;
+      this.state.phase = 'TOUR_INTRO';
+      return { ok: true };
+    }
+
+    this.state.phase = 'FINISHED';
+    return { ok: true };
+  }
+
+  private canAct(teamId: string): boolean {
+    const activeId = this.getActiveTeamId();
+    return !!activeId && teamId === activeId;
+  }
+
+  private ensureStealRoundStarted() {
+    if (this.state.phase === 'HINT') {
+      this.beginStealRound();
+    }
+  }
+
+  private resetQuestionState() {
+    const tour = this.series.tours[this.state.currentTourIndex];
+    const defaultPoints = (tour?.defaultPoints === 2 ? 2 : 3) as 2 | 3;
+    this.state.questionValue = defaultPoints;
+    this.state.valueReduced = false;
+    this.state.hintShown = false;
+    this.state.firstRoundComplete = false;
+    this.state.passedTeamIds = new Set();
+    this.state.attemptedTeamIds = new Set();
+  }
+
+  private getCurrentQuestion(): Question | undefined {
+    const tour = this.series.tours[this.state.currentTourIndex];
+    return tour?.questions[this.state.currentQuestionIndex];
+  }
+
+  private getActiveTeamId(): string | undefined {
+    if (this.paused) return undefined;
+
+    if (
+      this.state.phase === 'TOUR_INTRO' ||
+      this.state.phase === 'FINISHED' ||
+      this.state.phase === 'CORRECT' ||
+      this.state.phase === 'REVEAL'
+    ) {
+      return undefined;
+    }
+
+    const candidates = this.getActiveTeamIds();
+    if (!candidates.length) return undefined;
+
+    const idx = this.state.currentTeamIndex % candidates.length;
+    return candidates[idx];
+  }
+
+  private getActiveTeamIds(): string[] {
+    return this.state.teamOrder.filter((id) => !this.state.passedTeamIds.has(id));
+  }
+
+  private advanceToNextTeam() {
+    this.state.currentTeamIndex += 1;
+  }
+
+  private maybeCompleteFirstRound(question: Question) {
+    if (this.state.firstRoundComplete) return;
+
+    const activeTeams = this.getActiveTeamIds();
+    const allAttempted = activeTeams.every((id) =>
+      this.state.attemptedTeamIds.has(id),
+    );
+
+    if (!allAttempted) return;
+
+    this.state.firstRoundComplete = true;
+    if (question.hint) {
+      this.state.hintShown = true;
+      this.state.phase = 'HINT';
+    } else {
+      this.beginStealRound();
+    }
+  }
+
+  private beginStealRound() {
+    for (const id of this.state.teamOrder) {
+      if (!this.state.passedTeamIds.has(id)) {
+        this.state.attemptedTeamIds.delete(id);
+      }
+    }
+
+    const firstActive = this.state.teamOrder.findIndex(
+      (id) => !this.state.passedTeamIds.has(id),
+    );
+    this.state.currentTeamIndex = firstActive >= 0 ? firstActive : 0;
+    this.state.phase = 'STEAL_ROUND';
+  }
+
+  private allTeamsPassed(): boolean {
+    return this.state.teamOrder.every((id) => this.state.passedTeamIds.has(id));
+  }
+
+  private awardPoints(teamId: string) {
+    const team = this.teams.get(teamId);
+    if (team) team.score += this.state.questionValue;
+  }
+
+  private buildTeamStates(): TeamState[] {
+    return this.state.teamOrder.map((id) => {
+      const team = this.teams.get(id)!;
+      return {
+        id: team.id,
+        name: team.name,
+        logoUrl: team.logoUrl ?? undefined,
+        score: team.score,
+        connected: team.connected,
+        passed: this.state.passedTeamIds.has(id),
+        attempted: this.state.attemptedTeamIds.has(id),
+      };
+    });
+  }
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function normalize(text: string): string {
+  return text.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function checkAnswer(answer: string, question: Question): boolean {
+  const normalized = normalize(answer);
+  const acceptable = [question.correctAnswer, ...question.acceptableAnswers].map(normalize);
+  return acceptable.includes(normalized);
+}

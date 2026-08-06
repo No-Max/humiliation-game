@@ -3,12 +3,14 @@ defineProps<{
   open: boolean;
   title: string;
   submitLabel?: string;
+  deleteLabel?: string;
   loading?: boolean;
 }>();
 
 const emit = defineEmits<{
   close: [];
   submit: [];
+  delete: [];
 }>();
 </script>
 
@@ -25,12 +27,23 @@ const emit = defineEmits<{
         <form class="modal-body" @submit.prevent="emit('submit')">
           <slot />
           <div class="modal-actions">
-            <button class="btn btn-secondary" type="button" :disabled="loading" @click="emit('close')">
-              Отмена
+            <button
+              v-if="deleteLabel"
+              class="btn btn-danger modal-delete"
+              type="button"
+              :disabled="loading"
+              @click="emit('delete')"
+            >
+              {{ deleteLabel }}
             </button>
-            <button class="btn" type="submit" :disabled="loading">
-              {{ loading ? 'Сохранение...' : (submitLabel ?? 'Сохранить') }}
-            </button>
+            <div class="modal-actions-main">
+              <button class="btn btn-secondary" type="button" :disabled="loading" @click="emit('close')">
+                Отмена
+              </button>
+              <button class="btn" type="submit" :disabled="loading">
+                {{ loading ? 'Сохранение...' : (submitLabel ?? 'Сохранить') }}
+              </button>
+            </div>
           </div>
         </form>
       </div>

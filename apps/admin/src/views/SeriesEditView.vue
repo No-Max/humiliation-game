@@ -3,13 +3,20 @@ import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
+import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
+import HintsInput from '../components/HintsInput.vue';
 
 interface Question {
   id: string;
   prompt?: string;
   sortOrder: number;
   correctAnswer: string;
+  hints?: string[];
+  explanation?: string | null;
+  acceptableAnswers?: string[];
   timeLimitSec?: number | null;
+  contentType?: string;
+  answerType?: string;
 }
 
 interface Tour {
@@ -31,7 +38,7 @@ interface SeriesDetail {
   tours: Tour[];
 }
 
-type ModalKind = 'addTour' | 'editTourTime' | 'addQuestion' | 'editQuestionTime';
+type ModalKind = 'addTour' | 'editTourTime' | 'addQuestion' | 'editQuestion';
 
 const route = useRoute();
 const series = ref<SeriesDetail | null>(null);
@@ -46,6 +53,9 @@ const form = ref({
   defaultTimeLimitSec: '60',
   prompt: '',
   correctAnswer: '',
+  hints: [] as string[],
+  explanation: '',
+  acceptableAnswers: [] as string[],
   timeLimitSec: '',
 });
 
@@ -55,6 +65,19 @@ async function load() {
 
 onMounted(load);
 
+function resetForm() {
+  form.value = {
+    title: '',
+    defaultTimeLimitSec: '60',
+    prompt: '',
+    correctAnswer: '',
+    hints: [] as string[],
+    explanation: '',
+    acceptableAnswers: [] as string[],
+    timeLimitSec: '',
+  };
+}
+
 function closeModal() {
   modalKind.value = null;
   activeTour.value = null;
@@ -63,56 +86,46 @@ function closeModal() {
 }
 
 function openAddTour() {
-  form.value = { title: '', defaultTimeLimitSec: '60', prompt: '', correctAnswer: '', timeLimitSec: '' };
+  resetForm();
   error.value = '';
   modalKind.value = 'addTour';
 }
 
 function openEditTourTime(tour: Tour) {
   activeTour.value = tour;
-  form.value = {
-    title: '',
-    defaultTimeLimitSec: String(tour.defaultTimeLimitSec),
-    prompt: '',
-    correctAnswer: '',
-    timeLimitSec: '',
-  };
+  resetForm();
+  form.value.defaultTimeLimitSec = String(tour.defaultTimeLimitSec);
   error.value = '';
   modalKind.value = 'editTourTime';
 }
 
 function openAddQuestion(tour: Tour) {
   activeTour.value = tour;
-  form.value = {
-    title: '',
-    defaultTimeLimitSec: '60',
-    prompt: '',
-    correctAnswer: '',
-    timeLimitSec: '',
-  };
+  resetForm();
   error.value = '';
   modalKind.value = 'addQuestion';
 }
 
-function openEditQuestionTime(tour: Tour, question: Question) {
+function openEditQuestion(tour: Tour, question: Question) {
   activeTour.value = tour;
   activeQuestion.value = question;
-  form.value = {
-    title: '',
-    defaultTimeLimitSec: '60',
-    prompt: '',
-    correctAnswer: '',
-    timeLimitSec: question.timeLimitSec != null ? String(question.timeLimitSec) : '',
-  };
+  resetForm();
+  form.value.prompt = question.prompt ?? '';
+  form.value.correctAnswer = question.correctAnswer;
+  form.value.hints = [...(question.hints ?? [])];
+  form.value.explanation = question.explanation ?? '';
+  form.value.acceptableAnswers = [...(question.acceptableAnswers ?? [])];
+  form.value.timeLimitSec =
+    question.timeLimitSec != null ? String(question.timeLimitSec) : '';
   error.value = '';
-  modalKind.value = 'editQuestionTime';
+  modalKind.value = 'editQuestion';
 }
 
 const modalTitle = {
   addTour: 'Новый тур',
   editTourTime: 'Время на ответ — тур',
   addQuestion: 'Новое задание',
-  editQuestionTime: 'Время на ответ — задание',
+  editQuestion: 'Редактировать задание',
 } as const;
 
 async function publish() {
@@ -130,6 +143,42 @@ function parseTimeLimit(value: string, min = 5): number | null {
   const sec = Number.parseInt(trimmed, 10);
   if (!Number.isFinite(sec) || sec < min) return NaN;
   return sec;
+}
+
+function buildQuestionPayload() {
+  const prompt = form.value.prompt.trim();
+  const correctAnswer = form.value.correctAnswer.trim();
+  const parsed = parseTimeLimit(form.value.timeLimitSec);
+
+  return {
+    prompt,
+    correctAnswer,
+    hints: form.value.hints.map((item) => item.trim()).filter(Boolean),
+    explanation: form.value.explanation.trim() || null,
+    acceptableAnswers: form.value.acceptableAnswers
+      .map((item) => item.trim())
+      .filter(Boolean),
+    timeLimitSec: parsed,
+    contentType: 'TEXT',
+    answerType: 'TEXT',
+  };
+}
+
+function validateQuestionFields(): boolean {
+  if (!form.value.prompt.trim()) {
+    error.value = 'Введите текст задания';
+    return false;
+  }
+  if (!form.value.correctAnswer.trim()) {
+    error.value = 'Введите правильный ответ';
+    return false;
+  }
+  const parsed = parseTimeLimit(form.value.timeLimitSec);
+  if (Number.isNaN(parsed)) {
+    error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
+    return false;
+  }
+  return true;
 }
 
 async function submitModal() {
@@ -175,47 +224,27 @@ async function submitModal() {
     }
 
     if (modalKind.value === 'addQuestion' && activeTour.value) {
-      const prompt = form.value.prompt.trim();
-      const correctAnswer = form.value.correctAnswer.trim();
-      if (!prompt) {
-        error.value = 'Введите текст задания';
-        return;
-      }
-      if (!correctAnswer) {
-        error.value = 'Введите правильный ответ';
-        return;
-      }
-
-      const parsed = parseTimeLimit(form.value.timeLimitSec);
-      if (Number.isNaN(parsed)) {
-        error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
-        return;
-      }
+      if (!validateQuestionFields()) return;
+      const payload = buildQuestionPayload();
 
       await adminApi(`/series/tours/${activeTour.value.id}/questions`, {
         method: 'POST',
         body: JSON.stringify({
-          prompt,
-          correctAnswer,
-          contentType: 'TEXT',
-          answerType: 'TEXT',
-          timeLimitSec: parsed ?? undefined,
+          ...payload,
+          timeLimitSec: payload.timeLimitSec ?? undefined,
         }),
       });
     }
 
-    if (modalKind.value === 'editQuestionTime' && activeTour.value && activeQuestion.value) {
-      const parsed = parseTimeLimit(form.value.timeLimitSec, 5);
-      if (form.value.timeLimitSec.trim() && Number.isNaN(parsed)) {
-        error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
-        return;
-      }
+    if (modalKind.value === 'editQuestion' && activeTour.value && activeQuestion.value) {
+      if (!validateQuestionFields()) return;
+      const payload = buildQuestionPayload();
 
       await adminApi(`/series/questions/${activeQuestion.value.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...activeQuestion.value,
-          timeLimitSec: parsed,
+          ...payload,
         }),
       });
     }
@@ -224,6 +253,25 @@ async function submitModal() {
     closeModal();
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Ошибка сохранения';
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function deleteQuestion() {
+  if (!activeQuestion.value || modalKind.value !== 'editQuestion') return;
+  if (!window.confirm('Удалить это задание?')) return;
+
+  saving.value = true;
+  error.value = '';
+  try {
+    await adminApi(`/series/questions/${activeQuestion.value.id}`, {
+      method: 'DELETE',
+    });
+    await load();
+    closeModal();
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Ошибка удаления';
   } finally {
     saving.value = false;
   }
@@ -263,22 +311,25 @@ function formatTime(sec: number) {
       </div>
       <p v-if="tour.rules" style="color: #6b7280; margin: 0.5rem 0">{{ tour.rules }}</p>
 
-      <ul style="margin: 0.75rem 0; padding-left: 0; list-style: none">
-        <li
-          v-for="q in tour.questions"
-          :key="q.id"
-          style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; margin-bottom: 0.5rem"
-        >
-          <span style="flex: 1">
-            {{ q.prompt }} → <em>{{ q.correctAnswer }}</em>
-          </span>
+      <ul class="question-list">
+        <li v-for="q in tour.questions" :key="q.id" class="question-item">
+          <div class="question-content">
+            <div>{{ q.prompt }}</div>
+            <div class="question-meta">
+              <span>→ <em>{{ q.correctAnswer }}</em></span>
+              <span v-if="q.acceptableAnswers?.length">
+                · +{{ q.acceptableAnswers.length }} син.
+              </span>
+              <span v-if="q.hints?.length"> · 💡 {{ q.hints.length }}</span>
+              <span> · ⏱ {{ formatTime(q.timeLimitSec ?? tour.defaultTimeLimitSec) }}</span>
+            </div>
+          </div>
           <button
-            class="btn btn-secondary"
+            class="btn btn-secondary btn-sm"
             type="button"
-            style="font-size: 0.75rem; padding: 0.25rem 0.5rem"
-            @click="openEditQuestionTime(tour, q)"
+            @click="openEditQuestion(tour, q)"
           >
-            ⏱ {{ formatTime(q.timeLimitSec ?? tour.defaultTimeLimitSec) }}
+            Изменить
           </button>
         </li>
       </ul>
@@ -292,8 +343,10 @@ function formatTime(sec: number) {
       :title="modalTitle[modalKind]"
       :loading="saving"
       :submit-label="modalKind === 'addTour' || modalKind === 'addQuestion' ? 'Создать' : 'Сохранить'"
+      :delete-label="modalKind === 'editQuestion' ? 'Удалить' : undefined"
       @close="closeModal"
       @submit="submitModal"
+      @delete="deleteQuestion"
     >
       <p v-if="error" class="error">{{ error }}</p>
 
@@ -325,8 +378,10 @@ function formatTime(sec: number) {
         />
       </template>
 
-      <template v-else-if="modalKind === 'addQuestion' && activeTour">
-        <p class="field-hint" style="margin-top: 0">Тур: {{ activeTour.title }}</p>
+      <template v-else-if="(modalKind === 'addQuestion' || modalKind === 'editQuestion') && activeTour">
+        <p v-if="modalKind === 'addQuestion'" class="field-hint" style="margin-top: 0">
+          Тур: {{ activeTour.title }}
+        </p>
         <label class="label" for="question-prompt">Текст задания</label>
         <textarea
           id="question-prompt"
@@ -335,8 +390,22 @@ function formatTime(sec: number) {
           placeholder="Вопрос или задание"
           autofocus
         />
-        <label class="label" for="question-answer">Правильный ответ</label>
-        <input id="question-answer" v-model="form.correctAnswer" class="input" placeholder="Ответ" />
+        <label class="label" for="question-answer">Основной правильный ответ</label>
+        <input
+          id="question-answer"
+          v-model="form.correctAnswer"
+          class="input"
+          placeholder="Главный вариант ответа"
+        />
+        <AnswerVariantsInput v-model="form.acceptableAnswers" />
+        <HintsInput v-model="form.hints" />
+        <label class="label" for="question-explanation">Пояснение после раскрытия</label>
+        <textarea
+          id="question-explanation"
+          v-model="form.explanation"
+          class="textarea"
+          placeholder="Необязательно"
+        />
         <label class="label" for="question-time">Время на ответ (сек)</label>
         <input
           id="question-time"
@@ -350,25 +419,46 @@ function formatTime(sec: number) {
           Пусто — использовать дефолт тура ({{ activeTour.defaultTimeLimitSec }} сек)
         </p>
       </template>
-
-      <template v-else-if="modalKind === 'editQuestionTime' && activeTour && activeQuestion">
-        <p class="field-hint" style="margin-top: 0">
-          {{ activeQuestion.prompt }}
-        </p>
-        <label class="label" for="edit-question-time">Время на ответ (сек)</label>
-        <input
-          id="edit-question-time"
-          v-model="form.timeLimitSec"
-          class="input"
-          type="number"
-          min="5"
-          placeholder="Пусто = дефолт тура"
-          autofocus
-        />
-        <p class="field-hint">
-          Пусто — дефолт тура ({{ activeTour.defaultTimeLimitSec }} сек)
-        </p>
-      </template>
     </AdminModal>
   </div>
 </template>
+
+<style scoped>
+.question-list {
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.question-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.question-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.question-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-meta {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.btn-sm {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+  flex-shrink: 0;
+}
+</style>

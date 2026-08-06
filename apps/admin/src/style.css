@@ -177,8 +177,19 @@
 .modal-actions {
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 0.5rem;
+}
+
+.modal-actions-main {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.modal-delete {
+  margin-right: auto;
 }
 
 .field-hint {

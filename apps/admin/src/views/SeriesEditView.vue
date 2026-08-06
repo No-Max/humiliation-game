@@ -11,6 +11,7 @@ interface Question {
   correctAnswer: string;
   hints?: string[];
   acceptableAnswers?: string[];
+  points?: number | null;
   timeLimitSec?: number | null;
   contentType?: string;
   mediaUrls?: string[];
@@ -35,7 +36,7 @@ interface SeriesDetail {
   tours: Tour[];
 }
 
-type ModalKind = 'addTour' | 'editTourTime';
+type ModalKind = 'addTour' | 'editTourDefaults';
 
 const route = useRoute();
 const router = useRouter();
@@ -47,6 +48,7 @@ const error = ref('');
 
 const form = ref({
   title: '',
+  defaultPoints: '3',
   defaultTimeLimitSec: '60',
 });
 
@@ -59,6 +61,7 @@ onMounted(load);
 function resetForm() {
   form.value = {
     title: '',
+    defaultPoints: '3',
     defaultTimeLimitSec: '60',
   };
 }
@@ -75,12 +78,13 @@ function openAddTour() {
   modalKind.value = 'addTour';
 }
 
-function openEditTourTime(tour: Tour) {
+function openEditTourDefaults(tour: Tour) {
   activeTour.value = tour;
   resetForm();
+  form.value.defaultPoints = String(tour.defaultPoints);
   form.value.defaultTimeLimitSec = String(tour.defaultTimeLimitSec);
   error.value = '';
-  modalKind.value = 'editTourTime';
+  modalKind.value = 'editTourDefaults';
 }
 
 function openAddQuestion(tour: Tour) {
@@ -97,7 +101,7 @@ function openEditQuestion(tour: Tour, question: Question) {
 
 const modalTitle = {
   addTour: 'Новый тур',
-  editTourTime: 'Время на ответ — тур',
+  editTourDefaults: 'Настройки тура',
 } as const;
 
 async function publish() {
@@ -109,12 +113,12 @@ async function publish() {
   await load();
 }
 
-function parseTimeLimit(value: string, min = 5): number | null {
+function parsePositiveInt(value: string, min: number): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const sec = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(sec) || sec < min) return NaN;
-  return sec;
+  const n = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n) || n < min) return NaN;
+  return n;
 }
 
 async function submitModal() {
@@ -130,7 +134,12 @@ async function submitModal() {
         error.value = 'Введите название тура';
         return;
       }
-      const defaultTimeLimitSec = parseTimeLimit(form.value.defaultTimeLimitSec) ?? 60;
+      const defaultPoints = parsePositiveInt(form.value.defaultPoints, 1) ?? 3;
+      if (Number.isNaN(defaultPoints)) {
+        error.value = 'Укажите стоимость не менее 1 балла';
+        return;
+      }
+      const defaultTimeLimitSec = parsePositiveInt(form.value.defaultTimeLimitSec, 5) ?? 60;
       if (Number.isNaN(defaultTimeLimitSec)) {
         error.value = 'Укажите время не менее 5 секунд';
         return;
@@ -141,13 +150,19 @@ async function submitModal() {
         body: JSON.stringify({
           title,
           sortOrder: series.value.tours.length,
+          defaultPoints,
           defaultTimeLimitSec,
         }),
       });
     }
 
-    if (modalKind.value === 'editTourTime' && activeTour.value) {
-      const defaultTimeLimitSec = parseTimeLimit(form.value.defaultTimeLimitSec);
+    if (modalKind.value === 'editTourDefaults' && activeTour.value) {
+      const defaultPoints = parsePositiveInt(form.value.defaultPoints, 1);
+      if (defaultPoints == null || Number.isNaN(defaultPoints)) {
+        error.value = 'Укажите стоимость не менее 1 балла';
+        return;
+      }
+      const defaultTimeLimitSec = parsePositiveInt(form.value.defaultTimeLimitSec, 5);
       if (defaultTimeLimitSec == null || Number.isNaN(defaultTimeLimitSec)) {
         error.value = 'Укажите время не менее 5 секунд';
         return;
@@ -155,7 +170,11 @@ async function submitModal() {
 
       await adminApi(`/series/tours/${activeTour.value.id}`, {
         method: 'PUT',
-        body: JSON.stringify({ ...activeTour.value, defaultTimeLimitSec }),
+        body: JSON.stringify({
+          ...activeTour.value,
+          defaultPoints,
+          defaultTimeLimitSec,
+        }),
       });
     }
 
@@ -193,11 +212,9 @@ function formatTime(sec: number) {
 
     <div v-for="tour in series.tours" :key="tour.id" class="card">
       <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between">
-        <h3 style="margin: 0">
-          {{ tour.title }} ({{ tour.defaultPoints }} б.)
-        </h3>
-        <button class="btn btn-secondary" type="button" @click="openEditTourTime(tour)">
-          ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}
+        <h3 style="margin: 0">{{ tour.title }}</h3>
+        <button class="btn btn-secondary" type="button" @click="openEditTourDefaults(tour)">
+          {{ tour.defaultPoints }} б. · ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}
         </button>
       </div>
       <p v-if="tour.rules" style="color: #6b7280; margin: 0.5rem 0">{{ tour.rules }}</p>
@@ -213,6 +230,7 @@ function formatTime(sec: number) {
                 · +{{ q.acceptableAnswers.length }} син.
               </span>
               <span v-if="q.hints?.length"> · 💡 {{ q.hints.length }}</span>
+              <span> · {{ q.points ?? tour.defaultPoints }} б.</span>
               <span> · ⏱ {{ formatTime(q.timeLimitSec ?? tour.defaultTimeLimitSec) }}</span>
             </div>
           </div>
@@ -243,6 +261,16 @@ function formatTime(sec: number) {
       <template v-if="modalKind === 'addTour'">
         <label class="label" for="tour-title">Название тура</label>
         <input id="tour-title" v-model="form.title" class="input" placeholder="Например: Мемы" autofocus />
+        <label class="label" for="tour-points">Стоимость вопроса (баллы)</label>
+        <input
+          id="tour-points"
+          v-model="form.defaultPoints"
+          class="input"
+          type="number"
+          min="1"
+          placeholder="3"
+        />
+        <p class="field-hint">По умолчанию 3 балла</p>
         <label class="label" for="tour-time">Время на ответ (сек)</label>
         <input
           id="tour-time"
@@ -255,8 +283,17 @@ function formatTime(sec: number) {
         <p class="field-hint">По умолчанию 60 секунд (1 минута)</p>
       </template>
 
-      <template v-else-if="modalKind === 'editTourTime' && activeTour">
+      <template v-else-if="modalKind === 'editTourDefaults' && activeTour">
         <p class="field-hint" style="margin-top: 0">Тур: {{ activeTour.title }}</p>
+        <label class="label" for="edit-tour-points">Стоимость вопроса (баллы)</label>
+        <input
+          id="edit-tour-points"
+          v-model="form.defaultPoints"
+          class="input"
+          type="number"
+          min="1"
+          autofocus
+        />
         <label class="label" for="edit-tour-time">Время на ответ (сек)</label>
         <input
           id="edit-tour-time"
@@ -264,7 +301,6 @@ function formatTime(sec: number) {
           class="input"
           type="number"
           min="5"
-          autofocus
         />
       </template>
     </AdminModal>

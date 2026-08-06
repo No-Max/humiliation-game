@@ -116,6 +116,7 @@ adminSeriesRouter.post('/tours/:tourId/questions', async (req, res) => {
       correctAnswer: data.correctAnswer,
       acceptableAnswers: data.acceptableAnswers ?? [],
       hints: data.hints ?? [],
+      points: data.points,
       timeLimitSec: data.timeLimitSec,
     },
   });
@@ -136,6 +137,7 @@ adminSeriesRouter.put('/questions/:questionId', async (req, res) => {
       correctAnswer: data.correctAnswer,
       acceptableAnswers: data.acceptableAnswers,
       hints: data.hints ?? [],
+      points: data.points,
       timeLimitSec: data.timeLimitSec,
     },
   });

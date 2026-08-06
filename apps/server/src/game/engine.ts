@@ -10,7 +10,7 @@ interface InMemoryQuestionState {
   teamOrder: string[];
   currentTeamIndex: number;
   turnIndex: number;
-  questionValue: 2 | 3;
+  questionValue: number;
   valueReduced: boolean;
   hintsShownCount: number;
   firstRoundComplete: boolean;
@@ -212,7 +212,7 @@ export class GameEngine {
 
     const questionValueReduced = !this.state.valueReduced;
     if (!this.state.valueReduced) {
-      this.state.questionValue = Math.max(1, this.state.questionValue - 1) as 2 | 3;
+      this.state.questionValue = Math.max(1, this.state.questionValue - 1);
       this.state.valueReduced = true;
     }
 
@@ -313,7 +313,7 @@ export class GameEngine {
 
     const questionValueReduced = !this.state.valueReduced;
     if (!this.state.valueReduced) {
-      this.state.questionValue = Math.max(1, this.state.questionValue - 1) as 2 | 3;
+      this.state.questionValue = Math.max(1, this.state.questionValue - 1);
       this.state.valueReduced = true;
     }
 
@@ -432,8 +432,9 @@ export class GameEngine {
 
   private resetQuestionState() {
     const tour = this.series.tours[this.state.currentTourIndex];
-    const defaultPoints = (tour?.defaultPoints === 2 ? 2 : 3) as 2 | 3;
-    this.state.questionValue = defaultPoints;
+    const question = this.getCurrentQuestion();
+    const points = question?.points ?? tour?.defaultPoints ?? 3;
+    this.state.questionValue = Math.max(1, points);
     this.state.valueReduced = false;
     this.state.hintsShownCount = 0;
     this.state.firstRoundComplete = false;

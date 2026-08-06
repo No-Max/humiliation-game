@@ -36,7 +36,7 @@ export interface RoomState {
   activeTeamId?: string;
   currentTourIndex: number;
   currentQuestionIndex: number;
-  questionValue: 2 | 3;
+  questionValue: number;
   valueReduced: boolean;
   hintShown: boolean;
   /** Подсказки, уже показанные в текущем вопросе (по одной на круг) */

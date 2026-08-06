@@ -27,7 +27,7 @@ export interface Tour {
   seriesId: string;
   title: string;
   rules?: string;
-  defaultPoints: 2 | 3;
+  defaultPoints: number;
   defaultTimeLimitSec: number;
   sortOrder: number;
   createdAt: string;
@@ -46,6 +46,7 @@ export interface Question {
   correctAnswer: string;
   acceptableAnswers?: string[];
   hints?: string[];
+  points?: number;
   timeLimitSec?: number;
   createdAt: string;
   updatedAt: string;

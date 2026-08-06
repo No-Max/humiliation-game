@@ -3,6 +3,6 @@ dist
 .env
 .env.local
 *.log
-uploads/*
-!uploads/.gitkeep
+**/uploads/*
+!**/uploads/.gitkeep
 .DS_Store

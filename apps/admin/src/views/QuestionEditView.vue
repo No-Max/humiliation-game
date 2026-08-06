@@ -15,6 +15,7 @@ interface Question {
   correctAnswer: string;
   hints?: string[];
   acceptableAnswers?: string[];
+  points?: number | null;
   timeLimitSec?: number | null;
   contentType?: string;
   mediaUrls?: string[];
@@ -24,6 +25,7 @@ interface Question {
 interface Tour {
   id: string;
   title: string;
+  defaultPoints: number;
   defaultTimeLimitSec: number;
   questions: Question[];
 }
@@ -65,6 +67,7 @@ const form = ref({
   correctAnswer: '',
   hints: [] as string[],
   acceptableAnswers: [] as string[],
+  points: '',
   timeLimitSec: '',
 });
 
@@ -107,6 +110,7 @@ async function load() {
         correctAnswer: foundQuestion.correctAnswer,
         hints: [...(foundQuestion.hints ?? [])],
         acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
+        points: foundQuestion.points != null ? String(foundQuestion.points) : '',
         timeLimitSec:
           foundQuestion.timeLimitSec != null ? String(foundQuestion.timeLimitSec) : '',
       };
@@ -118,6 +122,7 @@ async function load() {
         correctAnswer: '',
         hints: [],
         acceptableAnswers: [],
+        points: '',
         timeLimitSec: '',
       };
     }
@@ -145,16 +150,17 @@ watch(
   },
 );
 
-function parseTimeLimit(value: string, min = 5): number | null {
+function parsePositiveInt(value: string, min: number): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  const sec = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(sec) || sec < min) return NaN;
-  return sec;
+  const n = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n) || n < min) return NaN;
+  return n;
 }
 
 function buildPayload() {
-  const parsed = parseTimeLimit(form.value.timeLimitSec);
+  const points = parsePositiveInt(form.value.points, 1);
+  const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
   const contentType = form.value.contentType;
   return {
     contentType,
@@ -165,7 +171,8 @@ function buildPayload() {
     acceptableAnswers: form.value.acceptableAnswers
       .map((item) => item.trim())
       .filter(Boolean),
-    timeLimitSec: parsed,
+    points,
+    timeLimitSec,
     answerType: 'TEXT',
   };
 }
@@ -183,8 +190,13 @@ function validate(): boolean {
     error.value = 'Введите правильный ответ';
     return false;
   }
-  const parsed = parseTimeLimit(form.value.timeLimitSec);
-  if (Number.isNaN(parsed)) {
+  const points = parsePositiveInt(form.value.points, 1);
+  if (Number.isNaN(points)) {
+    error.value = 'Укажите стоимость не менее 1 балла или оставьте пустым';
+    return false;
+  }
+  const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
+  if (Number.isNaN(timeLimitSec)) {
     error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
     return false;
   }
@@ -217,6 +229,7 @@ async function save() {
         method: 'POST',
         body: JSON.stringify({
           ...payload,
+          points: payload.points ?? undefined,
           timeLimitSec: payload.timeLimitSec ?? undefined,
         }),
       });
@@ -267,12 +280,38 @@ async function remove() {
 
       <p v-if="error" class="error">{{ error }}</p>
 
-      <label class="label" for="question-type">Тип задания</label>
-      <select id="question-type" v-model="form.contentType" class="select">
-        <option v-for="option in CONTENT_TYPES" :key="option.value" :value="option.value">
-          {{ option.label }}
-        </option>
-      </select>
+      <div class="meta-row">
+        <div class="meta-field">
+          <label class="label" for="question-type">Тип задания</label>
+          <select id="question-type" v-model="form.contentType" class="select">
+            <option v-for="option in CONTENT_TYPES" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+        <div class="meta-field">
+          <label class="label" for="question-points">Стоимость (баллы)</label>
+          <input
+            id="question-points"
+            v-model="form.points"
+            class="input"
+            type="number"
+            min="1"
+            :placeholder="`Дефолт: ${tour.defaultPoints}`"
+          />
+        </div>
+        <div class="meta-field">
+          <label class="label" for="question-time">Время на ответ (сек)</label>
+          <input
+            id="question-time"
+            v-model="form.timeLimitSec"
+            class="input"
+            type="number"
+            min="5"
+            :placeholder="`Дефолт: ${tour.defaultTimeLimitSec}`"
+          />
+        </div>
+      </div>
 
       <label class="label" for="question-prompt">Текст задания</label>
       <textarea
@@ -295,19 +334,6 @@ async function remove() {
 
       <AnswerVariantsInput v-model="form.acceptableAnswers" />
       <HintsInput v-model="form.hints" />
-
-      <label class="label" for="question-time">Время на ответ (сек)</label>
-      <input
-        id="question-time"
-        v-model="form.timeLimitSec"
-        class="input"
-        type="number"
-        min="5"
-        placeholder="Пусто = дефолт тура"
-      />
-      <p class="field-hint">
-        Пусто — использовать дефолт тура ({{ tour.defaultTimeLimitSec }} сек)
-      </p>
 
       <div class="form-actions">
         <button
@@ -344,6 +370,24 @@ async function remove() {
 
 .back-link a:hover {
   text-decoration: underline;
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.meta-field .input,
+.meta-field .select {
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .meta-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-actions {

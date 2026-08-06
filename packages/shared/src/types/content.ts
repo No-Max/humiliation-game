@@ -28,6 +28,7 @@ export interface Tour {
   title: string;
   rules?: string;
   defaultPoints: 2 | 3;
+  defaultTimeLimitSec: number;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;

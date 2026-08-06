@@ -20,6 +20,7 @@ import {
   rememberTeamSlot,
   resolveTeamId,
 } from '../lib/teamSession';
+import AnswerTimer from '../components/AnswerTimer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -307,6 +308,11 @@ function confirmExit() {
 
     <div v-if="state?.questionPrompt" class="card" style="margin-top: 1rem">
       <p v-if="state.tourTitle" style="color: #6b7280; font-size: 0.875rem">{{ state.tourTitle }}</p>
+      <AnswerTimer
+        v-if="state.activeTeamId && !isPaused"
+        :deadline-at="state.answerDeadlineAt"
+        :paused="isPaused"
+      />
       <p style="font-size: 1.125rem">{{ state.questionPrompt }}</p>
       <p v-if="state.hint" class="hint">💡 {{ state.hint }}</p>
     </div>
@@ -392,6 +398,7 @@ function confirmExit() {
     </div>
 
     <div v-else-if="state && isMyTurn && myTeam?.connected !== false" class="card">
+      <AnswerTimer :deadline-at="state.answerDeadlineAt" :paused="isPaused" />
       <p>Ваш ход · {{ state.questionValue }} балл(ов)</p>
       <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
       <div style="display: flex; gap: 0.5rem">

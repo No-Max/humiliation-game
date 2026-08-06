@@ -46,6 +46,10 @@ export interface RoomState {
   /** Командные слоты — ссылки активны до конца игры */
   teamSlots: TeamSlot[];
   pausedBy?: string;
+  /** Лимит времени на ответ (сек), для текущего хода */
+  timeLimitSec?: number;
+  /** Unix ms — дедлайн ответа активной команды */
+  answerDeadlineAt?: number;
 }
 
 export interface TeamSlot {

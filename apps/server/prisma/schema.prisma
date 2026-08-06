@@ -80,8 +80,9 @@ model Tour {
   seriesId      String
   title         String
   rules         String?
-  defaultPoints Int      @default(3)
-  sortOrder     Int      @default(0)
+  defaultPoints       Int @default(3)
+  defaultTimeLimitSec Int @default(60)
+  sortOrder           Int @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

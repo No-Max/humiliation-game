@@ -25,6 +25,10 @@ export class GameEngine {
   private state: InMemoryQuestionState;
   private paused = false;
   private pausedByTeamId?: string;
+  private turnTimer: ReturnType<typeof setTimeout> | null = null;
+  private answerDeadlineAt: number | null = null;
+  private turnRemainingMs: number | null = null;
+  private onStateChange?: () => void;
   displayCount = 0;
 
   constructor(
@@ -53,6 +57,10 @@ export class GameEngine {
     };
   }
 
+  setOnStateChange(cb: () => void) {
+    this.onStateChange = cb;
+  }
+
   setTeamConnected(teamId: string, connected: boolean) {
     const team = this.teams.get(teamId);
     if (team) team.connected = connected;
@@ -77,6 +85,7 @@ export class GameEngine {
     }
     this.paused = true;
     this.pausedByTeamId = teamId;
+    this.pauseTurnTimer();
     return { ok: true };
   }
 
@@ -89,6 +98,7 @@ export class GameEngine {
     }
     this.paused = false;
     this.pausedByTeamId = undefined;
+    this.resumeTurnTimer();
     return { ok: true };
   }
 
@@ -102,6 +112,8 @@ export class GameEngine {
       : this.paused
         ? 'PAUSED'
         : 'PLAYING';
+
+    const timerActive = this.shouldRunTimer();
 
     return {
       roomCode: this.roomCode,
@@ -131,6 +143,8 @@ export class GameEngine {
       pausedBy: this.pausedByTeamId
         ? this.teams.get(this.pausedByTeamId)?.name
         : undefined,
+      timeLimitSec: timerActive ? this.getTimeLimitSec() : undefined,
+      answerDeadlineAt: timerActive ? this.answerDeadlineAt ?? undefined : undefined,
     };
   }
 
@@ -152,6 +166,7 @@ export class GameEngine {
     }
     this.resetQuestionState();
     this.state.phase = 'QUESTION';
+    this.refreshTurnTimer();
     return { ok: true };
   }
 
@@ -171,6 +186,7 @@ export class GameEngine {
     const correct = checkAnswer(answer, question);
 
     if (correct) {
+      this.clearTurnTimer();
       this.awardPoints(teamId);
       this.state.phase = 'CORRECT';
       return { ok: true, correct: true };
@@ -183,6 +199,7 @@ export class GameEngine {
 
     this.advanceToNextTeam();
     this.maybeCompleteFirstRound(question);
+    this.refreshTurnTimer();
     return { ok: true, correct: false };
   }
 
@@ -192,23 +209,7 @@ export class GameEngine {
     if (!this.canAct(teamId)) {
       return { ok: false, error: 'Not your turn' };
     }
-
-    this.ensureStealRoundStarted();
-
-    this.state.passedTeamIds.add(teamId);
-    this.state.attemptedTeamIds.add(teamId);
-    this.advanceToNextTeam();
-
-    const question = this.getCurrentQuestion();
-    if (question) this.maybeCompleteFirstRound(question);
-
-    if (this.allTeamsPassed()) {
-      this.state.phase = 'REVEAL';
-    } else if (this.getActiveTeamId()) {
-      this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
-    }
-
-    return { ok: true };
+    return this.passInternal(teamId);
   }
 
   nextQuestion(): { ok: boolean; error?: string } {
@@ -227,18 +228,104 @@ export class GameEngine {
         (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
       this.resetQuestionState();
       this.state.phase = 'QUESTION';
+      this.refreshTurnTimer();
       return { ok: true };
     }
 
     if (this.state.currentTourIndex + 1 < this.series.tours.length) {
+      this.clearTurnTimer();
       this.state.currentTourIndex += 1;
       this.state.currentQuestionIndex = 0;
       this.state.phase = 'TOUR_INTRO';
       return { ok: true };
     }
 
+    this.clearTurnTimer();
     this.state.phase = 'FINISHED';
     return { ok: true };
+  }
+
+  private passInternal(teamId: string): { ok: boolean; error?: string } {
+    this.ensureStealRoundStarted();
+
+    this.state.passedTeamIds.add(teamId);
+    this.state.attemptedTeamIds.add(teamId);
+    this.advanceToNextTeam();
+
+    const question = this.getCurrentQuestion();
+    if (question) this.maybeCompleteFirstRound(question);
+
+    if (this.allTeamsPassed()) {
+      this.clearTurnTimer();
+      this.state.phase = 'REVEAL';
+    } else if (this.getActiveTeamId()) {
+      this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
+      this.refreshTurnTimer();
+    } else {
+      this.clearTurnTimer();
+    }
+
+    return { ok: true };
+  }
+
+  private handleTurnTimeout() {
+    if (this.paused || this.isGameFinished()) return;
+
+    const activeId = this.getActiveTeamId();
+    if (!activeId) return;
+
+    this.passInternal(activeId);
+    this.onStateChange?.();
+  }
+
+  private getTimeLimitSec(): number {
+    const question = this.getCurrentQuestion();
+    const tour = this.series.tours[this.state.currentTourIndex];
+    return question?.timeLimitSec ?? tour?.defaultTimeLimitSec ?? 60;
+  }
+
+  private shouldRunTimer(): boolean {
+    if (this.paused) return false;
+    if (!this.getActiveTeamId()) return false;
+    return this.state.phase === 'QUESTION' || this.state.phase === 'STEAL_ROUND';
+  }
+
+  private clearTurnTimer() {
+    if (this.turnTimer) clearTimeout(this.turnTimer);
+    this.turnTimer = null;
+    this.answerDeadlineAt = null;
+    this.turnRemainingMs = null;
+  }
+
+  private pauseTurnTimer() {
+    if (!this.turnTimer || !this.answerDeadlineAt) {
+      this.clearTurnTimer();
+      return;
+    }
+    this.turnRemainingMs = Math.max(0, this.answerDeadlineAt - Date.now());
+    if (this.turnTimer) clearTimeout(this.turnTimer);
+    this.turnTimer = null;
+    this.answerDeadlineAt = null;
+  }
+
+  private resumeTurnTimer() {
+    if (this.turnRemainingMs != null && this.shouldRunTimer()) {
+      const remaining = this.turnRemainingMs;
+      this.turnRemainingMs = null;
+      this.answerDeadlineAt = Date.now() + remaining;
+      this.turnTimer = setTimeout(() => this.handleTurnTimeout(), remaining);
+      return;
+    }
+    this.refreshTurnTimer();
+  }
+
+  private refreshTurnTimer() {
+    this.clearTurnTimer();
+    if (!this.shouldRunTimer()) return;
+
+    const limitMs = this.getTimeLimitSec() * 1000;
+    this.answerDeadlineAt = Date.now() + limitMs;
+    this.turnTimer = setTimeout(() => this.handleTurnTimeout(), limitMs);
   }
 
   private canAct(teamId: string): boolean {
@@ -275,7 +362,8 @@ export class GameEngine {
       this.state.phase === 'TOUR_INTRO' ||
       this.state.phase === 'FINISHED' ||
       this.state.phase === 'CORRECT' ||
-      this.state.phase === 'REVEAL'
+      this.state.phase === 'REVEAL' ||
+      this.state.phase === 'HINT'
     ) {
       return undefined;
     }
@@ -307,6 +395,7 @@ export class GameEngine {
 
     this.state.firstRoundComplete = true;
     if (question.hint) {
+      this.clearTurnTimer();
       this.state.hintShown = true;
       this.state.phase = 'HINT';
     } else {
@@ -326,6 +415,7 @@ export class GameEngine {
     );
     this.state.currentTeamIndex = firstActive >= 0 ? firstActive : 0;
     this.state.phase = 'STEAL_ROUND';
+    this.refreshTurnTimer();
   }
 
   private allTeamsPassed(): boolean {

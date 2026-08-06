@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
+import AnswerTimer from '../components/AnswerTimer.vue';
 
 const route = useRoute();
 const state = ref<RoomState | null>(null);
@@ -55,6 +56,9 @@ onUnmounted(() => cleanup?.());
           · ход {{ state.teams.find(t => t.id === state.activeTeamId)?.name }}
         </span>
       </p>
+      <div v-if="state.activeTeamId && state.status !== 'PAUSED'" style="text-align: center">
+        <AnswerTimer :deadline-at="state.answerDeadlineAt" :paused="state.status === 'PAUSED'" />
+      </div>
       <div class="question">{{ state.questionPrompt }}</div>
       <p v-if="state.hint" class="hint">💡 {{ state.hint }}</p>
       <div v-if="state.phase === 'CORRECT'" class="banner correct">Верный ответ!</div>

@@ -73,13 +73,14 @@ adminSeriesRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
 
 // Tours
 adminSeriesRouter.post('/:seriesId/tours', async (req, res) => {
-  const { title, rules, defaultPoints, sortOrder } = req.body;
+  const { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder } = req.body;
   const tour = await prisma.tour.create({
     data: {
       seriesId: req.params.seriesId,
       title,
       rules,
       defaultPoints: defaultPoints ?? 3,
+      defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
       sortOrder: sortOrder ?? 0,
     },
   });
@@ -87,10 +88,10 @@ adminSeriesRouter.post('/:seriesId/tours', async (req, res) => {
 });
 
 adminSeriesRouter.put('/tours/:tourId', async (req, res) => {
-  const { title, rules, defaultPoints, sortOrder } = req.body;
+  const { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder } = req.body;
   const tour = await prisma.tour.update({
     where: { id: req.params.tourId },
-    data: { title, rules, defaultPoints, sortOrder },
+    data: { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder },
   });
   res.json(tour);
 });

@@ -14,6 +14,12 @@ const rooms = new Map<string, GameEngine>();
 /** teamId → socketId активного подключения */
 const teamConnections = new Map<string, string>();
 
+function bindEngine(io: GameServer, roomCode: string, engine: GameEngine) {
+  engine.setOnStateChange(() => {
+    io.to(roomCode).emit('roomState', engine.getPublicState());
+  });
+}
+
 function teamSlotPath(roomCode: string, teamId: string) {
   return `/team/${roomCode}/${teamId}`;
 }
@@ -58,6 +64,7 @@ export function setupSocketHandlers(io: GameServer) {
         if (!engine) {
           engine = new GameEngine(roomCode, room.series, room.teams);
           rooms.set(roomCode, engine);
+          bindEngine(io, roomCode, engine);
         }
 
         if (engine.isGameFinished()) {

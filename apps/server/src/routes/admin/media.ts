@@ -19,32 +19,45 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: Number(process.env.MAX_UPLOAD_SIZE ?? 10485760) },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error('Можно загружать только изображения'));
+  },
 });
 
 export const adminMediaRouter = Router();
 
 adminMediaRouter.use(requireAdmin());
 
-adminMediaRouter.post('/upload', upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    res.status(400).json({ error: 'No file uploaded' });
-    return;
-  }
+adminMediaRouter.post('/upload', (req, res) => {
+  upload.single('file')(req, res, async (err) => {
+    if (err) {
+      res.status(400).json({ error: err.message || 'Ошибка загрузки' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
 
-  const media = await prisma.mediaFile.create({
-    data: {
-      filename: req.file.originalname,
-      path: req.file.filename,
-      mimeType: req.file.mimetype,
-      size: req.file.size,
-    },
-  });
+    const media = await prisma.mediaFile.create({
+      data: {
+        filename: req.file.originalname,
+        path: req.file.filename,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      },
+    });
 
-  res.status(201).json({
-    id: media.id,
-    url: `/uploads/${media.path}`,
-    filename: media.filename,
-    mimeType: media.mimeType,
+    res.status(201).json({
+      id: media.id,
+      url: `/uploads/${media.path}`,
+      filename: media.filename,
+      mimeType: media.mimeType,
+    });
   });
 });
 

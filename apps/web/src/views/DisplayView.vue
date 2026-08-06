@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import AnswerTimer from '../components/AnswerTimer.vue';
+import QuestionContent from '../components/QuestionContent.vue';
 
 const route = useRoute();
 const state = ref<RoomState | null>(null);
@@ -49,7 +50,10 @@ onUnmounted(() => cleanup?.());
       <p>Нажмите «Начать» на телефоне</p>
     </div>
 
-    <div v-else-if="state?.questionPrompt" class="card">
+    <div
+      v-else-if="state && (state.questionPrompt || state.mediaUrls?.length)"
+      class="card"
+    >
       <p style="text-align: center; color: #6b7280">
         {{ state.tourTitle }} · {{ state.questionValue }} б.
         <span v-if="state.activeTeamId">
@@ -60,7 +64,11 @@ onUnmounted(() => cleanup?.());
         <AnswerTimer :deadline-at="state.answerDeadlineAt" :paused="state.status === 'PAUSED'" />
       </div>
       <div v-if="state.turnNotice" class="banner wrong turn-notice">{{ state.turnNotice }}</div>
-      <div class="question">{{ state.questionPrompt }}</div>
+      <QuestionContent
+        large
+        :prompt="state.questionPrompt"
+        :media-urls="state.mediaUrls"
+      />
       <div v-if="state.hints?.length" class="hints-list">
         <p v-if="state.hintsTotal" class="hints-caption">
           Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
@@ -74,7 +82,9 @@ onUnmounted(() => cleanup?.());
           💡 {{ index + 1 }}. {{ hint }}
         </p>
       </div>
-      <div v-if="state.phase === 'CORRECT'" class="banner correct">Верный ответ!</div>
+      <div v-if="state.phase === 'CORRECT'" class="banner correct">
+        Верный ответ: {{ state.correctAnswer }}
+      </div>
       <div v-if="state.phase === 'REVEAL'" class="banner wrong">
         Правильный ответ: {{ state.correctAnswer }}
       </div>

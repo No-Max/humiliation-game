@@ -29,3 +29,27 @@ export async function adminApi<T>(path: string, options?: RequestInit): Promise<
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+export async function adminUpload(file: File): Promise<{
+  id: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+}> {
+  const token = getToken();
+  const body = new FormData();
+  body.append('file', file);
+
+  const res = await fetch('/api/admin/media/upload', {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error ?? 'Ошибка загрузки');
+  }
+
+  return res.json();
+}

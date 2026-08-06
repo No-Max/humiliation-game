@@ -4,6 +4,9 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import HintsInput from '../components/HintsInput.vue';
+import MediaImagesInput from '../components/MediaImagesInput.vue';
+
+type ContentTypeOption = 'TEXT' | 'IMAGE_TEXT';
 
 interface Question {
   id: string;
@@ -14,6 +17,7 @@ interface Question {
   acceptableAnswers?: string[];
   timeLimitSec?: number | null;
   contentType?: string;
+  mediaUrls?: string[];
   answerType?: string;
 }
 
@@ -30,6 +34,11 @@ interface SeriesDetail {
   number: number;
   tours: Tour[];
 }
+
+const CONTENT_TYPES: { value: ContentTypeOption; label: string }[] = [
+  { value: 'TEXT', label: 'Текст' },
+  { value: 'IMAGE_TEXT', label: 'Текст + картинка' },
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -50,7 +59,9 @@ const error = ref('');
 const loadError = ref('');
 
 const form = ref({
+  contentType: 'TEXT' as ContentTypeOption,
   prompt: '',
+  mediaUrls: [] as string[],
   correctAnswer: '',
   hints: [] as string[],
   acceptableAnswers: [] as string[],
@@ -60,6 +71,12 @@ const form = ref({
 const pageTitle = computed(() =>
   isEdit.value ? 'Редактировать задание' : 'Новое задание',
 );
+
+const showImages = computed(() => form.value.contentType === 'IMAGE_TEXT');
+
+function normalizeContentType(value?: string): ContentTypeOption {
+  return value === 'IMAGE_TEXT' ? 'IMAGE_TEXT' : 'TEXT';
+}
 
 async function load() {
   loading.value = true;
@@ -84,7 +101,9 @@ async function load() {
         return;
       }
       form.value = {
+        contentType: normalizeContentType(foundQuestion.contentType),
         prompt: foundQuestion.prompt ?? '',
+        mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
         correctAnswer: foundQuestion.correctAnswer,
         hints: [...(foundQuestion.hints ?? [])],
         acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
@@ -93,7 +112,9 @@ async function load() {
       };
     } else {
       form.value = {
+        contentType: 'TEXT',
         prompt: '',
+        mediaUrls: [],
         correctAnswer: '',
         hints: [],
         acceptableAnswers: [],
@@ -115,6 +136,15 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => form.value.contentType,
+  (type) => {
+    if (type === 'TEXT') {
+      form.value.mediaUrls = [];
+    }
+  },
+);
+
 function parseTimeLimit(value: string, min = 5): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -125,15 +155,17 @@ function parseTimeLimit(value: string, min = 5): number | null {
 
 function buildPayload() {
   const parsed = parseTimeLimit(form.value.timeLimitSec);
+  const contentType = form.value.contentType;
   return {
-    prompt: form.value.prompt.trim(),
+    contentType,
+    prompt: form.value.prompt.trim() || null,
+    mediaUrls: contentType === 'IMAGE_TEXT' ? form.value.mediaUrls : [],
     correctAnswer: form.value.correctAnswer.trim(),
     hints: form.value.hints.map((item) => item.trim()).filter(Boolean),
     acceptableAnswers: form.value.acceptableAnswers
       .map((item) => item.trim())
       .filter(Boolean),
     timeLimitSec: parsed,
-    contentType: 'TEXT',
     answerType: 'TEXT',
   };
 }
@@ -141,6 +173,10 @@ function buildPayload() {
 function validate(): boolean {
   if (!form.value.prompt.trim()) {
     error.value = 'Введите текст задания';
+    return false;
+  }
+  if (form.value.contentType === 'IMAGE_TEXT' && form.value.mediaUrls.length === 0) {
+    error.value = 'Загрузите хотя бы одну картинку';
     return false;
   }
   if (!form.value.correctAnswer.trim()) {
@@ -231,6 +267,13 @@ async function remove() {
 
       <p v-if="error" class="error">{{ error }}</p>
 
+      <label class="label" for="question-type">Тип задания</label>
+      <select id="question-type" v-model="form.contentType" class="select">
+        <option v-for="option in CONTENT_TYPES" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+
       <label class="label" for="question-prompt">Текст задания</label>
       <textarea
         id="question-prompt"
@@ -239,6 +282,8 @@ async function remove() {
         placeholder="Вопрос или задание"
         autofocus
       />
+
+      <MediaImagesInput v-if="showImages" v-model="form.mediaUrls" />
 
       <label class="label" for="question-answer">Основной правильный ответ</label>
       <input

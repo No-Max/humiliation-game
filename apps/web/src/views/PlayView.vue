@@ -21,6 +21,7 @@ import {
   resolveTeamId,
 } from '../lib/teamSession';
 import AnswerTimer from '../components/AnswerTimer.vue';
+import QuestionContent from '../components/QuestionContent.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -316,7 +317,7 @@ function confirmExit() {
     </div>
 
     <div
-      v-if="state?.questionPrompt && isActiveQuestion"
+      v-if="(state?.questionPrompt || state?.mediaUrls?.length) && isActiveQuestion"
       class="card"
       style="margin-top: 1rem"
     >
@@ -328,7 +329,7 @@ function confirmExit() {
         :deadline-at="state.answerDeadlineAt"
         :paused="isPaused"
       />
-      <p style="font-size: 1.125rem">{{ state.questionPrompt }}</p>
+      <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" />
       <div v-if="state.hints?.length" class="hints-list">
         <p v-if="state.hintsTotal" class="hints-caption">
           Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
@@ -412,7 +413,10 @@ function confirmExit() {
 
     <div v-else-if="state?.phase === 'CORRECT' && !isPaused" class="card">
       <div class="banner correct">Верно! +{{ state.questionValue }}</div>
-      <button class="btn" @click="nextQuestion">Следующий вопрос</button>
+      <p v-if="state.correctAnswer">
+        Правильный ответ: <strong>{{ state.correctAnswer }}</strong>
+      </p>
+      <button class="btn" style="margin-top: 1rem" @click="nextQuestion">Следующий вопрос</button>
     </div>
 
     <div v-else-if="state?.phase === 'REVEAL' && !isPaused" class="card">

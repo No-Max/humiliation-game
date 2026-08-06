@@ -1,3 +1,5 @@
+import type { QuestionContentType } from './content.js';
+
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 
 export type ClientRole = 'team' | 'display';
@@ -44,6 +46,8 @@ export interface RoomState {
   displayCount: number;
   tourTitle?: string;
   questionPrompt?: string;
+  questionContentType?: QuestionContentType;
+  mediaUrls?: string[];
   correctAnswer?: string;
   /** Командные слоты — ссылки активны до конца игры */
   teamSlots: TeamSlot[];

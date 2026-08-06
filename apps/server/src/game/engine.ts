@@ -1,4 +1,4 @@
-import type { QuestionPhase, RoomState, TeamState } from '@humiliation-game/shared';
+import type { QuestionContentType, QuestionPhase, RoomState, TeamState } from '@humiliation-game/shared';
 import type { GameTeam, Question, Series, Tour } from '@prisma/client';
 
 type SeriesWithContent = Series & {
@@ -139,6 +139,12 @@ export class GameEngine {
       displayCount: this.displayCount,
       tourTitle: tour?.title,
       questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
+      questionContentType: tourStarted
+        ? (question?.contentType as QuestionContentType | undefined)
+        : undefined,
+      mediaUrls: tourStarted && question?.mediaUrls?.length
+        ? question.mediaUrls
+        : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       teamSlots: this.state.teamOrder.map((id) => {
         const team = this.teams.get(id)!;

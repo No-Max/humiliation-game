@@ -57,12 +57,12 @@ const isMyTurn = computed(
     state.value?.activeTeamId &&
     state.value.activeTeamId === teamId.value,
 );
-const canAdvance = computed(
-  () =>
-    !isPaused.value &&
-    (state.value?.phase === 'CORRECT' || state.value?.phase === 'REVEAL'),
-);
 const myTeam = computed(() => state.value?.teams.find((t) => t.id === teamId.value));
+const canSubmit = computed(() => answer.value.trim().length > 0);
+const isActiveQuestion = computed(
+  () =>
+    state.value?.phase === 'QUESTION' || state.value?.phase === 'STEAL_ROUND',
+);
 const offlineActiveTeam = computed(() => {
   if (!state.value?.activeTeamId) return null;
   const team = state.value.teams.find((t) => t.id === state.value!.activeTeamId);
@@ -149,9 +149,18 @@ function startTour() {
 }
 
 function submit() {
+  if (!canSubmit.value) return;
   connectSocket().emit('submitAnswer', answer.value, (result) => {
-    if (!result.ok) message.value = result.error ?? 'Ошибка';
-    else answer.value = '';
+    if (!result.ok) {
+      message.value = result.error ?? 'Ошибка';
+      return;
+    }
+    if (result.correct === false) {
+      message.value = '';
+    } else if (result.correct) {
+      message.value = '';
+    }
+    answer.value = '';
   });
 }
 
@@ -306,15 +315,40 @@ function confirmExit() {
       </button>
     </div>
 
-    <div v-if="state?.questionPrompt" class="card" style="margin-top: 1rem">
+    <div
+      v-if="state?.questionPrompt && isActiveQuestion"
+      class="card"
+      style="margin-top: 1rem"
+    >
       <p v-if="state.tourTitle" style="color: #6b7280; font-size: 0.875rem">{{ state.tourTitle }}</p>
+      <div v-if="state.turnNotice" class="banner wrong turn-notice">{{ state.turnNotice }}</div>
+      <p v-if="state.phase === 'STEAL_ROUND'" class="steal-round-label">Раунд украсть</p>
       <AnswerTimer
         v-if="state.activeTeamId && !isPaused"
         :deadline-at="state.answerDeadlineAt"
         :paused="isPaused"
       />
       <p style="font-size: 1.125rem">{{ state.questionPrompt }}</p>
-      <p v-if="state.hint" class="hint">💡 {{ state.hint }}</p>
+      <div v-if="state.hints?.length" class="hints-list">
+        <p v-if="state.hintsTotal" class="hints-caption">
+          Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
+        </p>
+        <p v-for="(hint, index) in state.hints" :key="`${index}-${hint}`" class="hint" :class="{ 'hint-latest': index === state.hints.length - 1 }">
+          💡 {{ index + 1 }}. {{ hint }}
+        </p>
+      </div>
+
+      <template v-if="isMyTurn && myTeam?.connected !== false">
+        <p style="margin-top: 1rem">Ваш ход · {{ state.questionValue }} балл(ов)</p>
+        <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
+        <div style="display: flex; gap: 0.5rem">
+          <button class="btn" :disabled="!canSubmit" @click="submit">Ответить</button>
+          <button class="btn btn-secondary" @click="pass">Сдаёмся</button>
+        </div>
+      </template>
+      <p v-else-if="!isPaused" style="margin-top: 1rem; color: #6b7280">
+        Ожидайте хода другой команды
+      </p>
     </div>
 
     <div v-if="showConnectionModal && linksActive" class="modal-overlay" @click.self="closeConnection">
@@ -395,24 +429,6 @@ function confirmExit() {
       <div v-for="team in state.teams" :key="team.id" style="margin-top: 0.5rem">
         {{ team.name }}: {{ team.score }} баллов
       </div>
-    </div>
-
-    <div v-else-if="state && isMyTurn && myTeam?.connected !== false" class="card">
-      <AnswerTimer :deadline-at="state.answerDeadlineAt" :paused="isPaused" />
-      <p>Ваш ход · {{ state.questionValue }} балл(ов)</p>
-      <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
-      <div style="display: flex; gap: 0.5rem">
-        <button class="btn" @click="submit">Ответить</button>
-        <button class="btn btn-secondary" @click="pass">Сдаёмся</button>
-      </div>
-    </div>
-
-    <div v-else-if="state && canAdvance" class="card">
-      <button class="btn" @click="nextQuestion">Следующий вопрос</button>
-    </div>
-
-    <div v-else-if="state && !isPaused" class="card">
-      <p>Ожидайте хода другой команды</p>
     </div>
 
     <div v-if="showExitModal" class="modal-overlay" @click.self="closeExit">

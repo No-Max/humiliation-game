@@ -59,8 +59,21 @@ onUnmounted(() => cleanup?.());
       <div v-if="state.activeTeamId && state.status !== 'PAUSED'" style="text-align: center">
         <AnswerTimer :deadline-at="state.answerDeadlineAt" :paused="state.status === 'PAUSED'" />
       </div>
+      <div v-if="state.turnNotice" class="banner wrong turn-notice">{{ state.turnNotice }}</div>
       <div class="question">{{ state.questionPrompt }}</div>
-      <p v-if="state.hint" class="hint">💡 {{ state.hint }}</p>
+      <div v-if="state.hints?.length" class="hints-list">
+        <p v-if="state.hintsTotal" class="hints-caption">
+          Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
+        </p>
+        <p
+          v-for="(hint, index) in state.hints"
+          :key="`${index}-${hint}`"
+          class="hint"
+          :class="{ 'hint-latest': index === state.hints.length - 1 }"
+        >
+          💡 {{ index + 1 }}. {{ hint }}
+        </p>
+      </div>
       <div v-if="state.phase === 'CORRECT'" class="banner correct">Верный ответ!</div>
       <div v-if="state.phase === 'REVEAL'" class="banner wrong">
         Правильный ответ: {{ state.correctAnswer }}

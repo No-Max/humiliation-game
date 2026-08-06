@@ -45,7 +45,7 @@ export interface Question {
   choices?: string[];
   correctAnswer: string;
   acceptableAnswers?: string[];
-  hint?: string;
+  hints?: string[];
   explanation?: string;
   timeLimitSec?: number;
   createdAt: string;

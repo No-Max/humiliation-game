@@ -103,7 +103,7 @@ model Question {
   choices            String[]            @default([])
   correctAnswer      String
   acceptableAnswers  String[]            @default([])
-  hint               String?
+  hints              String[]            @default([])
   explanation        String?
   timeLimitSec       Int?
   createdAt          DateTime            @default(now())

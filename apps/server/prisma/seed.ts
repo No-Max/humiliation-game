@@ -52,7 +52,7 @@ async function main() {
                   answerType: 'TEXT',
                   correctAnswer: 'walk into mordor',
                   acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
-                  hint: 'Властелин колец',
+                  hints: ['Властелин колец', 'Boromir meme'],
                   explanation: 'Boromir meme',
                 },
                 {
@@ -87,6 +87,11 @@ async function main() {
         ],
       },
     },
+  });
+
+  await prisma.question.updateMany({
+    where: { prompt: { contains: 'One does not simply' } },
+    data: { hints: ['Властелин колец', 'Boromir meme'] },
   });
 
   console.log('Seed complete:', { seriesId: series.id });

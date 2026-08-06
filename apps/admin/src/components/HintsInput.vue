@@ -38,7 +38,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   <div class="variants-input">
     <label class="label">Подсказки</label>
     <p class="field-hint variants-hint">
-      Первая — после 1-го круга ответов, следующие — после каждого неверного ответа.
+      Подсказка после каждого круга ответов.
     </p>
 
     <ul v-if="hints.length" class="variants-list">

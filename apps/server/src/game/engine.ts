@@ -471,22 +471,12 @@ export class GameEngine {
   }
 
   private afterWrongAnswer(question: Question) {
-    const hints = this.getQuestionHints(question);
-
     if (!this.state.firstRoundComplete) {
       this.maybeCompleteFirstRound(question);
       return;
     }
 
-    if (hints.length > 0 && this.state.hintsShownCount < hints.length) {
-      this.state.hintsShownCount += 1;
-    }
-
-    if (this.state.teamOrder.length === 1) {
-      this.resetStealCycleAttempts();
-    } else {
-      this.maybeCompleteStealCycle(question);
-    }
+    this.maybeCompleteStealCycle(question);
   }
 
   private maybeCompleteFirstRound(question: Question) {
@@ -500,10 +490,7 @@ export class GameEngine {
     if (!allAttempted) return;
 
     this.state.firstRoundComplete = true;
-    const hints = this.getQuestionHints(question);
-    if (hints.length > 0) {
-      this.state.hintsShownCount = 1;
-    }
+    this.revealNextHint(question);
     this.beginStealRound();
   }
 
@@ -518,8 +505,16 @@ export class GameEngine {
     );
     if (!allAttempted) return;
 
+    this.revealNextHint(question);
     this.resetStealCycleAttempts();
     this.refreshTurnTimer();
+  }
+
+  private revealNextHint(question: Question) {
+    const hints = this.getQuestionHints(question);
+    if (hints.length > 0 && this.state.hintsShownCount < hints.length) {
+      this.state.hintsShownCount += 1;
+    }
   }
 
   private beginStealRound() {

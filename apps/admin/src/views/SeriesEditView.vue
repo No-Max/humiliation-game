@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
-import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
-import HintsInput from '../components/HintsInput.vue';
 
 interface Question {
   id: string;
@@ -14,8 +12,6 @@ interface Question {
   hints?: string[];
   acceptableAnswers?: string[];
   timeLimitSec?: number | null;
-  contentType?: string;
-  answerType?: string;
 }
 
 interface Tour {
@@ -37,24 +33,19 @@ interface SeriesDetail {
   tours: Tour[];
 }
 
-type ModalKind = 'addTour' | 'editTourTime' | 'addQuestion' | 'editQuestion';
+type ModalKind = 'addTour' | 'editTourTime';
 
 const route = useRoute();
+const router = useRouter();
 const series = ref<SeriesDetail | null>(null);
 const modalKind = ref<ModalKind | null>(null);
 const activeTour = ref<Tour | null>(null);
-const activeQuestion = ref<Question | null>(null);
 const saving = ref(false);
 const error = ref('');
 
 const form = ref({
   title: '',
   defaultTimeLimitSec: '60',
-  prompt: '',
-  correctAnswer: '',
-  hints: [] as string[],
-  acceptableAnswers: [] as string[],
-  timeLimitSec: '',
 });
 
 async function load() {
@@ -67,18 +58,12 @@ function resetForm() {
   form.value = {
     title: '',
     defaultTimeLimitSec: '60',
-    prompt: '',
-    correctAnswer: '',
-    hints: [] as string[],
-    acceptableAnswers: [] as string[],
-    timeLimitSec: '',
   };
 }
 
 function closeModal() {
   modalKind.value = null;
   activeTour.value = null;
-  activeQuestion.value = null;
   error.value = '';
 }
 
@@ -97,31 +82,20 @@ function openEditTourTime(tour: Tour) {
 }
 
 function openAddQuestion(tour: Tour) {
-  activeTour.value = tour;
-  resetForm();
-  error.value = '';
-  modalKind.value = 'addQuestion';
+  if (!series.value) return;
+  router.push(`/series/${series.value.id}/tours/${tour.id}/questions/new`);
 }
 
 function openEditQuestion(tour: Tour, question: Question) {
-  activeTour.value = tour;
-  activeQuestion.value = question;
-  resetForm();
-  form.value.prompt = question.prompt ?? '';
-  form.value.correctAnswer = question.correctAnswer;
-  form.value.hints = [...(question.hints ?? [])];
-  form.value.acceptableAnswers = [...(question.acceptableAnswers ?? [])];
-  form.value.timeLimitSec =
-    question.timeLimitSec != null ? String(question.timeLimitSec) : '';
-  error.value = '';
-  modalKind.value = 'editQuestion';
+  if (!series.value) return;
+  router.push(
+    `/series/${series.value.id}/tours/${tour.id}/questions/${question.id}`,
+  );
 }
 
 const modalTitle = {
   addTour: 'Новый тур',
   editTourTime: 'Время на ответ — тур',
-  addQuestion: 'Новое задание',
-  editQuestion: 'Редактировать задание',
 } as const;
 
 async function publish() {
@@ -139,41 +113,6 @@ function parseTimeLimit(value: string, min = 5): number | null {
   const sec = Number.parseInt(trimmed, 10);
   if (!Number.isFinite(sec) || sec < min) return NaN;
   return sec;
-}
-
-function buildQuestionPayload() {
-  const prompt = form.value.prompt.trim();
-  const correctAnswer = form.value.correctAnswer.trim();
-  const parsed = parseTimeLimit(form.value.timeLimitSec);
-
-  return {
-    prompt,
-    correctAnswer,
-    hints: form.value.hints.map((item) => item.trim()).filter(Boolean),
-    acceptableAnswers: form.value.acceptableAnswers
-      .map((item) => item.trim())
-      .filter(Boolean),
-    timeLimitSec: parsed,
-    contentType: 'TEXT',
-    answerType: 'TEXT',
-  };
-}
-
-function validateQuestionFields(): boolean {
-  if (!form.value.prompt.trim()) {
-    error.value = 'Введите текст задания';
-    return false;
-  }
-  if (!form.value.correctAnswer.trim()) {
-    error.value = 'Введите правильный ответ';
-    return false;
-  }
-  const parsed = parseTimeLimit(form.value.timeLimitSec);
-  if (Number.isNaN(parsed)) {
-    error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
-    return false;
-  }
-  return true;
 }
 
 async function submitModal() {
@@ -218,55 +157,10 @@ async function submitModal() {
       });
     }
 
-    if (modalKind.value === 'addQuestion' && activeTour.value) {
-      if (!validateQuestionFields()) return;
-      const payload = buildQuestionPayload();
-
-      await adminApi(`/series/tours/${activeTour.value.id}/questions`, {
-        method: 'POST',
-        body: JSON.stringify({
-          ...payload,
-          timeLimitSec: payload.timeLimitSec ?? undefined,
-        }),
-      });
-    }
-
-    if (modalKind.value === 'editQuestion' && activeTour.value && activeQuestion.value) {
-      if (!validateQuestionFields()) return;
-      const payload = buildQuestionPayload();
-
-      await adminApi(`/series/questions/${activeQuestion.value.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          ...activeQuestion.value,
-          ...payload,
-        }),
-      });
-    }
-
     await load();
     closeModal();
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Ошибка сохранения';
-  } finally {
-    saving.value = false;
-  }
-}
-
-async function deleteQuestion() {
-  if (!activeQuestion.value || modalKind.value !== 'editQuestion') return;
-  if (!window.confirm('Удалить это задание?')) return;
-
-  saving.value = true;
-  error.value = '';
-  try {
-    await adminApi(`/series/questions/${activeQuestion.value.id}`, {
-      method: 'DELETE',
-    });
-    await load();
-    closeModal();
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Ошибка удаления';
   } finally {
     saving.value = false;
   }
@@ -337,11 +231,9 @@ function formatTime(sec: number) {
       :open="!!modalKind"
       :title="modalTitle[modalKind]"
       :loading="saving"
-      :submit-label="modalKind === 'addTour' || modalKind === 'addQuestion' ? 'Создать' : 'Сохранить'"
-      :delete-label="modalKind === 'editQuestion' ? 'Удалить' : undefined"
+      :submit-label="modalKind === 'addTour' ? 'Создать' : 'Сохранить'"
       @close="closeModal"
       @submit="submitModal"
-      @delete="deleteQuestion"
     >
       <p v-if="error" class="error">{{ error }}</p>
 
@@ -371,41 +263,6 @@ function formatTime(sec: number) {
           min="5"
           autofocus
         />
-      </template>
-
-      <template v-else-if="(modalKind === 'addQuestion' || modalKind === 'editQuestion') && activeTour">
-        <p v-if="modalKind === 'addQuestion'" class="field-hint" style="margin-top: 0">
-          Тур: {{ activeTour.title }}
-        </p>
-        <label class="label" for="question-prompt">Текст задания</label>
-        <textarea
-          id="question-prompt"
-          v-model="form.prompt"
-          class="textarea"
-          placeholder="Вопрос или задание"
-          autofocus
-        />
-        <label class="label" for="question-answer">Основной правильный ответ</label>
-        <input
-          id="question-answer"
-          v-model="form.correctAnswer"
-          class="input"
-          placeholder="Главный вариант ответа"
-        />
-        <AnswerVariantsInput v-model="form.acceptableAnswers" />
-        <HintsInput v-model="form.hints" />
-        <label class="label" for="question-time">Время на ответ (сек)</label>
-        <input
-          id="question-time"
-          v-model="form.timeLimitSec"
-          class="input"
-          type="number"
-          min="5"
-          placeholder="Пусто = дефолт тура"
-        />
-        <p class="field-hint">
-          Пусто — использовать дефолт тура ({{ activeTour.defaultTimeLimitSec }} сек)
-        </p>
       </template>
     </AdminModal>
   </div>

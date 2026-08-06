@@ -41,6 +41,8 @@ export interface JoinRoomResult {
 export interface ActionResult {
   ok: boolean;
   error?: string;
+  correct?: boolean;
+  questionValueReduced?: boolean;
 }
 
 export const SOCKET_EVENTS = {

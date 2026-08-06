@@ -169,7 +169,12 @@ export function setupSocketHandlers(io: GameServer) {
       if (result.ok && roomCode) {
         io.to(roomCode).emit('roomState', engine.getPublicState());
       }
-      callback({ ok: result.ok, error: result.error });
+      callback({
+        ok: result.ok,
+        error: result.error,
+        correct: result.correct,
+        questionValueReduced: result.questionValueReduced,
+      });
     });
 
     socket.on('pass', (callback) => {

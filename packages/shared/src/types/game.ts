@@ -37,10 +37,13 @@ export interface RoomState {
   questionValue: 2 | 3;
   valueReduced: boolean;
   hintShown: boolean;
+  /** Подсказки, уже показанные в текущем вопросе (по одной на круг) */
+  hints?: string[];
+  /** Сколько подсказок всего настроено для вопроса */
+  hintsTotal?: number;
   displayCount: number;
   tourTitle?: string;
   questionPrompt?: string;
-  hint?: string;
   correctAnswer?: string;
   explanation?: string;
   /** Командные слоты — ссылки активны до конца игры */
@@ -50,6 +53,8 @@ export interface RoomState {
   timeLimitSec?: number;
   /** Unix ms — дедлайн ответа активной команды */
   answerDeadlineAt?: number;
+  /** Сообщение о результате последнего хода (неверно, таймаут) */
+  turnNotice?: string;
 }
 
 export interface TeamSlot {

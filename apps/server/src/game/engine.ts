@@ -9,9 +9,10 @@ interface InMemoryQuestionState {
   phase: QuestionPhase;
   teamOrder: string[];
   currentTeamIndex: number;
+  turnIndex: number;
   questionValue: 2 | 3;
   valueReduced: boolean;
-  hintShown: boolean;
+  hintsShownCount: number;
   firstRoundComplete: boolean;
   passedTeamIds: Set<string>;
   attemptedTeamIds: Set<string>;
@@ -28,6 +29,7 @@ export class GameEngine {
   private turnTimer: ReturnType<typeof setTimeout> | null = null;
   private answerDeadlineAt: number | null = null;
   private turnRemainingMs: number | null = null;
+  private turnNotice?: string;
   private onStateChange?: () => void;
   displayCount = 0;
 
@@ -46,9 +48,10 @@ export class GameEngine {
       phase: 'TOUR_INTRO',
       teamOrder,
       currentTeamIndex: 0,
+      turnIndex: 0,
       questionValue: 3,
       valueReduced: false,
-      hintShown: false,
+      hintsShownCount: 0,
       firstRoundComplete: false,
       passedTeamIds: new Set(),
       attemptedTeamIds: new Set(),
@@ -114,6 +117,7 @@ export class GameEngine {
         : 'PLAYING';
 
     const timerActive = this.shouldRunTimer();
+    const tourStarted = this.state.phase !== 'TOUR_INTRO';
 
     return {
       roomCode: this.roomCode,
@@ -129,11 +133,12 @@ export class GameEngine {
       currentQuestionIndex: this.state.currentQuestionIndex,
       questionValue: this.state.questionValue,
       valueReduced: this.state.valueReduced,
-      hintShown: this.state.hintShown,
+      hintShown: tourStarted && this.state.hintsShownCount > 0,
+      hints: tourStarted ? this.getRevealedHints(question) : undefined,
+      hintsTotal: tourStarted && question ? this.getQuestionHints(question).length : undefined,
       displayCount: this.displayCount,
       tourTitle: tour?.title,
-      questionPrompt: question?.prompt ?? undefined,
-      hint: this.state.hintShown ? question?.hint ?? undefined : undefined,
+      questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       explanation: showAnswer ? question?.explanation ?? undefined : undefined,
       teamSlots: this.state.teamOrder.map((id) => {
@@ -145,6 +150,7 @@ export class GameEngine {
         : undefined,
       timeLimitSec: timerActive ? this.getTimeLimitSec() : undefined,
       answerDeadlineAt: timerActive ? this.answerDeadlineAt ?? undefined : undefined,
+      turnNotice: tourStarted ? this.turnNotice : undefined,
     };
   }
 
@@ -170,7 +176,12 @@ export class GameEngine {
     return { ok: true };
   }
 
-  submitAnswer(teamId: string, answer: string): { ok: boolean; error?: string; correct?: boolean } {
+  submitAnswer(teamId: string, answer: string): {
+    ok: boolean;
+    error?: string;
+    correct?: boolean;
+    questionValueReduced?: boolean;
+  } {
     const guard = this.ensurePlaying();
     if (!guard.ok) return guard;
     if (!this.canAct(teamId)) {
@@ -180,6 +191,7 @@ export class GameEngine {
     const question = this.getCurrentQuestion();
     if (!question) return { ok: false, error: 'No active question' };
 
+    this.turnNotice = undefined;
     this.ensureStealRoundStarted();
 
     this.state.attemptedTeamIds.add(teamId);
@@ -187,20 +199,23 @@ export class GameEngine {
 
     if (correct) {
       this.clearTurnTimer();
+      this.turnNotice = undefined;
       this.awardPoints(teamId);
       this.state.phase = 'CORRECT';
       return { ok: true, correct: true };
     }
 
+    const questionValueReduced = !this.state.valueReduced;
     if (!this.state.valueReduced) {
       this.state.questionValue = Math.max(1, this.state.questionValue - 1) as 2 | 3;
       this.state.valueReduced = true;
     }
 
     this.advanceToNextTeam();
-    this.maybeCompleteFirstRound(question);
+    this.afterWrongAnswer(question);
     this.refreshTurnTimer();
-    return { ok: true, correct: false };
+    this.setWrongTurnNotice(question, questionValueReduced, false);
+    return { ok: true, correct: false, questionValueReduced };
   }
 
   pass(teamId: string): { ok: boolean; error?: string } {
@@ -253,7 +268,12 @@ export class GameEngine {
     this.advanceToNextTeam();
 
     const question = this.getCurrentQuestion();
-    if (question) this.maybeCompleteFirstRound(question);
+    if (question) {
+      this.maybeCompleteFirstRound(question);
+      if (this.state.firstRoundComplete) {
+        this.maybeCompleteStealCycle(question);
+      }
+    }
 
     if (this.allTeamsPassed()) {
       this.clearTurnTimer();
@@ -274,8 +294,54 @@ export class GameEngine {
     const activeId = this.getActiveTeamId();
     if (!activeId) return;
 
-    this.passInternal(activeId);
+    this.timeoutTurn(activeId);
     this.onStateChange?.();
+  }
+
+  private timeoutTurn(teamId: string) {
+    const question = this.getCurrentQuestion();
+    if (!question) return;
+
+    this.ensureStealRoundStarted();
+
+    this.state.attemptedTeamIds.add(teamId);
+
+    const questionValueReduced = !this.state.valueReduced;
+    if (!this.state.valueReduced) {
+      this.state.questionValue = Math.max(1, this.state.questionValue - 1) as 2 | 3;
+      this.state.valueReduced = true;
+    }
+
+    this.advanceToNextTeam();
+
+    this.afterWrongAnswer(question);
+
+    if (this.getActiveTeamId()) {
+      this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
+      this.refreshTurnTimer();
+    } else {
+      this.clearTurnTimer();
+    }
+
+    this.setWrongTurnNotice(question, questionValueReduced, true);
+  }
+
+  private setWrongTurnNotice(
+    question: Question,
+    questionValueReduced: boolean,
+    timedOut: boolean,
+  ) {
+    const prefix = timedOut ? 'Время вышло!' : 'Неверно!';
+    let notice = questionValueReduced
+      ? `${prefix} −1 балл за вопрос`
+      : `${prefix} Попробуйте ещё`;
+
+    const hints = this.getQuestionHints(question);
+    if (this.state.hintsShownCount > 0 && hints.length > 0) {
+      notice += ` · подсказка ${this.state.hintsShownCount}/${hints.length}`;
+    }
+
+    this.turnNotice = notice;
   }
 
   private getTimeLimitSec(): number {
@@ -339,13 +405,35 @@ export class GameEngine {
     }
   }
 
+  private getQuestionHints(question: Question): string[] {
+    return question.hints ?? [];
+  }
+
+  private getRevealedHints(question: Question | undefined): string[] | undefined {
+    if (!question || this.state.hintsShownCount <= 0) return undefined;
+    const hints = this.getQuestionHints(question);
+    const revealed = hints.slice(0, this.state.hintsShownCount);
+    return revealed.length ? revealed : undefined;
+  }
+
+  private resetStealCycleAttempts() {
+    for (const id of this.state.teamOrder) {
+      if (!this.state.passedTeamIds.has(id)) {
+        this.state.attemptedTeamIds.delete(id);
+      }
+    }
+    this.state.turnIndex = 0;
+  }
+
   private resetQuestionState() {
     const tour = this.series.tours[this.state.currentTourIndex];
     const defaultPoints = (tour?.defaultPoints === 2 ? 2 : 3) as 2 | 3;
     this.state.questionValue = defaultPoints;
     this.state.valueReduced = false;
-    this.state.hintShown = false;
+    this.state.hintsShownCount = 0;
     this.state.firstRoundComplete = false;
+    this.state.turnIndex = 0;
+    this.turnNotice = undefined;
     this.state.passedTeamIds = new Set();
     this.state.attemptedTeamIds = new Set();
   }
@@ -371,7 +459,7 @@ export class GameEngine {
     const candidates = this.getActiveTeamIds();
     if (!candidates.length) return undefined;
 
-    const idx = this.state.currentTeamIndex % candidates.length;
+    const idx = this.state.turnIndex % candidates.length;
     return candidates[idx];
   }
 
@@ -380,7 +468,26 @@ export class GameEngine {
   }
 
   private advanceToNextTeam() {
-    this.state.currentTeamIndex += 1;
+    this.state.turnIndex += 1;
+  }
+
+  private afterWrongAnswer(question: Question) {
+    const hints = this.getQuestionHints(question);
+
+    if (!this.state.firstRoundComplete) {
+      this.maybeCompleteFirstRound(question);
+      return;
+    }
+
+    if (hints.length > 0 && this.state.hintsShownCount < hints.length) {
+      this.state.hintsShownCount += 1;
+    }
+
+    if (this.state.teamOrder.length === 1) {
+      this.resetStealCycleAttempts();
+    } else {
+      this.maybeCompleteStealCycle(question);
+    }
   }
 
   private maybeCompleteFirstRound(question: Question) {
@@ -394,26 +501,30 @@ export class GameEngine {
     if (!allAttempted) return;
 
     this.state.firstRoundComplete = true;
-    if (question.hint) {
-      this.clearTurnTimer();
-      this.state.hintShown = true;
-      this.state.phase = 'HINT';
-    } else {
-      this.beginStealRound();
+    const hints = this.getQuestionHints(question);
+    if (hints.length > 0) {
+      this.state.hintsShownCount = 1;
     }
+    this.beginStealRound();
+  }
+
+  private maybeCompleteStealCycle(question: Question) {
+    if (this.state.phase !== 'STEAL_ROUND') return;
+
+    const activeTeams = this.getActiveTeamIds();
+    if (activeTeams.length === 0) return;
+
+    const allAttempted = activeTeams.every((id) =>
+      this.state.attemptedTeamIds.has(id),
+    );
+    if (!allAttempted) return;
+
+    this.resetStealCycleAttempts();
+    this.refreshTurnTimer();
   }
 
   private beginStealRound() {
-    for (const id of this.state.teamOrder) {
-      if (!this.state.passedTeamIds.has(id)) {
-        this.state.attemptedTeamIds.delete(id);
-      }
-    }
-
-    const firstActive = this.state.teamOrder.findIndex(
-      (id) => !this.state.passedTeamIds.has(id),
-    );
-    this.state.currentTeamIndex = firstActive >= 0 ? firstActive : 0;
+    this.resetStealCycleAttempts();
     this.state.phase = 'STEAL_ROUND';
     this.refreshTurnTimer();
   }

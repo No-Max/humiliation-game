@@ -34,7 +34,6 @@ const socketConnected = ref(true);
 const joined = ref(false);
 const showConnectionModal = ref(false);
 const showExitModal = ref(false);
-const pauseOnExit = ref(true);
 let cleanup: (() => void) | undefined;
 let connectionCleanup: (() => void) | undefined;
 
@@ -225,7 +224,7 @@ function confirmExit() {
     router.push('/series');
   };
 
-  if (pauseOnExit.value && state.value?.status === 'PLAYING') {
+  if (state.value?.status === 'PLAYING') {
     socket.emit('pauseGame', () => {
       leaveRoom(() => navigateAway());
     });
@@ -442,12 +441,8 @@ function confirmExit() {
         </div>
         <div class="modal-body">
           <p style="margin-bottom: 1rem">
-            Прогресс сохранится. Вернитесь по ссылке командного слота, когда будете готовы.
+            Игра будет поставлена на паузу. Вернитесь по ссылке командного слота, когда будете готовы.
           </p>
-          <label style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem">
-            <input v-model="pauseOnExit" type="checkbox" />
-            Поставить игру на паузу
-          </label>
           <div style="display: flex; gap: 0.5rem">
             <button class="btn" @click="confirmExit">Выйти</button>
             <button class="btn btn-secondary" @click="closeExit">Отмена</button>

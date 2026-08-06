@@ -29,24 +29,25 @@ defineProps<{
 
 .media-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   justify-content: center;
-  align-items: stretch;
+  align-items: center;
+  width: 100%;
 }
 
 .media-image {
-  flex: 1 1 140px;
-  max-width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   max-height: 220px;
-  width: auto;
+  width: 100%;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
   background: #f3f4f6;
 }
 
 .large .media-image {
-  flex-basis: 200px;
   max-height: 360px;
 }
 

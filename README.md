@@ -6,9 +6,9 @@
 
 ```
 apps/
-  web/      — приложение для игроков (порт 5173)
-  admin/    — админка контента (порт 5174)
-  server/   — API + WebSocket (порт 3000)
+  web/      — приложение для игроков (порт 3210)
+  admin/    — админка контента (порт 3220)
+  server/   — API + WebSocket (порт 3200)
 packages/
   shared/   — общие TypeScript-типы
 ```
@@ -30,9 +30,9 @@ npm run db:migrate
 npm run db:seed
 
 # 5. Запуск (в отдельных терминалах)
-npm run dev:server   # http://localhost:3000
-npm run dev:web      # http://localhost:5173
-npm run dev:admin    # http://localhost:5174
+npm run dev:server   # http://localhost:3200
+npm run dev:web      # http://localhost:3210
+npm run dev:admin    # http://localhost:3220
 ```
 
 ## Учётки (seed)

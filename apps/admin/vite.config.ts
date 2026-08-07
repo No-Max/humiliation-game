@@ -4,10 +4,10 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 5174,
+    port: 3220,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/uploads': 'http://localhost:3000',
+      '/api': 'http://localhost:3200',
+      '/uploads': 'http://localhost:3200',
     },
   },
 });

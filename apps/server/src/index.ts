@@ -11,9 +11,9 @@ import { adminSeriesRouter } from './routes/admin/series.js';
 import { adminMediaRouter } from './routes/admin/media.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = Number(process.env.PORT ?? 3200);
 const uploadDir = process.env.UPLOAD_DIR ?? 'uploads';
-const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:5174')
+const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:3210,http://localhost:3220')
   .split(',')
   .map((s) => s.trim());
 
@@ -31,8 +31,8 @@ app.use('/uploads', express.static(path.resolve(uploadDir)));
 app.get('/', (_req, res) => {
   res.json({
     message: 'Humiliation Game API',
-    web: 'http://localhost:5173',
-    admin: 'http://localhost:5174',
+    web: 'http://localhost:3210',
+    admin: 'http://localhost:3220',
     health: '/api/health',
   });
 });

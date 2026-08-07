@@ -21,6 +21,7 @@ import {
   resolveTeamId,
 } from '../lib/teamSession';
 import AnswerTimer from '../components/AnswerTimer.vue';
+import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 
 const route = useRoute();
@@ -58,6 +59,7 @@ const isMyTurn = computed(
     state.value.activeTeamId === teamId.value,
 );
 const myTeam = computed(() => state.value?.teams.find((t) => t.id === teamId.value));
+const isChoiceQuestion = computed(() => state.value?.answerType === 'CHOICE');
 const canSubmit = computed(() => answer.value.trim().length > 0);
 const isActiveQuestion = computed(
   () =>
@@ -130,6 +132,13 @@ onMounted(() => {
   }
 });
 
+watch(
+  () => [state.value?.currentQuestionIndex, state.value?.currentTourIndex, state.value?.phase],
+  () => {
+    answer.value = '';
+  },
+);
+
 watch(routeTeamId, (id) => {
   if (id && id !== teamId.value) {
     teamId.value = id;
@@ -146,6 +155,11 @@ function startTour() {
   connectSocket().emit('startTour', (result) => {
     if (!result.ok) message.value = result.error ?? 'Ошибка';
   });
+}
+
+function submitChoice(choice: string) {
+  answer.value = choice;
+  submit();
 }
 
 function submit() {
@@ -316,7 +330,7 @@ function confirmExit() {
     </div>
 
     <div
-      v-if="(state?.questionPrompt || state?.mediaUrls?.length) && isActiveQuestion"
+      v-if="(state?.questionPrompt || state?.mediaUrls?.length || (state?.answerType === 'CHOICE' && state?.choices?.length)) && isActiveQuestion"
       class="card"
       style="margin-top: 1rem"
     >
@@ -340,11 +354,25 @@ function confirmExit() {
 
       <template v-if="isMyTurn && myTeam?.connected !== false">
         <p style="margin-top: 1rem">Ваш ход · {{ state.questionValue }} балл(ов)</p>
-        <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
-        <div style="display: flex; gap: 0.5rem">
-          <button class="btn" :disabled="!canSubmit" @click="submit">Ответить</button>
-          <button class="btn btn-secondary" @click="pass">Сдаёмся</button>
-        </div>
+
+        <template v-if="isChoiceQuestion && state.choices?.length">
+          <QuestionChoices
+            :choices="state.choices"
+            :selected="answer"
+            @select="submitChoice"
+          />
+          <button class="btn btn-secondary" style="margin-top: 0.75rem" @click="pass">
+            Сдаёмся
+          </button>
+        </template>
+
+        <template v-else>
+          <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
+          <div style="display: flex; gap: 0.5rem">
+            <button class="btn" :disabled="!canSubmit" @click="submit">Ответить</button>
+            <button class="btn btn-secondary" @click="pass">Сдаёмся</button>
+          </div>
+        </template>
       </template>
       <p v-else-if="!isPaused" style="margin-top: 1rem; color: #6b7280">
         Ожидайте хода другой команды

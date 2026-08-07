@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import AnswerTimer from '../components/AnswerTimer.vue';
+import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 
 const route = useRoute();
@@ -51,7 +52,7 @@ onUnmounted(() => cleanup?.());
     </div>
 
     <div
-      v-else-if="state && (state.questionPrompt || state.mediaUrls?.length)"
+      v-else-if="state && (state.questionPrompt || state.mediaUrls?.length || (state.answerType === 'CHOICE' && state.choices?.length))"
       class="card"
     >
       <p style="text-align: center; color: #6b7280">
@@ -68,6 +69,12 @@ onUnmounted(() => cleanup?.());
         large
         :prompt="state.questionPrompt"
         :media-urls="state.mediaUrls"
+      />
+      <QuestionChoices
+        v-if="state.answerType === 'CHOICE' && state.choices?.length"
+        large
+        readonly
+        :choices="state.choices"
       />
       <div v-if="state.hints?.length" class="hints-list">
         <p v-if="state.hintsTotal" class="hints-caption">

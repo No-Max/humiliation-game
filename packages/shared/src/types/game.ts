@@ -1,4 +1,4 @@
-import type { QuestionContentType } from './content.js';
+import type { AnswerType, QuestionContentType } from './content.js';
 
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 
@@ -47,6 +47,8 @@ export interface RoomState {
   tourTitle?: string;
   questionPrompt?: string;
   questionContentType?: QuestionContentType;
+  answerType?: AnswerType;
+  choices?: string[];
   mediaUrls?: string[];
   correctAnswer?: string;
   /** Командные слоты — ссылки активны до конца игры */

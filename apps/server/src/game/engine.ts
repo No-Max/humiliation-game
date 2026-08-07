@@ -1,4 +1,10 @@
-import type { QuestionContentType, QuestionPhase, RoomState, TeamState } from '@humiliation-game/shared';
+import type {
+  AnswerType,
+  QuestionContentType,
+  QuestionPhase,
+  RoomState,
+  TeamState,
+} from '@humiliation-game/shared';
 import type { GameTeam, Question, Series, Tour } from '@prisma/client';
 
 type SeriesWithContent = Series & {
@@ -141,6 +147,12 @@ export class GameEngine {
       questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
       questionContentType: tourStarted
         ? (question?.contentType as QuestionContentType | undefined)
+        : undefined,
+      answerType: tourStarted
+        ? (question?.answerType as AnswerType | undefined)
+        : undefined,
+      choices: tourStarted && question?.answerType === 'CHOICE' && question.choices.length
+        ? question.choices
         : undefined,
       mediaUrls: tourStarted && question?.mediaUrls?.length
         ? question.mediaUrls
@@ -562,6 +574,15 @@ function normalize(text: string): string {
 
 function checkAnswer(answer: string, question: Question): boolean {
   const normalized = normalize(answer);
-  const acceptable = [question.correctAnswer, ...question.acceptableAnswers].map(normalize);
+
+  if (question.answerType === 'CHOICE') {
+    const choices = question.choices ?? [];
+    if (!choices.some((choice) => normalize(choice) === normalized)) {
+      return false;
+    }
+    return normalize(question.correctAnswer) === normalized;
+  }
+
+  const acceptable = [question.correctAnswer, ...(question.acceptableAnswers ?? [])].map(normalize);
   return acceptable.includes(normalized);
 }

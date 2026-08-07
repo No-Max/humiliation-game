@@ -7,10 +7,12 @@ import {
   tourQuestionsRoute,
 } from '../lib/tourNavigation';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
+import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
 
 type ContentTypeOption = 'TEXT' | 'IMAGE_TEXT';
+type AnswerTypeOption = 'TEXT' | 'CHOICE';
 
 interface Question {
   id: string;
@@ -24,6 +26,7 @@ interface Question {
   contentType?: string;
   mediaUrls?: string[];
   answerType?: string;
+  choices?: string[];
 }
 
 interface Tour {
@@ -37,6 +40,11 @@ interface Tour {
 const CONTENT_TYPES: { value: ContentTypeOption; label: string }[] = [
   { value: 'TEXT', label: 'Текст' },
   { value: 'IMAGE_TEXT', label: 'Текст + картинка' },
+];
+
+const ANSWER_TYPES: { value: AnswerTypeOption; label: string }[] = [
+  { value: 'TEXT', label: 'Текстовый ввод' },
+  { value: 'CHOICE', label: 'Варианты ответов' },
 ];
 
 const route = useRoute();
@@ -53,15 +61,18 @@ const isEdit = computed(() => !!questionId.value);
 const tour = ref<Tour | null>(null);
 const question = ref<Question | null>(null);
 const loading = ref(true);
+const hydrating = ref(false);
 const saving = ref(false);
 const error = ref('');
 const loadError = ref('');
 
 const form = ref({
   contentType: 'TEXT' as ContentTypeOption,
+  answerType: 'TEXT' as AnswerTypeOption,
   prompt: '',
   mediaUrls: [] as string[],
   correctAnswer: '',
+  choices: [] as string[],
   hints: [] as string[],
   acceptableAnswers: [] as string[],
   points: '',
@@ -73,6 +84,11 @@ const pageTitle = computed(() =>
 );
 
 const showImages = computed(() => form.value.contentType === 'IMAGE_TEXT');
+const isChoiceAnswer = computed(() => form.value.answerType === 'CHOICE');
+
+function normalizeAnswerType(value?: string): AnswerTypeOption {
+  return value === 'CHOICE' ? 'CHOICE' : 'TEXT';
+}
 
 function normalizeContentType(value?: string): ContentTypeOption {
   return value === 'IMAGE_TEXT' ? 'IMAGE_TEXT' : 'TEXT';
@@ -80,6 +96,7 @@ function normalizeContentType(value?: string): ContentTypeOption {
 
 async function load() {
   loading.value = true;
+  hydrating.value = true;
   loadError.value = '';
   try {
     const data = await adminApi<Tour>(`/tours/${tourId.value}`);
@@ -96,9 +113,11 @@ async function load() {
       }
       form.value = {
         contentType: normalizeContentType(foundQuestion.contentType),
+        answerType: normalizeAnswerType(foundQuestion.answerType),
         prompt: foundQuestion.prompt ?? '',
         mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
         correctAnswer: foundQuestion.correctAnswer,
+        choices: [...(foundQuestion.choices ?? [])],
         hints: [...(foundQuestion.hints ?? [])],
         acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
         points: foundQuestion.points != null ? String(foundQuestion.points) : '',
@@ -108,9 +127,11 @@ async function load() {
     } else {
       form.value = {
         contentType: 'TEXT',
+        answerType: 'TEXT',
         prompt: '',
         mediaUrls: [],
         correctAnswer: '',
+        choices: [],
         hints: [],
         acceptableAnswers: [],
         points: '',
@@ -121,6 +142,7 @@ async function load() {
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить данные';
   } finally {
     loading.value = false;
+    hydrating.value = false;
   }
 }
 
@@ -141,8 +163,39 @@ watch(
   },
 );
 
-function parsePositiveInt(value: string, min: number): number | null {
-  const trimmed = value.trim();
+watch(
+  () => form.value.answerType,
+  (type) => {
+    if (hydrating.value) return;
+    if (type === 'TEXT') {
+      form.value.choices = [];
+    } else {
+      form.value.acceptableAnswers = [];
+    }
+    form.value.correctAnswer = '';
+  },
+);
+
+watch(
+  () => form.value.choices,
+  (choices) => {
+    if (
+      form.value.answerType === 'CHOICE' &&
+      form.value.correctAnswer &&
+      !choices.includes(form.value.correctAnswer)
+    ) {
+      form.value.correctAnswer = '';
+    }
+  },
+  { deep: true },
+);
+
+function trimValue(value: unknown): string {
+  return String(value ?? '').trim();
+}
+
+function parsePositiveInt(value: string | number, min: number): number | null {
+  const trimmed = trimValue(value);
   if (!trimmed) return null;
   const n = Number.parseInt(trimmed, 10);
   if (!Number.isFinite(n) || n < min) return NaN;
@@ -153,23 +206,29 @@ function buildPayload() {
   const points = parsePositiveInt(form.value.points, 1);
   const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
   const contentType = form.value.contentType;
+  const answerType = form.value.answerType;
+  const choices = answerType === 'CHOICE'
+    ? form.value.choices.map((item) => trimValue(item)).filter(Boolean)
+    : [];
+
   return {
     contentType,
-    prompt: form.value.prompt.trim() || null,
+    prompt: trimValue(form.value.prompt) || null,
     mediaUrls: contentType === 'IMAGE_TEXT' ? form.value.mediaUrls : [],
-    correctAnswer: form.value.correctAnswer.trim(),
-    hints: form.value.hints.map((item) => item.trim()).filter(Boolean),
-    acceptableAnswers: form.value.acceptableAnswers
-      .map((item) => item.trim())
-      .filter(Boolean),
+    correctAnswer: trimValue(form.value.correctAnswer),
+    hints: form.value.hints.map((item) => trimValue(item)).filter(Boolean),
+    acceptableAnswers: answerType === 'TEXT'
+      ? form.value.acceptableAnswers.map((item) => trimValue(item)).filter(Boolean)
+      : [],
     points,
     timeLimitSec,
-    answerType: 'TEXT',
+    answerType,
+    choices,
   };
 }
 
 function validate(): boolean {
-  if (!form.value.prompt.trim()) {
+  if (!trimValue(form.value.prompt)) {
     error.value = 'Введите текст задания';
     return false;
   }
@@ -177,7 +236,22 @@ function validate(): boolean {
     error.value = 'Загрузите хотя бы одну картинку';
     return false;
   }
-  if (!form.value.correctAnswer.trim()) {
+  if (form.value.answerType === 'CHOICE') {
+    const choices = form.value.choices.map((item) => trimValue(item)).filter(Boolean);
+    if (choices.length < 2) {
+      error.value = 'Добавьте минимум 2 варианта ответа';
+      return false;
+    }
+    const correctAnswer = trimValue(form.value.correctAnswer);
+    if (!correctAnswer) {
+      error.value = 'Выберите правильный вариант';
+      return false;
+    }
+    if (!choices.includes(correctAnswer)) {
+      error.value = 'Правильный ответ должен быть одним из вариантов';
+      return false;
+    }
+  } else if (!trimValue(form.value.correctAnswer)) {
     error.value = 'Введите правильный ответ';
     return false;
   }
@@ -279,6 +353,14 @@ async function remove() {
           </select>
         </div>
         <div class="meta-field">
+          <label class="label" for="answer-type">Тип ответа</label>
+          <select id="answer-type" v-model="form.answerType" class="select">
+            <option v-for="option in ANSWER_TYPES" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+        <div class="meta-field">
           <label class="label" for="question-points">Стоимость (баллы)</label>
           <input
             id="question-points"
@@ -313,15 +395,35 @@ async function remove() {
 
       <MediaImagesInput v-if="showImages" v-model="form.mediaUrls" />
 
-      <label class="label" for="question-answer">Основной правильный ответ</label>
-      <input
-        id="question-answer"
-        v-model="form.correctAnswer"
-        class="input"
-        placeholder="Главный вариант ответа"
-      />
+      <template v-if="isChoiceAnswer">
+        <ChoicesInput v-model="form.choices" />
 
-      <AnswerVariantsInput v-model="form.acceptableAnswers" />
+        <label class="label" for="question-choice-answer">Правильный вариант</label>
+        <select
+          id="question-choice-answer"
+          v-model="form.correctAnswer"
+          class="select"
+          :disabled="form.choices.length === 0"
+        >
+          <option value="" disabled>Выберите правильный ответ</option>
+          <option v-for="choice in form.choices" :key="choice" :value="choice">
+            {{ choice }}
+          </option>
+        </select>
+      </template>
+
+      <template v-else>
+        <label class="label" for="question-answer">Основной правильный ответ</label>
+        <input
+          id="question-answer"
+          v-model="form.correctAnswer"
+          class="input"
+          placeholder="Главный вариант ответа"
+        />
+
+        <AnswerVariantsInput v-model="form.acceptableAnswers" />
+      </template>
+
       <HintsInput v-model="form.hints" />
 
       <div class="form-actions">
@@ -363,7 +465,7 @@ async function remove() {
 
 .meta-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem 1rem;
   margin-bottom: 0.75rem;
 }

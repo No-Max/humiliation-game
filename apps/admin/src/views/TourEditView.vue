@@ -21,6 +21,8 @@ interface Question {
   timeLimitSec?: number | null;
   contentType?: string;
   mediaUrls?: string[];
+  answerType?: string;
+  choices?: string[];
 }
 
 interface TourDetail {
@@ -103,7 +105,9 @@ function formatTime(sec: number) {
               <div>{{ q.prompt }}</div>
               <div class="question-meta">
                 <span v-if="q.contentType === 'IMAGE_TEXT'">🖼 · </span>
+                <span v-if="q.answerType === 'CHOICE'">🔘 · </span>
                 <span>→ <em>{{ q.correctAnswer }}</em></span>
+                <span v-if="q.answerType === 'CHOICE' && q.choices?.length"> · {{ q.choices.length }} вар.</span>
                 <span v-if="q.acceptableAnswers?.length"> · +{{ q.acceptableAnswers.length }} син.</span>
                 <span v-if="q.hints?.length"> · 💡 {{ q.hints.length }}</span>
                 <span> · {{ q.points ?? tour.defaultPoints }} б.</span>

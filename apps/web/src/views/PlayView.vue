@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
+import { teamsSortedByScore } from '@humiliation-game/shared';
 import {
   connectSocket,
   disableAutoRejoin,
@@ -60,6 +61,12 @@ const isMyTurn = computed(
 );
 const myTeam = computed(() => state.value?.teams.find((t) => t.id === teamId.value));
 const isChoiceQuestion = computed(() => state.value?.answerType === 'CHOICE');
+const showTourResults = computed(
+  () => state.value?.phase === 'TOUR_INTRO' && (state.value.currentTourIndex ?? 0) > 0,
+);
+const tourResultsTeams = computed(() =>
+  state.value ? teamsSortedByScore(state.value.teams) : [],
+);
 const canSubmit = computed(() => answer.value.trim().length > 0);
 const isActiveQuestion = computed(
   () =>
@@ -315,7 +322,6 @@ function confirmExit() {
         :class="{ active: team.id === state.activeTeamId }"
       >
         <div>{{ team.name }}</div>
-        <strong>{{ team.score }}</strong>
         <small v-if="!team.connected" style="color: #ef4444; display: block">offline</small>
         <small v-if="team.passed" style="color: #9ca3af; display: block">сдалась</small>
       </div>
@@ -434,6 +440,12 @@ function confirmExit() {
     </div>
 
     <div v-if="state?.phase === 'TOUR_INTRO' && !isPaused" class="card">
+      <div v-if="showTourResults" class="banner correct tour-results">
+        <p class="tour-results-title">Итоги тура</p>
+        <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
+          {{ team.name }} — {{ team.score }}
+        </p>
+      </div>
       <p>Готовы начать тур «{{ state.tourTitle }}»?</p>
       <button class="btn" @click="startTour">Начать тур</button>
     </div>
@@ -455,9 +467,11 @@ function confirmExit() {
     </div>
 
     <div v-else-if="state?.phase === 'FINISHED'" class="card">
-      <div class="banner correct">Игра окончена!</div>
-      <div v-for="team in state.teams" :key="team.id" style="margin-top: 0.5rem">
-        {{ team.name }}: {{ team.score }} баллов
+      <div class="banner correct tour-results">
+        <p class="tour-results-title">Игра окончена!</p>
+        <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
+          {{ team.name }} — {{ team.score }}
+        </p>
       </div>
     </div>
 

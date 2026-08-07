@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
+import { teamsSortedByScore } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import AnswerTimer from '../components/AnswerTimer.vue';
 import QuestionChoices from '../components/QuestionChoices.vue';
@@ -9,6 +10,12 @@ import QuestionContent from '../components/QuestionContent.vue';
 
 const route = useRoute();
 const state = ref<RoomState | null>(null);
+const showTourResults = computed(
+  () => state.value?.phase === 'TOUR_INTRO' && (state.value.currentTourIndex ?? 0) > 0,
+);
+const tourResultsTeams = computed(() =>
+  state.value ? teamsSortedByScore(state.value.teams) : [],
+);
 let cleanup: (() => void) | undefined;
 
 onMounted(() => {
@@ -41,14 +48,25 @@ onUnmounted(() => cleanup?.());
         :class="{ active: team.id === state.activeTeamId }"
       >
         <div>{{ team.name }}</div>
-        <strong style="font-size: 1.5rem">{{ team.score }}</strong>
         <small v-if="!team.connected" style="color: #ef4444">offline</small>
       </div>
     </div>
 
     <div v-if="state?.phase === 'TOUR_INTRO'" class="card">
-      <h2>Тур: {{ state.tourTitle }}</h2>
-      <p>Нажмите «Начать» на телефоне</p>
+      <template v-if="showTourResults">
+        <div class="banner correct tour-results">
+          <p class="tour-results-title">Итоги тура</p>
+          <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
+            {{ team.name }} — {{ team.score }}
+          </p>
+        </div>
+        <p style="margin-top: 1rem">Следующий тур: {{ state.tourTitle }}</p>
+        <p style="color: #6b7280">Нажмите «Начать» на телефоне</p>
+      </template>
+      <template v-else>
+        <h2>Тур: {{ state.tourTitle }}</h2>
+        <p>Нажмите «Начать» на телефоне</p>
+      </template>
     </div>
 
     <div
@@ -98,10 +116,12 @@ onUnmounted(() => cleanup?.());
     </div>
 
     <div v-if="state?.phase === 'FINISHED'" class="card">
-      <h2>Игра окончена</h2>
-      <p v-for="team in state.teams" :key="team.id" style="font-size: 1.25rem; margin-top: 0.5rem">
-        {{ team.name }} — {{ team.score }}
-      </p>
+      <div class="banner correct tour-results">
+        <p class="tour-results-title">Игра окончена</p>
+        <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
+          {{ team.name }} — {{ team.score }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

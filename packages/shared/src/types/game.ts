@@ -78,3 +78,19 @@ export interface JoinRoomRequest {
   teamName: string;
   logoUrl?: string;
 }
+
+/** Показывать суммарные баллы команд только между турами и в конце игры. */
+export function shouldShowTeamScores(
+  state: Pick<RoomState, 'phase' | 'currentTourIndex'>,
+): boolean {
+  return (
+    state.phase === 'FINISHED'
+    || (state.phase === 'TOUR_INTRO' && state.currentTourIndex > 0)
+  );
+}
+
+export function teamsSortedByScore(teams: TeamState[]): TeamState[] {
+  return [...teams].sort(
+    (a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ru'),
+  );
+}

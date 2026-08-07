@@ -24,12 +24,11 @@ export interface Series {
 
 export interface Tour {
   id: string;
-  seriesId: string;
   title: string;
   rules?: string;
   defaultPoints: number;
   defaultTimeLimitSec: number;
-  sortOrder: number;
+  sortOrder?: number;
   createdAt: string;
   updatedAt: string;
 }

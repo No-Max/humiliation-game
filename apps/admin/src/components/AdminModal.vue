@@ -5,6 +5,7 @@ defineProps<{
   submitLabel?: string;
   deleteLabel?: string;
   loading?: boolean;
+  hideSubmit?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -40,7 +41,7 @@ const emit = defineEmits<{
               <button class="btn btn-secondary" type="button" :disabled="loading" @click="emit('close')">
                 Отмена
               </button>
-              <button class="btn" type="submit" :disabled="loading">
+              <button v-if="!hideSubmit" class="btn" type="submit" :disabled="loading">
                 {{ loading ? 'Сохранение...' : (submitLabel ?? 'Сохранить') }}
               </button>
             </div>

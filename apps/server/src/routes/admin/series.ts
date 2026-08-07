@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../../lib/prisma.js';
+import { loadSeriesWithTours } from '../../lib/seriesContent.js';
 import { requireAdmin } from '../../middleware/auth.js';
 
 export const adminSeriesRouter = Router();
@@ -10,24 +11,19 @@ adminSeriesRouter.get('/', async (_req, res) => {
   const series = await prisma.series.findMany({
     orderBy: { number: 'desc' },
     include: {
-      _count: { select: { tours: true } },
+      _count: { select: { seriesTours: true } },
     },
   });
-  res.json(series);
+  res.json(
+    series.map(({ _count, ...item }) => ({
+      ...item,
+      _count: { tours: _count.seriesTours },
+    })),
+  );
 });
 
 adminSeriesRouter.get('/:id', async (req, res) => {
-  const series = await prisma.series.findUnique({
-    where: { id: req.params.id },
-    include: {
-      tours: {
-        orderBy: { sortOrder: 'asc' },
-        include: {
-          questions: { orderBy: { sortOrder: 'asc' } },
-        },
-      },
-    },
-  });
+  const series = await loadSeriesWithTours({ id: req.params.id });
   if (!series) {
     res.status(404).json({ error: 'Series not found' });
     return;
@@ -71,80 +67,73 @@ adminSeriesRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
   res.status(204).send();
 });
 
-// Tours
 adminSeriesRouter.post('/:seriesId/tours', async (req, res) => {
-  const { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder } = req.body;
-  const tour = await prisma.tour.create({
-    data: {
-      seriesId: req.params.seriesId,
-      title,
-      rules,
-      defaultPoints: defaultPoints ?? 3,
-      defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
-      sortOrder: sortOrder ?? 0,
+  const { tourId } = req.body as { tourId?: string };
+  if (!tourId) {
+    res.status(400).json({ error: 'tourId required' });
+    return;
+  }
+
+  const tour = await prisma.tour.findUnique({ where: { id: tourId } });
+  if (!tour) {
+    res.status(404).json({ error: 'Tour not found' });
+    return;
+  }
+
+  const existingCount = await prisma.seriesTour.count({
+    where: { seriesId: req.params.seriesId },
+  });
+
+  try {
+    await prisma.seriesTour.create({
+      data: {
+        seriesId: req.params.seriesId,
+        tourId,
+        sortOrder: existingCount,
+      },
+    });
+  } catch {
+    res.status(409).json({ error: 'Tour already added to this series' });
+    return;
+  }
+
+  const series = await loadSeriesWithTours({ id: req.params.seriesId });
+  res.status(201).json(series);
+});
+
+adminSeriesRouter.delete('/:seriesId/tours/:tourId', async (req, res) => {
+  await prisma.seriesTour.delete({
+    where: {
+      seriesId_tourId: {
+        seriesId: req.params.seriesId,
+        tourId: req.params.tourId,
+      },
     },
   });
-  res.status(201).json(tour);
-});
-
-adminSeriesRouter.put('/tours/:tourId', async (req, res) => {
-  const { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder } = req.body;
-  const tour = await prisma.tour.update({
-    where: { id: req.params.tourId },
-    data: { title, rules, defaultPoints, defaultTimeLimitSec, sortOrder },
-  });
-  res.json(tour);
-});
-
-adminSeriesRouter.delete('/tours/:tourId', async (req, res) => {
-  await prisma.tour.delete({ where: { id: req.params.tourId } });
   res.status(204).send();
 });
 
-// Questions
-adminSeriesRouter.post('/tours/:tourId/questions', async (req, res) => {
-  const data = req.body;
-  const question = await prisma.question.create({
-    data: {
-      tourId: req.params.tourId,
-      sortOrder: data.sortOrder ?? 0,
-      contentType: data.contentType ?? 'TEXT',
-      prompt: data.prompt,
-      mediaUrls: data.mediaUrls ?? [],
-      answerType: data.answerType ?? 'TEXT',
-      choices: data.choices ?? [],
-      correctAnswer: data.correctAnswer,
-      acceptableAnswers: data.acceptableAnswers ?? [],
-      hints: data.hints ?? [],
-      points: data.points,
-      timeLimitSec: data.timeLimitSec,
-    },
-  });
-  res.status(201).json(question);
-});
+adminSeriesRouter.put('/:seriesId/tours/order', async (req, res) => {
+  const { tourIds } = req.body as { tourIds?: string[] };
+  if (!Array.isArray(tourIds)) {
+    res.status(400).json({ error: 'tourIds array required' });
+    return;
+  }
 
-adminSeriesRouter.put('/questions/:questionId', async (req, res) => {
-  const data = req.body;
-  const question = await prisma.question.update({
-    where: { id: req.params.questionId },
-    data: {
-      sortOrder: data.sortOrder,
-      contentType: data.contentType,
-      prompt: data.prompt,
-      mediaUrls: data.mediaUrls,
-      answerType: data.answerType,
-      choices: data.choices,
-      correctAnswer: data.correctAnswer,
-      acceptableAnswers: data.acceptableAnswers,
-      hints: data.hints ?? [],
-      points: data.points,
-      timeLimitSec: data.timeLimitSec,
-    },
-  });
-  res.json(question);
-});
+  await prisma.$transaction(
+    tourIds.map((tourId, index) =>
+      prisma.seriesTour.update({
+        where: {
+          seriesId_tourId: {
+            seriesId: req.params.seriesId,
+            tourId,
+          },
+        },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
 
-adminSeriesRouter.delete('/questions/:questionId', async (req, res) => {
-  await prisma.question.delete({ where: { id: req.params.questionId } });
-  res.status(204).send();
+  const series = await loadSeriesWithTours({ id: req.params.seriesId });
+  res.json(series);
 });

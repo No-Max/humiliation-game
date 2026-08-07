@@ -69,27 +69,40 @@ model Series {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  tours Tour[]
+  seriesTours SeriesTour[]
   rooms GameRoom[]
 
   @@unique([number])
 }
 
-model Tour {
-  id            String   @id @default(cuid())
-  seriesId      String
-  title         String
-  rules         String?
-  defaultPoints       Int @default(3)
-  defaultTimeLimitSec Int @default(60)
-  sortOrder           Int @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model SeriesTour {
+  id        String   @id @default(cuid())
+  seriesId  String
+  tourId    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
 
-  series    Series     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  questions Question[]
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
 
+  @@unique([seriesId, tourId])
   @@index([seriesId])
+  @@index([tourId])
+}
+
+model Tour {
+  id                  String   @id @default(cuid())
+  title               String
+  rules               String?
+  defaultPoints       Int      @default(3)
+  defaultTimeLimitSec Int      @default(60)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  questions   Question[]
+  seriesTours SeriesTour[]
+
+  @@index([title])
 }
 
 model Question {

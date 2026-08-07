@@ -18,6 +18,7 @@ function logout() {
       <span class="logo">Admin</span>
       <nav>
         <RouterLink to="/series">Выпуски</RouterLink>
+        <RouterLink to="/tours">Туры</RouterLink>
         <button class="link-btn" @click="logout">Выйти</button>
       </nav>
     </header>

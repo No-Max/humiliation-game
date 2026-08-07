@@ -5,6 +5,7 @@ import type {
   ServerToClientEvents,
 } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
+import { mapSeriesWithTours } from '../lib/seriesContent.js';
 import { GameEngine } from '../game/engine.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -42,9 +43,15 @@ export function setupSocketHandlers(io: GameServer) {
             teams: { orderBy: { sortOrder: 'asc' } },
             series: {
               include: {
-                tours: {
+                seriesTours: {
                   orderBy: { sortOrder: 'asc' },
-                  include: { questions: { orderBy: { sortOrder: 'asc' } } },
+                  include: {
+                    tour: {
+                      include: {
+                        questions: { orderBy: { sortOrder: 'asc' } },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -62,7 +69,8 @@ export function setupSocketHandlers(io: GameServer) {
 
         let engine = rooms.get(roomCode);
         if (!engine) {
-          engine = new GameEngine(roomCode, room.series, room.teams);
+          const seriesWithTours = mapSeriesWithTours(room.series);
+          engine = new GameEngine(roomCode, seriesWithTours, room.teams);
           rooms.set(roomCode, engine);
           bindEngine(io, roomCode, engine);
         }

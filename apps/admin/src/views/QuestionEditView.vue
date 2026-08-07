@@ -2,6 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
+import {
+  getSeriesIdFromRoute,
+  tourQuestionsRoute,
+} from '../lib/tourNavigation';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
@@ -30,13 +34,6 @@ interface Tour {
   questions: Question[];
 }
 
-interface SeriesDetail {
-  id: string;
-  title: string;
-  number: number;
-  tours: Tour[];
-}
-
 const CONTENT_TYPES: { value: ContentTypeOption; label: string }[] = [
   { value: 'TEXT', label: 'Текст' },
   { value: 'IMAGE_TEXT', label: 'Текст + картинка' },
@@ -45,14 +42,14 @@ const CONTENT_TYPES: { value: ContentTypeOption; label: string }[] = [
 const route = useRoute();
 const router = useRouter();
 
-const seriesId = computed(() => String(route.params.seriesId));
 const tourId = computed(() => String(route.params.tourId));
+const seriesId = computed(() => getSeriesIdFromRoute(route));
+const questionsRoute = computed(() => tourQuestionsRoute(tourId.value, seriesId.value));
 const questionId = computed(() =>
   route.params.questionId ? String(route.params.questionId) : null,
 );
 const isEdit = computed(() => !!questionId.value);
 
-const series = ref<SeriesDetail | null>(null);
 const tour = ref<Tour | null>(null);
 const question = ref<Question | null>(null);
 const loading = ref(true);
@@ -85,15 +82,9 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    const data = await adminApi<SeriesDetail>(`/series/${seriesId.value}`);
-    series.value = data;
-    const foundTour = data.tours.find((item) => item.id === tourId.value) ?? null;
-    tour.value = foundTour;
-
-    if (!foundTour) {
-      loadError.value = 'Тур не найден';
-      return;
-    }
+    const data = await adminApi<Tour>(`/tours/${tourId.value}`);
+    tour.value = data;
+    const foundTour = data;
 
     if (isEdit.value) {
       const foundQuestion =
@@ -134,7 +125,7 @@ async function load() {
 }
 
 watch(
-  () => [route.params.seriesId, route.params.tourId, route.params.questionId],
+  () => [route.params.tourId, route.params.questionId],
   () => {
     void load();
   },
@@ -204,7 +195,7 @@ function validate(): boolean {
 }
 
 function goBack() {
-  router.push(`/series/${seriesId.value}`);
+  router.push(questionsRoute.value);
 }
 
 async function save() {
@@ -217,7 +208,7 @@ async function save() {
     const payload = buildPayload();
 
     if (isEdit.value && question.value) {
-      await adminApi(`/series/questions/${question.value.id}`, {
+      await adminApi(`/tours/questions/${question.value.id}`, {
         method: 'PUT',
         body: JSON.stringify({
           ...question.value,
@@ -225,7 +216,7 @@ async function save() {
         }),
       });
     } else {
-      await adminApi(`/series/tours/${tour.value.id}/questions`, {
+      await adminApi(`/tours/${tour.value.id}/questions`, {
         method: 'POST',
         body: JSON.stringify({
           ...payload,
@@ -265,7 +256,7 @@ async function remove() {
 <template>
   <div>
     <p class="back-link">
-      <RouterLink :to="`/series/${seriesId}`">← К выпуску</RouterLink>
+      <RouterLink :to="questionsRoute">← К заданиям</RouterLink>
     </p>
 
     <h1 class="page-title">{{ pageTitle }}</h1>
@@ -273,10 +264,8 @@ async function remove() {
     <p v-if="loading" class="field-hint">Загрузка…</p>
     <p v-else-if="loadError" class="error">{{ loadError }}</p>
 
-    <form v-else-if="tour && series" class="card" @submit.prevent="save">
-      <p class="field-hint" style="margin-top: 0">
-        Выпуск {{ series.number }}: {{ series.title }} · тур «{{ tour.title }}»
-      </p>
+    <form v-else-if="tour" class="card" @submit.prevent="save">
+      <p class="field-hint" style="margin-top: 0">Тур «{{ tour.title }}»</p>
 
       <p v-if="error" class="error">{{ error }}</p>
 

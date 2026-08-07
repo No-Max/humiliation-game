@@ -3,6 +3,47 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+async function ensureTour(
+  title: string,
+  data: {
+    rules: string;
+    defaultPoints: number;
+    questions: Array<{
+      sortOrder: number;
+      contentType: 'TEXT' | 'EMOJI' | 'LYRICS';
+      prompt: string;
+      correctAnswer: string;
+      acceptableAnswers: string[];
+      hints?: string[];
+    }>;
+  },
+) {
+  let tour = await prisma.tour.findFirst({ where: { title } });
+  if (!tour) {
+    tour = await prisma.tour.create({
+      data: {
+        title,
+        rules: data.rules,
+        defaultPoints: data.defaultPoints,
+        questions: { create: data.questions },
+      },
+    });
+    return tour;
+  }
+
+  const questionCount = await prisma.question.count({ where: { tourId: tour.id } });
+  if (questionCount === 0) {
+    await prisma.question.createMany({
+      data: data.questions.map((q) => ({ ...q, tourId: tour.id, answerType: 'TEXT' })),
+    });
+  }
+
+  return prisma.tour.update({
+    where: { id: tour.id },
+    data: { rules: data.rules, defaultPoints: data.defaultPoints },
+  });
+}
+
 async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10);
   const editorPassword = await bcrypt.hash('editor123', 10);
@@ -27,6 +68,42 @@ async function main() {
     },
   });
 
+  const memesTour = await ensureTour('Мемы', {
+    rules: 'Угадай мем по картинке',
+    defaultPoints: 3,
+    questions: [
+      {
+        sortOrder: 0,
+        contentType: 'TEXT',
+        prompt: 'Какой мем: "One does not simply..."?',
+        correctAnswer: 'walk into mordor',
+        acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
+        hints: ['Властелин колец', 'Boromir meme'],
+      },
+      {
+        sortOrder: 1,
+        contentType: 'EMOJI',
+        prompt: '🐸☕',
+        correctAnswer: 'but thats none of my business',
+        acceptableAnswers: ['kermit tea', "but that's none of my business"],
+      },
+    ],
+  });
+
+  const musicTour = await ensureTour('Музыка', {
+    rules: 'Угадай песню',
+    defaultPoints: 2,
+    questions: [
+      {
+        sortOrder: 0,
+        contentType: 'LYRICS',
+        prompt: 'Is this the real life? Is this just fantasy?',
+        correctAnswer: 'bohemian rhapsody',
+        acceptableAnswers: ['queen bohemian rhapsody'],
+      },
+    ],
+  });
+
   const series = await prisma.series.upsert({
     where: { number: 1 },
     update: {},
@@ -36,57 +113,25 @@ async function main() {
       description: 'Первый выпуск для тестирования',
       status: 'PUBLISHED',
       publishedAt: new Date(),
-      tours: {
-        create: [
-          {
-            title: 'Мемы',
-            rules: 'Угадай мем по картинке',
-            defaultPoints: 3,
-            sortOrder: 0,
-            questions: {
-              create: [
-                {
-                  sortOrder: 0,
-                  contentType: 'TEXT',
-                  prompt: 'Какой мем: "One does not simply..."?',
-                  answerType: 'TEXT',
-                  correctAnswer: 'walk into mordor',
-                  acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
-                  hints: ['Властелин колец', 'Boromir meme'],
-                },
-                {
-                  sortOrder: 1,
-                  contentType: 'EMOJI',
-                  prompt: '🐸☕',
-                  answerType: 'TEXT',
-                  correctAnswer: 'but thats none of my business',
-                  acceptableAnswers: ['kermit tea', "but that's none of my business"],
-                },
-              ],
-            },
-          },
-          {
-            title: 'Музыка',
-            rules: 'Угадай песню',
-            defaultPoints: 2,
-            sortOrder: 1,
-            questions: {
-              create: [
-                {
-                  sortOrder: 0,
-                  contentType: 'LYRICS',
-                  prompt: 'Is this the real life? Is this just fantasy?',
-                  answerType: 'TEXT',
-                  correctAnswer: 'bohemian rhapsody',
-                  acceptableAnswers: ['queen bohemian rhapsody'],
-                },
-              ],
-            },
-          },
-        ],
-      },
     },
   });
+
+  for (const [index, tourId] of [memesTour.id, musicTour.id].entries()) {
+    await prisma.seriesTour.upsert({
+      where: {
+        seriesId_tourId: {
+          seriesId: series.id,
+          tourId,
+        },
+      },
+      update: { sortOrder: index },
+      create: {
+        seriesId: series.id,
+        tourId,
+        sortOrder: index,
+      },
+    });
+  }
 
   await prisma.question.updateMany({
     where: { prompt: { contains: 'One does not simply' } },

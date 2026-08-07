@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import SeriesListView from '../views/SeriesListView.vue';
 import SeriesEditView from '../views/SeriesEditView.vue';
+import ToursListView from '../views/ToursListView.vue';
+import TourEditView from '../views/TourEditView.vue';
 import QuestionEditView from '../views/QuestionEditView.vue';
 
 export const router = createRouter({
@@ -20,12 +22,22 @@ export const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/series/:seriesId/tours/:tourId/questions/new',
+      path: '/tours',
+      component: ToursListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tours/:tourId/questions',
+      component: TourEditView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tours/:tourId/questions/new',
       component: QuestionEditView,
       meta: { requiresAuth: true },
     },
     {
-      path: '/series/:seriesId/tours/:tourId/questions/:questionId',
+      path: '/tours/:tourId/questions/:questionId',
       component: QuestionEditView,
       meta: { requiresAuth: true },
     },

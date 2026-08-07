@@ -8,6 +8,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from '@humiliation-ga
 import { publicRouter } from './routes/public.js';
 import { adminAuthRouter } from './routes/admin/auth.js';
 import { adminSeriesRouter } from './routes/admin/series.js';
+import { adminToursRouter } from './routes/admin/tours.js';
 import { adminMediaRouter } from './routes/admin/media.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
@@ -40,6 +41,7 @@ app.get('/', (_req, res) => {
 app.use('/api', publicRouter);
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/series', adminSeriesRouter);
+app.use('/api/admin/tours', adminToursRouter);
 app.use('/api/admin/media', adminMediaRouter);
 
 setupSocketHandlers(io);

@@ -13,32 +13,48 @@ publicRouter.get('/series', async (_req, res) => {
     where: { status: 'PUBLISHED' },
     orderBy: { number: 'desc' },
     include: {
-      tours: {
+      seriesTours: {
         orderBy: { sortOrder: 'asc' },
-        select: {
-          id: true,
-          title: true,
-          defaultPoints: true,
-          _count: { select: { questions: true } },
+        include: {
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              defaultPoints: true,
+              _count: { select: { questions: true } },
+            },
+          },
         },
       },
     },
   });
-  res.json(series);
+  res.json(
+    series.map(({ seriesTours, ...item }) => ({
+      ...item,
+      tours: seriesTours.map(({ sortOrder, tour }) => ({
+        ...tour,
+        sortOrder,
+      })),
+    })),
+  );
 });
 
 publicRouter.get('/series/:id', async (req, res) => {
   const series = await prisma.series.findFirst({
     where: { id: req.params.id, status: 'PUBLISHED' },
     include: {
-      tours: {
+      seriesTours: {
         orderBy: { sortOrder: 'asc' },
-        select: {
-          id: true,
-          title: true,
-          rules: true,
-          defaultPoints: true,
-          _count: { select: { questions: true } },
+        include: {
+          tour: {
+            select: {
+              id: true,
+              title: true,
+              rules: true,
+              defaultPoints: true,
+              _count: { select: { questions: true } },
+            },
+          },
         },
       },
     },
@@ -47,7 +63,14 @@ publicRouter.get('/series/:id', async (req, res) => {
     res.status(404).json({ error: 'Series not found' });
     return;
   }
-  res.json(series);
+  const { seriesTours, ...rest } = series;
+  res.json({
+    ...rest,
+    tours: seriesTours.map(({ sortOrder, tour }) => ({
+      ...tour,
+      sortOrder,
+    })),
+  });
 });
 
 publicRouter.post('/rooms', async (req, res) => {

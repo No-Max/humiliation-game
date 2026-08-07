@@ -216,10 +216,11 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.advanceToNextTeam();
     this.afterWrongAnswer(question);
+    this.setWrongTurnNotice(questionValueReduced, false);
+    this.onStateChange?.();
+    this.advanceToNextTeam();
     this.refreshTurnTimer();
-    this.setWrongTurnNotice(question, questionValueReduced, false);
     return { ok: true, correct: false, questionValueReduced };
   }
 
@@ -317,9 +318,10 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.advanceToNextTeam();
-
     this.afterWrongAnswer(question);
+    this.setWrongTurnNotice(questionValueReduced, true);
+    this.onStateChange?.();
+    this.advanceToNextTeam();
 
     if (this.getActiveTeamId()) {
       this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
@@ -327,26 +329,13 @@ export class GameEngine {
     } else {
       this.clearTurnTimer();
     }
-
-    this.setWrongTurnNotice(question, questionValueReduced, true);
   }
 
-  private setWrongTurnNotice(
-    question: Question,
-    questionValueReduced: boolean,
-    timedOut: boolean,
-  ) {
+  private setWrongTurnNotice(questionValueReduced: boolean, timedOut: boolean) {
     const prefix = timedOut ? 'Время вышло!' : 'Неверно!';
-    let notice = questionValueReduced
+    this.turnNotice = questionValueReduced
       ? `${prefix} −1 балл за вопрос`
       : `${prefix} Попробуйте ещё`;
-
-    const hints = this.getQuestionHints(question);
-    if (this.state.hintsShownCount > 0 && hints.length > 0) {
-      notice += ` · подсказка ${this.state.hintsShownCount}/${hints.length}`;
-    }
-
-    this.turnNotice = notice;
   }
 
   private getTimeLimitSec(): number {
@@ -474,7 +463,11 @@ export class GameEngine {
   }
 
   private advanceToNextTeam() {
+    const previousActiveId = this.getActiveTeamId();
     this.state.turnIndex += 1;
+    if (previousActiveId !== this.getActiveTeamId()) {
+      this.turnNotice = undefined;
+    }
   }
 
   private afterWrongAnswer(question: Question) {

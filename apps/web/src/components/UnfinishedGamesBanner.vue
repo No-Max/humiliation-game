@@ -16,7 +16,11 @@ const sessions = ref<SavedGameSession[]>([]);
 const loading = ref(true);
 
 function isHiddenRoute() {
-  return route.path.startsWith('/team/') || route.path.startsWith('/display/');
+  return (
+    route.path.startsWith('/team/') ||
+    route.path.startsWith('/display/') ||
+    route.path.startsWith('/lobby/')
+  );
 }
 
 async function verifySessions(list: SavedGameSession[]) {

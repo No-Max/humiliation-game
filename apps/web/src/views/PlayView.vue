@@ -15,14 +15,11 @@ import {
 import { syncFromRoomState } from '../lib/gameStorage';
 import {
   clearTeamSlot,
-  getDisplayUrl,
-  getJoinUrl,
-  getTeamSlotUrl,
   rememberTeamSlot,
   resolveTeamId,
 } from '../lib/teamSession';
 import AnswerTimer from '../components/AnswerTimer.vue';
-import LinkCopyField from '../components/LinkCopyField.vue';
+import GameConnectionPanel from '../components/GameConnectionPanel.vue';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 
@@ -31,18 +28,12 @@ const router = useRouter();
 const state = ref<RoomState | null>(null);
 const answer = ref('');
 const message = ref('');
-const connectionMessage = ref('');
 const teamId = ref('');
 const teamName = ref('');
 const socketConnected = ref(true);
 const joined = ref(false);
 const showConnectionModal = ref(false);
 const showExitModal = ref(false);
-const renamingTeam = ref(false);
-const renameDraft = ref('');
-const renameError = ref('');
-const renameLoading = ref(false);
-const showAddTeamLink = ref(false);
 let cleanup: (() => void) | undefined;
 let connectionCleanup: (() => void) | undefined;
 
@@ -51,12 +42,6 @@ const routeTeamId = computed(() => {
   const fromRoute = route.params.teamId as string | undefined;
   return fromRoute ?? (route.query.team as string | undefined);
 });
-
-const displayUrl = computed(() => getDisplayUrl(code.value));
-const joinUrl = computed(() => getJoinUrl(code.value));
-const mySlotUrl = computed(() =>
-  teamId.value ? getTeamSlotUrl(code.value, teamId.value) : '',
-);
 
 const linksActive = computed(() => state.value?.status !== 'FINISHED');
 const isPaused = computed(() => state.value?.status === 'PAUSED');
@@ -209,73 +194,22 @@ function reconnect() {
   doJoin();
 }
 
-function onLinkCopied(label: string) {
-  connectionMessage.value = `${label} скопирована`;
-}
-
-function addTeam() {
-  showAddTeamLink.value = true;
+function onTeamRenamed(name: string) {
+  rememberTeamSlot(
+    code.value,
+    teamId.value,
+    name,
+    state.value?.seriesTitle ?? 'Игра',
+    state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
+  );
 }
 
 function openConnection() {
-  connectionMessage.value = '';
-  renamingTeam.value = false;
-  renameError.value = '';
-  showAddTeamLink.value = false;
   showConnectionModal.value = true;
-}
-
-function startRenameTeam() {
-  renameDraft.value = teamName.value;
-  renameError.value = '';
-  renamingTeam.value = true;
-}
-
-function cancelRenameTeam() {
-  renamingTeam.value = false;
-  renameError.value = '';
-}
-
-function saveRenameTeam() {
-  const nextName = renameDraft.value.trim();
-  if (!nextName) {
-    renameError.value = 'Введите название команды';
-    return;
-  }
-  if (nextName === teamName.value) {
-    renamingTeam.value = false;
-    return;
-  }
-
-  renameLoading.value = true;
-  renameError.value = '';
-  connectSocket().emit('renameTeam', nextName, (result) => {
-    renameLoading.value = false;
-    if (!result.ok) {
-      renameError.value = result.error ?? 'Не удалось переименовать';
-      return;
-    }
-    if (result.teamName) {
-      teamName.value = result.teamName;
-      rememberTeamSlot(
-        code.value,
-        teamId.value,
-        result.teamName,
-        state.value?.seriesTitle ?? 'Игра',
-        state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
-      );
-    }
-    renamingTeam.value = false;
-    connectionMessage.value = 'Название команды обновлено';
-  });
 }
 
 function closeConnection() {
   showConnectionModal.value = false;
-  connectionMessage.value = '';
-  renamingTeam.value = false;
-  renameError.value = '';
-  showAddTeamLink.value = false;
 }
 
 function pauseGame() {
@@ -466,147 +400,14 @@ function confirmExit() {
           <button class="modal-close" type="button" aria-label="Закрыть" @click="closeConnection">×</button>
         </div>
         <div class="modal-body">
-          <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem">
-            Ссылки активны до конца игры
-          </p>
-
-          <div class="link-block">
-            <strong>📺 Экран</strong>
-            <p class="link-desc">
-              TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
-            </p>
-            <LinkCopyField :url="displayUrl" label="Ссылка экрана" @copied="onLinkCopied" />
-          </div>
-
-          <div v-if="state?.teamSlots?.length || mySlotUrl" class="link-block">
-            <strong>📱 Команды</strong>
-            <p class="link-desc">
-              Джойстик команды. Любой телефон команды может подключиться —
-              предыдущее устройство отключится.
-            </p>
-
-            <template v-if="state?.teamSlots?.length">
-              <div v-for="slot in state.teamSlots" :key="slot.teamId" class="team-slot-row">
-                <template v-if="slot.teamId === teamId">
-                  <div v-if="renamingTeam" class="rename-team-form">
-                    <label :for="`rename-team-input-${slot.teamId}`">Новое название</label>
-                    <input
-                      :id="`rename-team-input-${slot.teamId}`"
-                      v-model="renameDraft"
-                      class="input"
-                      placeholder="Название команды"
-                      @keyup.enter="saveRenameTeam"
-                    />
-                    <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
-                    <div class="rename-team-actions">
-                      <button class="btn" type="button" :disabled="renameLoading" @click="saveRenameTeam">
-                        {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
-                      </button>
-                      <button
-                        class="btn btn-secondary"
-                        type="button"
-                        :disabled="renameLoading"
-                        @click="cancelRenameTeam"
-                      >
-                        Отмена
-                      </button>
-                    </div>
-                  </div>
-                  <div v-else class="team-name-row">
-                    <span class="team-name">{{ slot.name }} <span class="team-you">(Вы)</span></span>
-                    <button
-                      type="button"
-                      class="team-rename-btn"
-                      aria-label="Переименовать команду"
-                      @click="startRenameTeam"
-                    >
-                      <svg class="team-rename-icon" role="presentation" aria-hidden="true">
-                        <use href="/icons.svg#pencil-icon"></use>
-                      </svg>
-                    </button>
-                  </div>
-                </template>
-                <span v-else class="team-slot-name">{{ slot.name }}</span>
-
-                <LinkCopyField
-                  :url="getTeamSlotUrl(code, slot.teamId)"
-                  :label="slot.teamId === teamId ? 'Ссылка слота' : `Ссылка «${slot.name}»`"
-                  :highlight="slot.teamId === teamId"
-                  @copied="onLinkCopied"
-                />
-              </div>
-            </template>
-
-            <div v-else-if="mySlotUrl" class="team-slot-row">
-              <div v-if="renamingTeam" class="rename-team-form">
-                <label for="rename-team-input">Новое название</label>
-                <input
-                  id="rename-team-input"
-                  v-model="renameDraft"
-                  class="input"
-                  placeholder="Название команды"
-                  @keyup.enter="saveRenameTeam"
-                />
-                <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
-                <div class="rename-team-actions">
-                  <button class="btn" type="button" :disabled="renameLoading" @click="saveRenameTeam">
-                    {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
-                  </button>
-                  <button
-                    class="btn btn-secondary"
-                    type="button"
-                    :disabled="renameLoading"
-                    @click="cancelRenameTeam"
-                  >
-                    Отмена
-                  </button>
-                </div>
-              </div>
-              <div v-else-if="teamName" class="team-name-row">
-                <span class="team-name">{{ teamName }} <span class="team-you">(Вы)</span></span>
-                <button
-                  type="button"
-                  class="team-rename-btn"
-                  aria-label="Переименовать команду"
-                  @click="startRenameTeam"
-                >
-                  <svg class="team-rename-icon" role="presentation" aria-hidden="true">
-                    <use href="/icons.svg#pencil-icon"></use>
-                  </svg>
-                </button>
-              </div>
-
-              <LinkCopyField
-                :url="mySlotUrl"
-                label="Ссылка слота"
-                highlight
-                @copied="onLinkCopied"
-              />
-            </div>
-
-            <button
-              v-if="!showAddTeamLink"
-              type="button"
-              class="btn btn-secondary add-team-btn"
-              @click="addTeam"
-            >
-              Добавить команду
-            </button>
-            <div v-else class="add-team-link">
-              <p class="link-desc">
-                Чтобы добавить команду, откройте ссылку на другом устройстве или отсканируйте QR-код.
-              </p>
-              <LinkCopyField
-                :url="joinUrl"
-                label="Ссылка для новой команды"
-                @copied="onLinkCopied"
-              />
-            </div>
-          </div>
-
-          <p v-if="connectionMessage" class="connection-copy-message">
-            {{ connectionMessage }}
-          </p>
+          <GameConnectionPanel
+            :room-code="code"
+            :team-id="teamId"
+            v-model:team-name="teamName"
+            :state="state"
+            intro-text="Ссылки активны до конца игры"
+            @team-renamed="onTeamRenamed"
+          />
         </div>
       </div>
     </div>
@@ -675,89 +476,6 @@ function confirmExit() {
 </template>
 
 <style scoped>
-.connection-copy-message {
-  margin: 1rem 0 0;
-  color: #059669;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.rename-team-form {
-  margin: 0 0 0.5rem;
-}
-
-.team-name-row {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  margin: 0 0 0.35rem;
-}
-
-.team-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #4f46e5;
-}
-
-.team-you {
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.team-rename-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: #6b7280;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.team-rename-btn:hover {
-  background: #f3f4f6;
-  color: #4f46e5;
-}
-
-.team-rename-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.rename-team-form label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.875rem;
-  color: #374151;
-}
-
-.rename-team-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.rename-team-error {
-  color: #dc2626;
-  font-size: 0.875rem;
-  margin: 0.5rem 0 0;
-}
-
-.add-team-btn {
-  width: 100%;
-  margin-top: 0.75rem;
-}
-
-.add-team-link {
-  margin-top: 0.75rem;
-}
-
 .connection-settings-btn {
   display: inline-flex;
   align-items: center;

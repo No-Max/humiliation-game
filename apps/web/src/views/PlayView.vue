@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
-import { teamsSortedByScore } from '@humiliation-game/shared';
+import { teamsSortedByScore, formatQuestionCount } from '@humiliation-game/shared';
 import {
   connectSocket,
   disableAutoRejoin,
@@ -30,6 +30,7 @@ const router = useRouter();
 const state = ref<RoomState | null>(null);
 const answer = ref('');
 const message = ref('');
+const connectionMessage = ref('');
 const teamId = ref('');
 const teamName = ref('');
 const socketConnected = ref(true);
@@ -204,15 +205,17 @@ function reconnect() {
 
 async function copy(text: string, label: string) {
   await navigator.clipboard.writeText(text);
-  message.value = `${label} скопирована`;
+  connectionMessage.value = `${label} скопирована`;
 }
 
 function openConnection() {
+  connectionMessage.value = '';
   showConnectionModal.value = true;
 }
 
 function closeConnection() {
   showConnectionModal.value = false;
+  connectionMessage.value = '';
 }
 
 function pauseGame() {
@@ -435,6 +438,10 @@ function confirmExit() {
               Копировать
             </button>
           </div>
+
+          <p v-if="connectionMessage" class="connection-copy-message">
+            {{ connectionMessage }}
+          </p>
         </div>
       </div>
     </div>
@@ -447,6 +454,9 @@ function confirmExit() {
         </p>
       </div>
       <p>Готовы начать тур «{{ state.tourTitle }}»?</p>
+      <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
+        {{ formatQuestionCount(state.tourQuestionCount) }}
+      </p>
       <button class="btn" @click="startTour">Начать тур</button>
     </div>
 
@@ -493,11 +503,18 @@ function confirmExit() {
       </div>
     </div>
 
-    <p
-      v-if="message"
-      :style="{ color: message.includes('скопирован') ? '#059669' : '#dc2626', marginTop: '1rem' }"
-    >
+    <p v-if="message" style="color: #dc2626; margin-top: 1rem">
       {{ message }}
     </p>
   </div>
 </template>
+
+<style scoped>
+.connection-copy-message {
+  margin: 1rem 0 0;
+  color: #059669;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: center;
+}
+</style>

@@ -45,6 +45,8 @@ export interface RoomState {
   hintsTotal?: number;
   displayCount: number;
   tourTitle?: string;
+  /** Число заданий в текущем туре (на экране TOUR_INTRO) */
+  tourQuestionCount?: number;
   questionPrompt?: string;
   questionContentType?: QuestionContentType;
   answerType?: AnswerType;
@@ -93,4 +95,14 @@ export function teamsSortedByScore(teams: TeamState[]): TeamState[] {
   return [...teams].sort(
     (a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ru'),
   );
+}
+
+export function formatQuestionCount(count: number): string {
+  const n = Math.abs(count);
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return `${n} вопросов`;
+  if (mod10 === 1) return `${n} вопрос`;
+  if (mod10 >= 2 && mod10 <= 4) return `${n} вопроса`;
+  return `${n} вопросов`;
 }

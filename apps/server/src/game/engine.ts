@@ -144,6 +144,7 @@ export class GameEngine {
       hintsTotal: tourStarted && question ? this.getQuestionHints(question).length : undefined,
       displayCount: this.displayCount,
       tourTitle: tour?.title,
+      tourQuestionCount: this.state.phase === 'TOUR_INTRO' ? tour?.questions.length : undefined,
       questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
       questionContentType: tourStarted
         ? (question?.contentType as QuestionContentType | undefined)
@@ -268,6 +269,8 @@ export class GameEngine {
       this.clearTurnTimer();
       this.state.currentTourIndex += 1;
       this.state.currentQuestionIndex = 0;
+      this.state.currentTeamIndex =
+        (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
       this.state.phase = 'TOUR_INTRO';
       return { ok: true };
     }

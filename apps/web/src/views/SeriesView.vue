@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+import { formatQuestionCount } from '@humiliation-game/shared';
 import { api } from '../lib/api';
 
 interface SeriesItem {
@@ -8,7 +9,7 @@ interface SeriesItem {
   title: string;
   number: number;
   description?: string;
-  tours: { title: string; _count: { questions: number } }[];
+  tours: { id: string; title: string; _count: { questions: number } }[];
 }
 
 const series = ref<SeriesItem[]>([]);
@@ -35,10 +36,25 @@ onMounted(async () => {
     <div v-for="item in series" :key="item.id" class="card">
       <h2>Выпуск {{ item.number }}: {{ item.title }}</h2>
       <p v-if="item.description" style="margin: 0.5rem 0">{{ item.description }}</p>
-      <p style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0">
-        Туры: {{ item.tours.map((t) => t.title).join(', ') }}
-      </p>
+      <ul v-if="item.tours.length" class="series-tours-list">
+        <li v-for="tour in item.tours" :key="tour.id">
+          {{ tour.title }} — {{ formatQuestionCount(tour._count.questions) }}
+        </li>
+      </ul>
+      <p v-else style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0">Туры не добавлены</p>
       <RouterLink :to="`/lobby/${item.id}`" class="btn">Играть</RouterLink>
     </div>
   </div>
 </template>
+
+<style scoped>
+.series-tours-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  display: grid;
+  gap: 0.25rem;
+}
+</style>

@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
-import { teamsSortedByScore } from '@humiliation-game/shared';
+import { teamsSortedByScore, formatQuestionCount } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import AnswerTimer from '../components/AnswerTimer.vue';
 import QuestionChoices from '../components/QuestionChoices.vue';
@@ -61,10 +61,16 @@ onUnmounted(() => cleanup?.());
           </p>
         </div>
         <p style="margin-top: 1rem">Следующий тур: {{ state.tourTitle }}</p>
+        <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
+          {{ formatQuestionCount(state.tourQuestionCount) }}
+        </p>
         <p style="color: #6b7280">Нажмите «Начать» на телефоне</p>
       </template>
       <template v-else>
         <h2>Тур: {{ state.tourTitle }}</h2>
+        <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
+          {{ formatQuestionCount(state.tourQuestionCount) }}
+        </p>
         <p>Нажмите «Начать» на телефоне</p>
       </template>
     </div>

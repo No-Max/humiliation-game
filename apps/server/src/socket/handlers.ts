@@ -237,6 +237,24 @@ export function setupSocketHandlers(io: GameServer) {
       callback(result);
     });
 
+    socket.on('renameTeam', async (name, callback) => {
+      const engine = roomCode ? rooms.get(roomCode) : undefined;
+      if (!engine || !teamId) {
+        callback({ ok: false, error: 'Not in room' });
+        return;
+      }
+
+      const result = engine.renameTeam(teamId, name);
+      if (result.ok && result.teamName) {
+        await prisma.gameTeam.update({
+          where: { id: teamId },
+          data: { name: result.teamName },
+        });
+        io.to(roomCode!).emit('roomState', engine.getPublicState());
+      }
+      callback(result);
+    });
+
     socket.on('leaveRoom', (callback) => {
       if (!roomCode) {
         callback({ ok: true });

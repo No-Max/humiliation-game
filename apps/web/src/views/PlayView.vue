@@ -37,6 +37,10 @@ const socketConnected = ref(true);
 const joined = ref(false);
 const showConnectionModal = ref(false);
 const showExitModal = ref(false);
+const renamingTeam = ref(false);
+const renameDraft = ref('');
+const renameError = ref('');
+const renameLoading = ref(false);
 let cleanup: (() => void) | undefined;
 let connectionCleanup: (() => void) | undefined;
 
@@ -210,12 +214,61 @@ async function copy(text: string, label: string) {
 
 function openConnection() {
   connectionMessage.value = '';
+  renamingTeam.value = false;
+  renameError.value = '';
   showConnectionModal.value = true;
+}
+
+function startRenameTeam() {
+  renameDraft.value = teamName.value;
+  renameError.value = '';
+  renamingTeam.value = true;
+}
+
+function cancelRenameTeam() {
+  renamingTeam.value = false;
+  renameError.value = '';
+}
+
+function saveRenameTeam() {
+  const nextName = renameDraft.value.trim();
+  if (!nextName) {
+    renameError.value = 'Введите название команды';
+    return;
+  }
+  if (nextName === teamName.value) {
+    renamingTeam.value = false;
+    return;
+  }
+
+  renameLoading.value = true;
+  renameError.value = '';
+  connectSocket().emit('renameTeam', nextName, (result) => {
+    renameLoading.value = false;
+    if (!result.ok) {
+      renameError.value = result.error ?? 'Не удалось переименовать';
+      return;
+    }
+    if (result.teamName) {
+      teamName.value = result.teamName;
+      rememberTeamSlot(
+        code.value,
+        teamId.value,
+        result.teamName,
+        state.value?.seriesTitle ?? 'Игра',
+        state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
+      );
+    }
+    renamingTeam.value = false;
+    connectionMessage.value = 'Название команды обновлено';
+  });
 }
 
 function closeConnection() {
   showConnectionModal.value = false;
   connectionMessage.value = '';
+  renamingTeam.value = false;
+  renameError.value = '';
 }
 
 function pauseGame() {
@@ -411,11 +464,45 @@ function confirmExit() {
           </div>
 
           <div v-if="mySlotUrl" class="link-block">
-            <strong>📱 Командный слот{{ teamName ? `: ${teamName}` : '' }}</strong>
+            <strong>📱 Командный слот{{ teamName && !renamingTeam ? `: ${teamName}` : '' }}</strong>
             <p class="link-desc">
               Джойстик команды. Любой телефон команды может подключиться —
               предыдущее устройство отключится.
             </p>
+
+            <div v-if="renamingTeam" class="rename-team-form">
+              <label for="rename-team-input">Новое название</label>
+              <input
+                id="rename-team-input"
+                v-model="renameDraft"
+                class="input"
+                placeholder="Название команды"
+                @keyup.enter="saveRenameTeam"
+              />
+              <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
+              <div class="rename-team-actions">
+                <button class="btn" type="button" :disabled="renameLoading" @click="saveRenameTeam">
+                  {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
+                </button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  :disabled="renameLoading"
+                  @click="cancelRenameTeam"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+            <button
+              v-else
+              class="btn btn-secondary rename-team-trigger"
+              type="button"
+              @click="startRenameTeam"
+            >
+              Переименовать команду
+            </button>
+
             <p class="link-url highlight">{{ mySlotUrl }}</p>
             <button class="btn btn-secondary" @click="copy(mySlotUrl, 'Ссылка слота')">
               Копировать
@@ -516,5 +603,32 @@ function confirmExit() {
   font-size: 0.9375rem;
   font-weight: 600;
   text-align: center;
+}
+
+.rename-team-form {
+  margin: 0.75rem 0;
+}
+
+.rename-team-form label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.rename-team-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rename-team-trigger {
+  margin: 0.75rem 0;
+}
+
+.rename-team-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0;
 }
 </style>

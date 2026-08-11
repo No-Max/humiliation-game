@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
+import { getPreferredTeamName } from '../lib/teamPreferences';
 
 interface RoomTeam {
   id: string;
@@ -17,6 +18,7 @@ const loading = ref(false);
 const existingTeams = ref<RoomTeam[]>([]);
 
 onMounted(async () => {
+  teamName.value = getPreferredTeamName();
   connectSocket();
   try {
     const room = await api<{ teams: RoomTeam[] }>(`/rooms/${route.params.code}`);
@@ -103,6 +105,9 @@ function reconnectAs(team: RoomTeam) {
         которую сохранили в начале игры.
       </p>
       <input v-model="teamName" class="input" placeholder="Название новой команды" />
+      <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem">
+        Название сохраняется на этом устройстве — его можно изменить перед входом.
+      </p>
       <button class="btn" :disabled="loading" @click="joinNew">
         {{ loading ? 'Подключение...' : 'Войти' }}
       </button>

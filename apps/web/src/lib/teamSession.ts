@@ -1,4 +1,5 @@
 import { getGameSession, removeGameSession, saveGameSession } from './gameStorage';
+import { setPreferredTeamName } from './teamPreferences';
 
 export function getDisplayUrl(roomCode: string): string {
   return `${window.location.origin}/display/${roomCode}`;
@@ -32,6 +33,7 @@ export function rememberTeamSlot(
     status,
     updatedAt: Date.now(),
   });
+  setPreferredTeamName(teamName);
 }
 
 export function clearTeamSlot(roomCode: string) {

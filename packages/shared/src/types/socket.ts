@@ -15,6 +15,7 @@ export interface ClientToServerEvents {
   pauseGame: (callback: (result: ActionResult) => void) => void;
   resumeGame: (callback: (result: ActionResult) => void) => void;
   leaveRoom: (callback: (result: ActionResult) => void) => void;
+  renameTeam: (name: string, callback: (result: ActionResult) => void) => void;
 }
 
 export type JoinRole = 'team' | 'display';
@@ -43,6 +44,7 @@ export interface ActionResult {
   error?: string;
   correct?: boolean;
   questionValueReduced?: boolean;
+  teamName?: string;
 }
 
 export const SOCKET_EVENTS = {
@@ -57,4 +59,5 @@ export const SOCKET_EVENTS = {
   PAUSE_GAME: 'pauseGame',
   RESUME_GAME: 'resumeGame',
   LEAVE_ROOM: 'leaveRoom',
+  RENAME_TEAM: 'renameTeam',
 } as const;

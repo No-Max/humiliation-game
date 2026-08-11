@@ -80,6 +80,39 @@ export class GameEngine {
     this.state.teamOrder.push(team.id);
   }
 
+  renameTeam(
+    teamId: string,
+    name: string,
+  ): { ok: boolean; error?: string; teamName?: string } {
+    if (this.isGameFinished()) {
+      return { ok: false, error: 'Игра уже завершена' };
+    }
+
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return { ok: false, error: 'Введите название команды' };
+    }
+
+    const team = this.teams.get(teamId);
+    if (!team) {
+      return { ok: false, error: 'Команда не найдена' };
+    }
+
+    if (team.name.toLowerCase() === trimmed.toLowerCase()) {
+      return { ok: true, teamName: trimmed };
+    }
+
+    const duplicate = [...this.teams.values()].some(
+      (t) => t.id !== teamId && t.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (duplicate) {
+      return { ok: false, error: 'Команда с таким названием уже есть' };
+    }
+
+    team.name = trimmed;
+    return { ok: true, teamName: trimmed };
+  }
+
   isGameFinished(): boolean {
     return this.state.phase === 'FINISHED';
   }

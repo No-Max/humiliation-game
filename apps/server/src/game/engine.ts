@@ -228,10 +228,9 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.afterWrongAnswer(question);
     this.setWrongTurnNotice(questionValueReduced, false);
-    this.onStateChange?.();
-    this.advanceToNextTeam();
+    this.advanceToNextTeam(teamId);
+    this.afterWrongAnswer(question);
     this.refreshTurnTimer();
     return { ok: true, correct: false, questionValueReduced };
   }
@@ -283,7 +282,7 @@ export class GameEngine {
 
     this.state.passedTeamIds.add(teamId);
     this.state.attemptedTeamIds.add(teamId);
-    this.advanceToNextTeam();
+    this.advanceToNextTeam(teamId);
 
     const question = this.getCurrentQuestion();
     if (question) {
@@ -330,10 +329,9 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.afterWrongAnswer(question);
     this.setWrongTurnNotice(questionValueReduced, true);
-    this.onStateChange?.();
-    this.advanceToNextTeam();
+    this.advanceToNextTeam(teamId);
+    this.afterWrongAnswer(question);
 
     if (this.getActiveTeamId()) {
       this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
@@ -470,13 +468,50 @@ export class GameEngine {
     return candidates[idx];
   }
 
-  private getActiveTeamIds(): string[] {
-    return this.state.teamOrder.filter((id) => !this.state.passedTeamIds.has(id));
+  private getRotatedTeamOrder(): string[] {
+    const { teamOrder, currentTeamIndex } = this.state;
+    if (!teamOrder.length) return [];
+
+    const start = ((currentTeamIndex % teamOrder.length) + teamOrder.length) % teamOrder.length;
+    return [...teamOrder.slice(start), ...teamOrder.slice(0, start)];
   }
 
-  private advanceToNextTeam() {
-    const previousActiveId = this.getActiveTeamId();
-    this.state.turnIndex += 1;
+  private getActiveTeamIds(): string[] {
+    return this.getRotatedTeamOrder().filter((id) => !this.state.passedTeamIds.has(id));
+  }
+
+  private advanceToNextTeam(fromTeamId?: string) {
+    const previousActiveId = fromTeamId ?? this.getActiveTeamId();
+    if (!previousActiveId) {
+      this.state.turnIndex += 1;
+      return;
+    }
+
+    const rotated = this.getRotatedTeamOrder();
+    const startIdx = rotated.indexOf(previousActiveId);
+    if (startIdx === -1) {
+      this.state.turnIndex += 1;
+      return;
+    }
+
+    let nextActiveId: string | undefined;
+    for (let step = 1; step <= rotated.length; step += 1) {
+      const candidateId = rotated[(startIdx + step) % rotated.length];
+      if (this.state.passedTeamIds.has(candidateId)) continue;
+      nextActiveId = candidateId;
+      break;
+    }
+
+    if (nextActiveId) {
+      const activeIds = this.getActiveTeamIds();
+      const nextIdx = activeIds.indexOf(nextActiveId);
+      if (nextIdx !== -1) {
+        this.state.turnIndex = nextIdx;
+      }
+    } else {
+      this.state.turnIndex += 1;
+    }
+
     if (previousActiveId !== this.getActiveTeamId()) {
       this.turnNotice = undefined;
     }

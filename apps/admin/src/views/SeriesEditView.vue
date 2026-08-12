@@ -66,15 +66,6 @@ async function load() {
 
 onMounted(load);
 
-async function publish() {
-  if (!series.value) return;
-  await adminApi(`/series/${series.value.id}`, {
-    method: 'PUT',
-    body: JSON.stringify({ ...series.value, status: 'PUBLISHED' }),
-  });
-  await load();
-}
-
 async function openPickModal() {
   libraryTours.value = await adminApi('/tours');
   error.value = '';
@@ -156,14 +147,6 @@ function formatTime(sec: number) {
 
     <template v-else-if="series">
     <h1 class="page-title">Выпуск {{ series.number }}: {{ series.title }}</h1>
-
-    <div class="card">
-      <p>Статус: <strong>{{ series.status }}</strong></p>
-      <button v-if="series.status !== 'PUBLISHED'" class="btn" style="margin-top: 0.75rem" @click="publish">
-        <AdminIcon name="publish-icon" />
-        Опубликовать
-      </button>
-    </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
       <h2>Туры в выпуске</h2>

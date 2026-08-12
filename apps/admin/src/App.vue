@@ -17,7 +17,7 @@ function logout() {
   <div class="app">
     <header v-if="isLoggedIn" class="header">
       <span class="logo">Admin</span>
-      <nav>
+      <nav class="header-nav">
         <RouterLink to="/series" class="header-nav-link">
           <AdminIcon name="list-icon" />
           Выпуски
@@ -26,11 +26,13 @@ function logout() {
           <AdminIcon name="layers-icon" />
           Туры
         </RouterLink>
+      </nav>
+      <div class="header-actions">
         <button class="link-btn" type="button" @click="logout">
           <AdminIcon name="logout-icon" />
           Выйти
         </button>
-      </nav>
+      </div>
     </header>
     <main class="main">
       <RouterView />

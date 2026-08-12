@@ -56,7 +56,9 @@ adminSeriesRouter.put('/:id', async (req, res) => {
       description,
       coverUrl,
       status,
-      publishedAt: status === 'PUBLISHED' ? new Date() : undefined,
+      ...(status !== undefined && {
+        publishedAt: status === 'PUBLISHED' ? new Date() : null,
+      }),
     },
   });
   res.json(series);

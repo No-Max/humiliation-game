@@ -17,13 +17,46 @@ const series = ref<SeriesRow[]>([]);
 const loading = ref(true);
 const showCreateModal = ref(false);
 const saving = ref(false);
+const statusUpdatingId = ref<string | null>(null);
 const error = ref('');
 const form = ref({ title: '', number: '' });
 
-onMounted(async () => {
-  series.value = await adminApi('/series');
-  loading.value = false;
-});
+async function loadSeries() {
+  loading.value = true;
+  try {
+    series.value = await adminApi('/series');
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(loadSeries);
+
+function statusLabel(status: string) {
+  return status === 'PUBLISHED' ? 'Опубликован' : 'Черновик';
+}
+
+async function updateStatus(item: SeriesRow, status: 'DRAFT' | 'PUBLISHED') {
+  if (status === 'DRAFT' && !window.confirm(`Снять выпуск «${item.title}» с публикации?`)) return;
+
+  statusUpdatingId.value = item.id;
+  error.value = '';
+  try {
+    await adminApi(`/series/${item.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        title: item.title,
+        number: item.number,
+        status,
+      }),
+    });
+    series.value = await adminApi('/series');
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось изменить статус';
+  } finally {
+    statusUpdatingId.value = null;
+  }
+}
 
 function openCreateModal() {
   form.value = {
@@ -79,6 +112,8 @@ async function submitCreate() {
       </button>
     </div>
 
+    <p v-if="error && !showCreateModal" class="error">{{ error }}</p>
+
     <div v-if="loading" class="card">Загрузка...</div>
     <div v-else class="card">
       <table class="table">
@@ -95,9 +130,29 @@ async function submitCreate() {
           <tr v-for="item in series" :key="item.id">
             <td>{{ item.number }}</td>
             <td>{{ item.title }}</td>
-            <td>{{ item.status }}</td>
+            <td>{{ statusLabel(item.status) }}</td>
             <td>{{ item._count.tours }}</td>
             <td class="actions-cell">
+              <button
+                v-if="item.status !== 'PUBLISHED'"
+                class="btn btn-success btn-sm"
+                type="button"
+                :disabled="statusUpdatingId === item.id"
+                @click="updateStatus(item, 'PUBLISHED')"
+              >
+                <AdminIcon name="publish-icon" />
+                {{ statusUpdatingId === item.id ? 'Сохранение…' : 'Опубликовать' }}
+              </button>
+              <button
+                v-else
+                class="btn btn-warning btn-sm"
+                type="button"
+                :disabled="statusUpdatingId === item.id"
+                @click="updateStatus(item, 'DRAFT')"
+              >
+                <AdminIcon name="unpublish-icon" />
+                {{ statusUpdatingId === item.id ? 'Сохранение…' : 'Снять с публикации' }}
+              </button>
               <RouterLink :to="`/series/${item.id}`" class="btn btn-secondary btn-sm">
                 <AdminIcon name="pencil-icon" />
                 Редактировать

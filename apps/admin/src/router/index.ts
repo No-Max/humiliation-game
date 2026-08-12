@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue';
 import SeriesListView from '../views/SeriesListView.vue';
 import SeriesEditView from '../views/SeriesEditView.vue';
 import ToursListView from '../views/ToursListView.vue';
+import TourSettingsView from '../views/TourSettingsView.vue';
 import TourEditView from '../views/TourEditView.vue';
 import QuestionEditView from '../views/QuestionEditView.vue';
 
@@ -24,6 +25,16 @@ export const router = createRouter({
     {
       path: '/tours',
       component: ToursListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tours/new',
+      component: TourSettingsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tours/:tourId/edit',
+      component: TourSettingsView,
       meta: { requiresAuth: true },
     },
     {

@@ -13,6 +13,14 @@ export function toursBackLabel(seriesId: string | null): string {
   return seriesId ? '← К выпуску' : '← К турам';
 }
 
+export function tourSettingsNewRoute(): RouteLocationRaw {
+  return '/tours/new';
+}
+
+export function tourSettingsRoute(tourId: string): RouteLocationRaw {
+  return `/tours/${tourId}/edit`;
+}
+
 export function tourQuestionsRoute(tourId: string, seriesId: string | null): RouteLocationRaw {
   return seriesId
     ? { path: `/tours/${tourId}/questions`, query: { seriesId } }

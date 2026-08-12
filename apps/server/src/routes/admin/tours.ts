@@ -10,7 +10,7 @@ adminToursRouter.get('/', async (_req, res) => {
   const tours = await prisma.tour.findMany({
     orderBy: { title: 'asc' },
     include: {
-      _count: { select: { questions: true, seriesTours: true } },
+      _count: { select: { seriesTours: true } },
     },
   });
   res.json(tours);

@@ -1,22 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
+import { formatQuestionCount } from '@humiliation-game/shared';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
 import { tourQuestionsRoute } from '../lib/tourNavigation';
-
-interface Question {
-  id: string;
-  prompt?: string;
-  sortOrder: number;
-  correctAnswer: string;
-  hints?: string[];
-  acceptableAnswers?: string[];
-  points?: number | null;
-  timeLimitSec?: number | null;
-  contentType?: string;
-  mediaUrls?: string[];
-}
 
 interface Tour {
   id: string;
@@ -25,7 +13,7 @@ interface Tour {
   defaultPoints: number;
   defaultTimeLimitSec: number;
   sortOrder: number;
-  questions: Question[];
+  questions: { id: string }[];
 }
 
 interface SeriesDetail {
@@ -43,7 +31,6 @@ interface TourLibraryItem {
   rules?: string;
   defaultPoints: number;
   defaultTimeLimitSec: number;
-  _count: { questions: number };
 }
 
 const route = useRoute();
@@ -118,7 +105,7 @@ async function addTour(tourId: string) {
 
 async function removeTour(tour: Tour) {
   if (!series.value) return;
-  if (!window.confirm(`Убрать тур «${tour.title}» из выпуска?`)) return;
+  if (!window.confirm(`Удалить тур «${tour.title}» из выпуска?`)) return;
 
   saving.value = true;
   error.value = '';
@@ -193,12 +180,10 @@ function formatTime(sec: number) {
     <div v-for="(tour, index) in series.tours" :key="tour.id" class="card">
       <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between">
         <div>
-          <h3 style="margin: 0">
-            <RouterLink :to="tourQuestionsRoute(tour.id, series.id)">{{ tour.title }}</RouterLink>
-          </h3>
+          <h3 style="margin: 0">{{ tour.title }}</h3>
           <p style="color: #6b7280; margin: 0.35rem 0 0; font-size: 0.875rem">
             {{ tour.defaultPoints }} б. · ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}
-            · {{ tour.questions.length }} заданий
+            · {{ formatQuestionCount(tour.questions.length) }}
           </p>
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
@@ -219,24 +204,14 @@ function formatTime(sec: number) {
             ↓
           </button>
           <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="removeTour(tour)">
-            Убрать
+            Удалить
           </button>
+          <RouterLink :to="tourQuestionsRoute(tour.id, series.id)" class="btn btn-secondary btn-sm">
+            Редактировать
+          </RouterLink>
         </div>
       </div>
       <p v-if="tour.rules" style="color: #6b7280; margin: 0.75rem 0 0">{{ tour.rules }}</p>
-
-      <ul v-if="tour.questions.length" class="question-list">
-        <li v-for="q in tour.questions" :key="q.id" class="question-item">
-          <div class="question-content">
-            <div>{{ q.prompt }}</div>
-            <div class="question-meta">
-              <span v-if="q.contentType === 'IMAGE_TEXT'">🖼 · </span>
-              <span>→ <em>{{ q.correctAnswer }}</em></span>
-              <span v-if="q.hints?.length"> · 💡 {{ q.hints.length }}</span>
-            </div>
-          </div>
-        </li>
-      </ul>
     </div>
 
     <AdminModal
@@ -249,8 +224,7 @@ function formatTime(sec: number) {
     >
       <p v-if="error" class="error">{{ error }}</p>
       <p class="field-hint" style="margin-top: 0">
-        Выберите тур. Редактировать задания можно в разделе
-        <RouterLink to="/tours">Туры</RouterLink>.
+        Выберите тур для добавления в выпуск.
       </p>
 
       <div v-if="!availableTours.length" class="empty-pick">
@@ -264,7 +238,7 @@ function formatTime(sec: number) {
         <li v-for="tour in availableTours" :key="tour.id">
           <button class="pick-item" type="button" :disabled="saving" @click="addTour(tour.id)">
             <strong>{{ tour.title }}</strong>
-            <span>{{ tour._count.questions }} заданий · {{ tour.defaultPoints }} б.</span>
+            <span>{{ tour.defaultPoints }} б. · ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}</span>
           </button>
         </li>
       </ul>
@@ -274,27 +248,6 @@ function formatTime(sec: number) {
 </template>
 
 <style scoped>
-.question-list {
-  margin: 0.75rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.question-item {
-  padding: 0.5rem 0;
-  border-top: 1px solid #e5e7eb;
-}
-
-.question-item:first-child {
-  border-top: none;
-}
-
-.question-meta {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
-}
-
 .btn-sm {
   font-size: 0.8125rem;
   padding: 0.35rem 0.65rem;

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
+import AdminIcon from '../components/AdminIcon.vue';
 
 interface TourDetail {
   id: string;
@@ -111,29 +112,15 @@ async function save() {
     saving.value = false;
   }
 }
-
-async function removeTour() {
-  if (isNew.value || !tourId.value) return;
-  const title = form.value.title.trim() || 'тур';
-  if (!window.confirm(`Удалить тур «${title}»?`)) return;
-
-  saving.value = true;
-  error.value = '';
-  try {
-    await adminApi(`/tours/${tourId.value}`, { method: 'DELETE' });
-    router.push('/tours');
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Не удалось удалить тур';
-  } finally {
-    saving.value = false;
-  }
-}
 </script>
 
 <template>
   <div>
     <p class="back-link">
-      <RouterLink to="/tours">← К турам</RouterLink>
+      <RouterLink to="/tours">
+        <AdminIcon name="arrow-left-icon" />
+        К турам
+      </RouterLink>
     </p>
 
     <h1 class="page-title">{{ isNew ? 'Новый тур' : 'Редактировать тур' }}</h1>
@@ -169,36 +156,14 @@ async function removeTour() {
 
       <div class="form-actions">
         <button class="btn" type="button" :disabled="saving" @click="save">
+          <AdminIcon :name="isNew ? 'plus-icon' : 'check-icon'" />
           {{ saving ? 'Сохранение…' : isNew ? 'Создать' : 'Сохранить' }}
         </button>
-        <RouterLink to="/tours" class="btn btn-secondary">Отмена</RouterLink>
-        <button
-          v-if="!isNew"
-          class="btn btn-danger"
-          type="button"
-          :disabled="saving"
-          @click="removeTour"
-        >
-          Удалить тур
-        </button>
+        <RouterLink to="/tours" class="btn btn-secondary">
+          <AdminIcon name="close-icon" />
+          Отмена
+        </RouterLink>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.back-link {
-  margin-bottom: 0.75rem;
-}
-
-.form-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-
-.btn-danger {
-  margin-left: auto;
-}
-</style>

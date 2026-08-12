@@ -32,6 +32,31 @@
 
 .header a {
   color: #e5e7eb;
+  text-decoration: none;
+}
+
+.header a:hover {
+  color: #fff;
+}
+
+.header a.router-link-active {
+  color: #fff;
+  font-weight: 600;
+}
+
+.header .link-btn {
+  background: none;
+  border: none;
+  color: #e5e7eb;
+  cursor: pointer;
+  font: inherit;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: none;
+}
+
+.header .link-btn:hover {
+  color: #fff;
 }
 
 .logo {
@@ -58,12 +83,45 @@
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
   background: #4f46e5;
   color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+a.btn,
+a.btn:hover,
+a.btn:focus,
+a.btn:visited {
+  text-decoration: none;
+  color: #fff;
+}
+
+a.btn.btn-secondary,
+a.btn.btn-secondary:hover,
+a.btn.btn-secondary:focus,
+a.btn.btn-secondary:visited {
+  color: #111827;
+}
+
+a.btn.btn-danger,
+a.btn.btn-danger:hover,
+a.btn.btn-danger:focus,
+a.btn.btn-danger:visited {
+  color: #fff;
 }
 
 .btn:disabled {
@@ -71,13 +129,131 @@
   cursor: not-allowed;
 }
 
+.btn:hover:not(:disabled) {
+  background: #4338ca;
+}
+
 .btn-secondary {
   background: #e5e7eb;
   color: #111827;
 }
 
+.btn-secondary:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
 .btn-danger {
   background: #dc2626;
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-sm {
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.back-link {
+  margin-bottom: 0.75rem;
+}
+
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-link a:hover {
+  color: #4338ca;
+}
+
+.text-link {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.text-link:hover {
+  color: #4338ca;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+.form-actions-main {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.btn .icon {
+  width: 1.125em;
+  height: 1.125em;
+}
+
+.btn-sm .icon {
+  width: 1em;
+  height: 1em;
+}
+
+.btn-icon {
+  padding: 0.35rem;
+}
+
+.btn-sm.btn-icon {
+  padding: 0.35rem;
+}
+
+.back-link .icon {
+  width: 1em;
+  height: 1em;
+}
+
+.header-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.header-nav-link .icon {
+  width: 1.125em;
+  height: 1.125em;
+}
+
+.header .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.header .link-btn .icon {
+  width: 1.125em;
+  height: 1.125em;
 }
 
 .input, .textarea, .select {
@@ -101,6 +277,15 @@
   text-align: left;
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.table th:last-child,
+.table td.actions-cell {
+  text-align: right;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .label {
@@ -161,13 +346,23 @@
 }
 
 .modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
-  font-size: 1.5rem;
-  line-height: 1;
   cursor: pointer;
   color: #6b7280;
   padding: 0.25rem;
+}
+
+.modal-close .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.modal-close:hover {
+  color: #111827;
 }
 
 .modal-body {

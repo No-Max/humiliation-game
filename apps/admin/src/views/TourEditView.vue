@@ -9,6 +9,7 @@ import {
   toursBackLabel,
   toursBackRoute,
 } from '../lib/tourNavigation';
+import AdminIcon from '../components/AdminIcon.vue';
 
 interface Question {
   id: string;
@@ -80,7 +81,10 @@ function formatTime(sec: number) {
 <template>
   <div>
     <p class="back-link">
-      <RouterLink :to="backRoute">{{ backLabel }}</RouterLink>
+      <RouterLink :to="backRoute">
+        <AdminIcon name="arrow-left-icon" />
+        {{ backLabel }}
+      </RouterLink>
     </p>
 
     <p v-if="loading" class="field-hint">Загрузка…</p>
@@ -95,7 +99,10 @@ function formatTime(sec: number) {
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
         <h2 style="margin: 0">Список заданий</h2>
-        <button class="btn" type="button" @click="openAddQuestion">+ Задание</button>
+        <button class="btn" type="button" @click="openAddQuestion">
+          <AdminIcon name="plus-icon" />
+          Задание
+        </button>
       </div>
 
       <div class="card">
@@ -115,6 +122,7 @@ function formatTime(sec: number) {
               </div>
             </div>
             <button class="btn btn-secondary btn-sm" type="button" @click="openEditQuestion(q)">
+              <AdminIcon name="pencil-icon" />
               Изменить
             </button>
           </li>
@@ -126,15 +134,6 @@ function formatTime(sec: number) {
 </template>
 
 <style scoped>
-.back-link {
-  margin-bottom: 0.75rem;
-}
-
-.back-link a {
-  color: #4f46e5;
-  text-decoration: none;
-}
-
 .question-list {
   margin: 0;
   padding: 0;
@@ -165,11 +164,5 @@ function formatTime(sec: number) {
   font-size: 0.875rem;
   color: #6b7280;
   margin-top: 0.25rem;
-}
-
-.btn-sm {
-  font-size: 0.8125rem;
-  padding: 0.35rem 0.65rem;
-  flex-shrink: 0;
 }
 </style>

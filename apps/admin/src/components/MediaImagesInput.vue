@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { adminUpload } from '../lib/api';
+import AdminIcon from './AdminIcon.vue';
 
 const urls = defineModel<string[]>({ default: () => [] });
 
@@ -108,7 +109,8 @@ function openPicker() {
       :disabled="uploading"
       @click="openPicker"
     >
-      {{ uploading ? 'Загрузка…' : '+ Загрузить картинки' }}
+      <AdminIcon name="publish-icon" />
+      {{ uploading ? 'Загрузка…' : 'Загрузить картинки' }}
     </button>
   </div>
 </template>

@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
+import AdminIcon from '../components/AdminIcon.vue';
 
 interface SeriesRow {
   id: string;
@@ -72,7 +73,10 @@ async function submitCreate() {
   <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
       <h1 class="page-title">Выпуски</h1>
-      <button class="btn" type="button" @click="openCreateModal">+ Новый выпуск</button>
+      <button class="btn" type="button" @click="openCreateModal">
+        <AdminIcon name="plus-icon" />
+        Новый выпуск
+      </button>
     </div>
 
     <div v-if="loading" class="card">Загрузка...</div>
@@ -93,7 +97,12 @@ async function submitCreate() {
             <td>{{ item.title }}</td>
             <td>{{ item.status }}</td>
             <td>{{ item._count.tours }}</td>
-            <td><RouterLink :to="`/series/${item.id}`">Редактировать</RouterLink></td>
+            <td class="actions-cell">
+              <RouterLink :to="`/series/${item.id}`" class="btn btn-secondary btn-sm">
+                <AdminIcon name="pencil-icon" />
+                Редактировать
+              </RouterLink>
+            </td>
           </tr>
         </tbody>
       </table>

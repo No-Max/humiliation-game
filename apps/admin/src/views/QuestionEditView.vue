@@ -10,6 +10,7 @@ import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
+import AdminIcon from '../components/AdminIcon.vue';
 
 type ContentTypeOption = 'TEXT' | 'IMAGE_TEXT';
 type AnswerTypeOption = 'TEXT' | 'CHOICE';
@@ -330,7 +331,10 @@ async function remove() {
 <template>
   <div>
     <p class="back-link">
-      <RouterLink :to="questionsRoute">← К заданиям</RouterLink>
+      <RouterLink :to="questionsRoute">
+        <AdminIcon name="arrow-left-icon" />
+        К заданиям
+      </RouterLink>
     </p>
 
     <h1 class="page-title">{{ pageTitle }}</h1>
@@ -434,13 +438,16 @@ async function remove() {
           :disabled="saving"
           @click="remove"
         >
+          <AdminIcon name="trash-icon" />
           Удалить
         </button>
         <div class="form-actions-main">
           <button class="btn btn-secondary" type="button" :disabled="saving" @click="goBack">
+            <AdminIcon name="close-icon" />
             Отмена
           </button>
           <button class="btn" type="submit" :disabled="saving">
+            <AdminIcon :name="isEdit ? 'check-icon' : 'plus-icon'" />
             {{ saving ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать' }}
           </button>
         </div>
@@ -450,19 +457,6 @@ async function remove() {
 </template>
 
 <style scoped>
-.back-link {
-  margin-bottom: 0.75rem;
-}
-
-.back-link a {
-  color: #4f46e5;
-  text-decoration: none;
-}
-
-.back-link a:hover {
-  text-decoration: underline;
-}
-
 .meta-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -479,19 +473,5 @@ async function remove() {
   .meta-row {
     grid-template-columns: 1fr;
   }
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.5rem;
-}
-
-.form-actions-main {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
 }
 </style>

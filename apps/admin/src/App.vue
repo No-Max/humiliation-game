@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router';
 import { clearToken, getToken } from './lib/api';
 import { useRouter } from 'vue-router';
+import AdminIcon from './components/AdminIcon.vue';
 
 const router = useRouter();
 const isLoggedIn = !!getToken();
@@ -17,9 +18,18 @@ function logout() {
     <header v-if="isLoggedIn" class="header">
       <span class="logo">Admin</span>
       <nav>
-        <RouterLink to="/series">Выпуски</RouterLink>
-        <RouterLink to="/tours">Туры</RouterLink>
-        <button class="link-btn" @click="logout">Выйти</button>
+        <RouterLink to="/series" class="header-nav-link">
+          <AdminIcon name="list-icon" />
+          Выпуски
+        </RouterLink>
+        <RouterLink to="/tours" class="header-nav-link">
+          <AdminIcon name="layers-icon" />
+          Туры
+        </RouterLink>
+        <button class="link-btn" type="button" @click="logout">
+          <AdminIcon name="logout-icon" />
+          Выйти
+        </button>
       </nav>
     </header>
     <main class="main">
@@ -27,13 +37,3 @@ function logout() {
     </main>
   </div>
 </template>
-
-<style scoped>
-.link-btn {
-  background: none;
-  border: none;
-  color: #4f46e5;
-  cursor: pointer;
-  font-size: 1rem;
-}
-</style>

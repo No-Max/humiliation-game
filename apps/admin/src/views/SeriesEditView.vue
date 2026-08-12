@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router';
 import { formatQuestionCount } from '@humiliation-game/shared';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
+import AdminIcon from '../components/AdminIcon.vue';
 import { tourQuestionsRoute } from '../lib/tourNavigation';
 
 interface Tour {
@@ -159,13 +160,17 @@ function formatTime(sec: number) {
     <div class="card">
       <p>Статус: <strong>{{ series.status }}</strong></p>
       <button v-if="series.status !== 'PUBLISHED'" class="btn" style="margin-top: 0.75rem" @click="publish">
+        <AdminIcon name="publish-icon" />
         Опубликовать
       </button>
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
       <h2>Туры в выпуске</h2>
-      <button class="btn" type="button" :disabled="saving" @click="openPickModal">+ Добавить тур</button>
+      <button class="btn" type="button" :disabled="saving" @click="openPickModal">
+        <AdminIcon name="plus-icon" />
+        Добавить тур
+      </button>
     </div>
 
     <p v-if="error && !showPickModal" class="error">{{ error }}</p>
@@ -173,7 +178,7 @@ function formatTime(sec: number) {
     <div v-if="!series.tours.length" class="card">
       <p style="color: #6b7280; margin: 0">
         Туры не выбраны. Добавьте готовые туры из библиотеки или
-        <RouterLink to="/tours">создайте новый</RouterLink>.
+        <RouterLink to="/tours" class="text-link">создайте новый</RouterLink>.
       </p>
     </div>
 
@@ -186,27 +191,31 @@ function formatTime(sec: number) {
             · {{ formatQuestionCount(tour.questions.length) }}
           </p>
         </div>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+        <div class="actions-cell">
           <button
-            class="btn btn-secondary btn-sm"
+            class="btn btn-secondary btn-sm btn-icon"
             type="button"
+            aria-label="Поднять выше"
             :disabled="index === 0 || saving"
             @click="moveTour(tour, -1)"
           >
-            ↑
+            <AdminIcon name="arrow-up-icon" />
           </button>
           <button
-            class="btn btn-secondary btn-sm"
+            class="btn btn-secondary btn-sm btn-icon"
             type="button"
+            aria-label="Опустить ниже"
             :disabled="index === series.tours.length - 1 || saving"
             @click="moveTour(tour, 1)"
           >
-            ↓
+            <AdminIcon name="arrow-down-icon" />
           </button>
-          <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="removeTour(tour)">
+          <button class="btn btn-danger btn-sm" type="button" :disabled="saving" @click="removeTour(tour)">
+            <AdminIcon name="trash-icon" />
             Удалить
           </button>
           <RouterLink :to="tourQuestionsRoute(tour.id, series.id)" class="btn btn-secondary btn-sm">
+            <AdminIcon name="pencil-icon" />
             Редактировать
           </RouterLink>
         </div>
@@ -230,6 +239,7 @@ function formatTime(sec: number) {
       <div v-if="!availableTours.length" class="empty-pick">
         <p>Нет доступных туров.</p>
         <RouterLink to="/tours" class="btn btn-secondary" @click="closePickModal">
+          <AdminIcon name="plus-icon" />
           Создать тур
         </RouterLink>
       </div>
@@ -248,11 +258,6 @@ function formatTime(sec: number) {
 </template>
 
 <style scoped>
-.btn-sm {
-  font-size: 0.8125rem;
-  padding: 0.35rem 0.65rem;
-}
-
 .pick-list {
   list-style: none;
   padding: 0;

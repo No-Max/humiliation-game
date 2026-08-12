@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { adminApi, setToken } from '../lib/api';
+import AdminIcon from '../components/AdminIcon.vue';
 
 const router = useRouter();
 const email = ref('admin@game.local');
@@ -36,7 +37,10 @@ async function login() {
       <label class="label">Пароль</label>
       <input v-model="password" class="input" type="password" />
       <p v-if="error" class="error">{{ error }}</p>
-      <button class="btn" :disabled="loading" @click="login">Войти</button>
+      <button class="btn" :disabled="loading" @click="login">
+        <AdminIcon name="login-icon" />
+        Войти
+      </button>
     </div>
   </div>
 </template>

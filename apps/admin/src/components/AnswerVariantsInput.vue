@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import AdminIcon from './AdminIcon.vue';
 
 const variants = defineModel<string[]>({ default: () => [] });
 
@@ -72,7 +73,8 @@ function onDraftKeydown(event: KeyboardEvent) {
         @keydown="onDraftKeydown"
       />
       <button class="btn btn-secondary" type="button" @click="addVariant">
-        + Добавить
+        <AdminIcon name="plus-icon" />
+        Добавить
       </button>
     </div>
 

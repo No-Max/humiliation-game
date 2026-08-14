@@ -10,6 +10,7 @@ import {
   toursBackRoute,
 } from '../lib/tourNavigation';
 import AdminIcon from '../components/AdminIcon.vue';
+import { stripHtml } from '../lib/htmlText';
 
 interface Question {
   id: string;
@@ -94,7 +95,7 @@ function formatTime(sec: number) {
       <h1 class="page-title">Задания: {{ tour.title }}</h1>
       <p class="field-hint" style="margin-top: 0">
         {{ tour.defaultPoints }} б. · ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}
-        <span v-if="tour.rules"> · {{ tour.rules }}</span>
+        <span v-if="tour.rules"> · {{ stripHtml(tour.rules) }}</span>
       </p>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">

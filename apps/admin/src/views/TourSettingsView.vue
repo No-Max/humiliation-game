@@ -3,11 +3,15 @@ import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminIcon from '../components/AdminIcon.vue';
+import MediaImagesInput from '../components/MediaImagesInput.vue';
+import RichTextEditor from '../components/RichTextEditor.vue';
+import { isEmptyRichText } from '../lib/htmlText';
 
 interface TourDetail {
   id: string;
   title: string;
   rules?: string | null;
+  mediaUrls?: string[];
   defaultPoints: number;
   defaultTimeLimitSec: number;
   _count?: { seriesTours: number };
@@ -26,6 +30,7 @@ const loadError = ref('');
 
 const form = ref({
   title: '',
+  mediaUrls: [] as string[],
   rules: '',
   defaultPoints: '3',
   defaultTimeLimitSec: '60',
@@ -43,6 +48,7 @@ async function loadTour() {
     const tour = await adminApi<TourDetail>(`/tours/${tourId.value}`);
     form.value = {
       title: tour.title,
+      mediaUrls: [...(tour.mediaUrls ?? [])],
       rules: tour.rules ?? '',
       defaultPoints: String(tour.defaultPoints),
       defaultTimeLimitSec: String(tour.defaultTimeLimitSec),
@@ -70,7 +76,8 @@ function buildPayload() {
   const defaultTimeLimitSec = parsePositiveInt(form.value.defaultTimeLimitSec, 5);
   return {
     title,
-    rules: String(form.value.rules ?? '').trim() || null,
+    mediaUrls: form.value.mediaUrls,
+    rules: isEmptyRichText(form.value.rules) ? null : form.value.rules.trim(),
     defaultPoints,
     defaultTimeLimitSec,
   };
@@ -140,19 +147,25 @@ async function save() {
         autofocus
       />
 
+      <div class="meta-row">
+        <div class="meta-field">
+          <label class="label" for="tour-points">Стоимость вопроса (баллы)</label>
+          <input id="tour-points" v-model="form.defaultPoints" class="input" type="number" min="1" />
+        </div>
+        <div class="meta-field">
+          <label class="label" for="tour-time">Время на ответ (сек)</label>
+          <input id="tour-time" v-model="form.defaultTimeLimitSec" class="input" type="number" min="5" />
+        </div>
+      </div>
+
+      <MediaImagesInput v-model="form.mediaUrls" />
+
       <label class="label" for="tour-rules">Правила</label>
-      <textarea
-        id="tour-rules"
+      <RichTextEditor
         v-model="form.rules"
-        class="textarea"
-        placeholder="Кратко опишите правила тура"
+        input-id="tour-rules"
+        placeholder="Опишите правила тура: списки, абзацы, выделение текста"
       />
-
-      <label class="label" for="tour-points">Стоимость вопроса (баллы)</label>
-      <input id="tour-points" v-model="form.defaultPoints" class="input" type="number" min="1" />
-
-      <label class="label" for="tour-time">Время на ответ (сек)</label>
-      <input id="tour-time" v-model="form.defaultTimeLimitSec" class="input" type="number" min="5" />
 
       <div class="form-actions">
         <button class="btn" type="button" :disabled="saving" @click="save">
@@ -167,3 +180,22 @@ async function save() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.meta-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.meta-field .input {
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .meta-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

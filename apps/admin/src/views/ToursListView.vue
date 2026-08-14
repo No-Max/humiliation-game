@@ -8,7 +8,6 @@ import AdminIcon from '../components/AdminIcon.vue';
 interface TourRow {
   id: string;
   title: string;
-  rules?: string | null;
   defaultPoints: number;
   defaultTimeLimitSec: number;
   _count: { seriesTours: number };
@@ -77,7 +76,6 @@ async function removeTour(tour: TourRow) {
         <thead>
           <tr>
             <th>Название</th>
-            <th>Правила</th>
             <th>Стоимость</th>
             <th>Время</th>
             <th>В выпусках</th>
@@ -87,7 +85,6 @@ async function removeTour(tour: TourRow) {
         <tbody>
           <tr v-for="tour in tours" :key="tour.id">
             <td><strong>{{ tour.title }}</strong></td>
-            <td class="rules-cell">{{ tour.rules || '—' }}</td>
             <td>{{ tour.defaultPoints }} б.</td>
             <td>{{ formatTime(tour.defaultTimeLimitSec) }}</td>
             <td>{{ tour._count.seriesTours }}</td>
@@ -112,11 +109,3 @@ async function removeTour(tour: TourRow) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.rules-cell {
-  max-width: 16rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-</style>

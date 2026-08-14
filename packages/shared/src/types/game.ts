@@ -108,3 +108,9 @@ export function formatQuestionCount(count: number): string {
   if (mod10 >= 2 && mod10 <= 4) return `${n} вопроса`;
   return `${n} вопросов`;
 }
+
+export function formatTourLabel(tourIndex: number, tourTitle?: string): string {
+  const number = tourIndex + 1;
+  if (!tourTitle) return String(number);
+  return `Тур №${number}. «${tourTitle}»`;
+}

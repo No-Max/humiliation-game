@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
-import { teamsSortedByScore, formatQuestionCount } from '@humiliation-game/shared';
+import { teamsSortedByScore, formatQuestionCount, formatTourLabel } from '@humiliation-game/shared';
 import {
   connectSocket,
   disableAutoRejoin,
@@ -348,7 +348,9 @@ function confirmExit() {
       class="card"
       style="margin-top: 1rem"
     >
-      <p v-if="state.tourTitle" style="color: #6b7280; font-size: 0.875rem">{{ state.tourTitle }}</p>
+      <p v-if="state.tourTitle" style="color: #6b7280; font-size: 0.875rem">
+        {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}
+      </p>
       <div v-if="state.turnNotice" class="banner wrong turn-notice">{{ state.turnNotice }}</div>
       <p v-if="state.phase === 'STEAL_ROUND'" class="steal-round-label">Раунд украсть</p>
       <AnswerTimer
@@ -367,7 +369,7 @@ function confirmExit() {
       </div>
 
       <template v-if="isMyTurn && myTeam?.connected !== false">
-        <p style="margin-top: 1rem">Ваш ход · {{ state.questionValue }} балл(ов)</p>
+        <p>Ваш ход · {{ state.questionValue }} балл(ов)</p>
 
         <template v-if="isChoiceQuestion && state.choices?.length">
           <QuestionChoices
@@ -375,20 +377,20 @@ function confirmExit() {
             :selected="answer"
             @select="submitChoice"
           />
-          <button class="btn btn-secondary" style="margin-top: 0.75rem" @click="pass">
+          <button class="btn btn-secondary" type="button" @click="pass">
             Сдаёмся
           </button>
         </template>
 
         <template v-else>
           <input v-model="answer" class="input" placeholder="Ваш ответ" @keyup.enter="submit" />
-          <div style="display: flex; gap: 0.5rem">
-            <button class="btn" :disabled="!canSubmit" @click="submit">Ответить</button>
-            <button class="btn btn-secondary" @click="pass">Сдаёмся</button>
+          <div class="card-actions">
+            <button class="btn" type="button" :disabled="!canSubmit" @click="submit">Ответить</button>
+            <button class="btn btn-secondary" type="button" @click="pass">Сдаёмся</button>
           </div>
         </template>
       </template>
-      <p v-else-if="!isPaused" style="margin-top: 1rem; color: #6b7280">
+      <p v-else-if="!isPaused" style="color: #6b7280">
         Ожидайте хода другой команды
       </p>
     </div>
@@ -413,16 +415,27 @@ function confirmExit() {
     </div>
 
     <div v-if="state?.phase === 'TOUR_INTRO' && !isPaused" class="card">
+      <h2 class="tour-intro-title">
+        {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}
+      </h2>
+      <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
+        {{ formatQuestionCount(state.tourQuestionCount) }}
+      </p>
       <div v-if="showTourResults" class="banner correct tour-results">
         <p class="tour-results-title">Итоги тура</p>
         <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
           {{ team.name }} — {{ team.score }}
         </p>
       </div>
-      <p>Готовы начать тур «{{ state.tourTitle }}»?</p>
-      <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-        {{ formatQuestionCount(state.tourQuestionCount) }}
-      </p>
+      <template v-if="state.mediaUrls?.length">
+        <h3 class="tour-intro-subtitle">Пример задания</h3>
+        <QuestionContent :media-urls="state.mediaUrls" />
+      </template>
+      <div
+        v-if="state.tourRules"
+        class="rich-text-preview tour-rules"
+        v-html="state.tourRules"
+      />
       <button class="btn" @click="startTour">Начать тур</button>
     </div>
 
@@ -431,7 +444,7 @@ function confirmExit() {
       <p v-if="state.correctAnswer">
         Правильный ответ: <strong>{{ state.correctAnswer }}</strong>
       </p>
-      <button class="btn" style="margin-top: 1rem" @click="nextQuestion">Следующий вопрос</button>
+      <button class="btn" type="button" @click="nextQuestion">Следующий вопрос</button>
     </div>
 
     <div v-else-if="state?.phase === 'REVEAL' && !isPaused" class="card">
@@ -439,7 +452,7 @@ function confirmExit() {
       <p v-if="state.correctAnswer">
         Правильный ответ: <strong>{{ state.correctAnswer }}</strong>
       </p>
-      <button class="btn" style="margin-top: 1rem" @click="nextQuestion">Следующий вопрос</button>
+      <button class="btn" type="button" @click="nextQuestion">Следующий вопрос</button>
     </div>
 
     <div v-else-if="state?.phase === 'FINISHED'" class="card">

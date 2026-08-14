@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
-import { teamsSortedByScore, formatQuestionCount } from '@humiliation-game/shared';
+import { teamsSortedByScore, formatQuestionCount, formatTourLabel } from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import AnswerTimer from '../components/AnswerTimer.vue';
 import QuestionChoices from '../components/QuestionChoices.vue';
@@ -60,17 +60,35 @@ onUnmounted(() => cleanup?.());
             {{ team.name }} — {{ team.score }}
           </p>
         </div>
-        <p style="margin-top: 1rem">Следующий тур: {{ state.tourTitle }}</p>
+        <p>Следующий тур: {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</p>
         <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
           {{ formatQuestionCount(state.tourQuestionCount) }}
         </p>
+        <template v-if="state.mediaUrls?.length">
+          <h3 class="tour-intro-subtitle">Пример задания</h3>
+          <QuestionContent large :media-urls="state.mediaUrls" />
+        </template>
+        <div
+          v-if="state.tourRules"
+          class="rich-text-preview tour-rules"
+          v-html="state.tourRules"
+        />
         <p style="color: #6b7280">Нажмите «Начать» на телефоне</p>
       </template>
       <template v-else>
-        <h2>Тур: {{ state.tourTitle }}</h2>
+        <h2>{{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</h2>
         <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
           {{ formatQuestionCount(state.tourQuestionCount) }}
         </p>
+        <template v-if="state.mediaUrls?.length">
+          <h3 class="tour-intro-subtitle">Пример задания</h3>
+          <QuestionContent large :media-urls="state.mediaUrls" />
+        </template>
+        <div
+          v-if="state.tourRules"
+          class="rich-text-preview tour-rules"
+          v-html="state.tourRules"
+        />
         <p>Нажмите «Начать» на телефоне</p>
       </template>
     </div>
@@ -80,7 +98,7 @@ onUnmounted(() => cleanup?.());
       class="card"
     >
       <p style="text-align: center; color: #6b7280">
-        {{ state.tourTitle }} · {{ state.questionValue }} б.
+        {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }} · {{ state.questionValue }} б.
         <span v-if="state.activeTeamId">
           · ход {{ state.teams.find(t => t.id === state.activeTeamId)?.name }}
         </span>

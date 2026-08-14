@@ -293,11 +293,15 @@ a.router-link-active {
   font-weight: 600;
 }
 
-.steal-round-label {
-  text-align: center;
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0;
+.question-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 1rem;
+}
+
+.question-stack > .card {
+  margin-bottom: 0;
 }
 
 .display-screen {

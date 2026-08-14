@@ -38,12 +38,14 @@ const emit = defineEmits<{
   padding: 0;
   margin: 0;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
 .choice-btn,
 .choice-readonly {
   width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -52,6 +54,12 @@ const emit = defineEmits<{
   border-radius: 10px;
   font-size: 1rem;
   line-height: 1.35;
+}
+
+.choice-btn > span:last-child,
+.choice-readonly > span:last-child {
+  min-width: 0;
+  word-break: break-word;
 }
 
 .choice-btn {

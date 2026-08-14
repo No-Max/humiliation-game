@@ -114,3 +114,12 @@ export function formatTourLabel(tourIndex: number, tourTitle?: string): string {
   if (!tourTitle) return String(number);
   return `Тур №${number}. «${tourTitle}»`;
 }
+
+export function playScreenTitle(
+  state: Pick<RoomState, 'seriesTitle' | 'tourTitle' | 'currentTourIndex' | 'phase' | 'status'>,
+): string {
+  if (state.tourTitle && state.phase !== 'FINISHED' && state.status !== 'WAITING') {
+    return formatTourLabel(state.currentTourIndex, state.tourTitle);
+  }
+  return state.seriesTitle ?? 'Игра';
+}

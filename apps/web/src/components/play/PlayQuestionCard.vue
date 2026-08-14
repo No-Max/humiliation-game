@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { RoomState, TeamState } from '@humiliation-game/shared';
-import { formatTourLabel } from '@humiliation-game/shared';
-import AnswerTimer from '../AnswerTimer.vue';
 import QuestionChoices from '../QuestionChoices.vue';
 import QuestionContent from '../QuestionContent.vue';
 
@@ -24,17 +22,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card" style="margin-top: 1rem">
-    <p v-if="state.tourTitle" style="color: #6b7280; font-size: 0.875rem">
-      {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}
-    </p>
-    <div v-if="state.turnNotice" class="banner wrong turn-notice">{{ state.turnNotice }}</div>
-    <p v-if="state.phase === 'STEAL_ROUND'" class="steal-round-label">Раунд украсть</p>
-    <AnswerTimer
-      v-if="state.activeTeamId && !isPaused"
-      :deadline-at="state.answerDeadlineAt"
-      :paused="isPaused"
-    />
+  <div class="card">
     <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" />
     <div v-if="state.hints?.length" class="hints-list">
       <p v-if="state.hintsTotal" class="hints-caption">
@@ -51,8 +39,6 @@ defineEmits<{
     </div>
 
     <template v-if="isMyTurn && myTeam?.connected !== false">
-      <p>Ваш ход · {{ state.questionValue }} балл(ов)</p>
-
       <template v-if="isChoiceQuestion && state.choices?.length">
         <QuestionChoices
           :choices="state.choices"
@@ -81,8 +67,5 @@ defineEmits<{
         </div>
       </template>
     </template>
-    <p v-else-if="!isPaused" style="color: #6b7280">
-      Ожидайте хода другой команды
-    </p>
   </div>
 </template>

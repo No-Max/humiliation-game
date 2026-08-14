@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { playScreenTitle } from '@humiliation-game/shared';
 import { usePlayRoom } from '../composables/usePlayRoom';
 import PlayAnswerResultCard from '../components/play/PlayAnswerResultCard.vue';
 import PlayConnectionModal from '../components/play/PlayConnectionModal.vue';
@@ -11,6 +12,7 @@ import PlayRoomStatus from '../components/play/PlayRoomStatus.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
 import PlayTourIntroCard from '../components/play/PlayTourIntroCard.vue';
 import PlayViewHeader from '../components/play/PlayViewHeader.vue';
+import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 
 const {
   state,
@@ -57,12 +59,16 @@ const showQuestionCard = computed(
       (state.value.answerType === 'CHOICE' && state.value.choices?.length)) &&
     isActiveQuestion.value,
 );
+
+const headerTitle = computed(() =>
+  state.value ? playScreenTitle(state.value) : 'Игра',
+);
 </script>
 
 <template>
   <div>
     <PlayViewHeader
-      :series-title="state?.seriesTitle ?? 'Игра'"
+      :series-title="headerTitle"
       :links-active="linksActive"
       :joined="joined"
       :is-paused="isPaused"
@@ -88,6 +94,9 @@ const showQuestionCard = computed(
       v-if="state"
       :teams="state.teams"
       :active-team-id="state.activeTeamId"
+      :answer-deadline-at="state.answerDeadlineAt"
+      :is-paused="isPaused"
+      :show-timer="isActiveQuestion"
     />
 
     <PlayOfflineTeamNotice
@@ -96,19 +105,26 @@ const showQuestionCard = computed(
       @open-connection="openConnection"
     />
 
-    <PlayQuestionCard
-      v-if="showQuestionCard && state"
-      v-model:answer="answer"
-      :state="state"
-      :is-paused="isPaused"
-      :is-my-turn="!!isMyTurn"
-      :my-team="myTeam"
-      :is-choice-question="isChoiceQuestion"
-      :can-submit="canSubmit"
-      @submit-choice="submitChoice"
-      @submit="submit"
-      @pass="pass"
-    />
+    <div v-if="isActiveQuestion && state" class="question-stack">
+      <QuestionMetaCard
+        :state="state"
+        :is-my-turn="!!isMyTurn"
+        :my-team-connected="myTeam?.connected !== false"
+      />
+      <PlayQuestionCard
+        v-if="showQuestionCard"
+        v-model:answer="answer"
+        :state="state"
+        :is-paused="isPaused"
+        :is-my-turn="!!isMyTurn"
+        :my-team="myTeam"
+        :is-choice-question="isChoiceQuestion"
+        :can-submit="canSubmit"
+        @submit-choice="submitChoice"
+        @submit="submit"
+        @pass="pass"
+      />
+    </div>
 
     <PlayConnectionModal
       v-if="showConnectionModal && linksActive"

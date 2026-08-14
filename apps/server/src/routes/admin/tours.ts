@@ -35,11 +35,12 @@ adminToursRouter.get('/:id', async (req, res) => {
 });
 
 adminToursRouter.post('/', async (req, res) => {
-  const { title, rules, defaultPoints, defaultTimeLimitSec } = req.body;
+  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec } = req.body;
   const tour = await prisma.tour.create({
     data: {
       title,
       rules,
+      mediaUrls: mediaUrls ?? [],
       defaultPoints: defaultPoints ?? 3,
       defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
     },
@@ -48,10 +49,10 @@ adminToursRouter.post('/', async (req, res) => {
 });
 
 adminToursRouter.put('/:id', async (req, res) => {
-  const { title, rules, defaultPoints, defaultTimeLimitSec } = req.body;
+  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec } = req.body;
   const tour = await prisma.tour.update({
     where: { id: req.params.id },
-    data: { title, rules, defaultPoints, defaultTimeLimitSec },
+    data: { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec },
   });
   res.json(tour);
 });

@@ -26,6 +26,7 @@ export interface Tour {
   id: string;
   title: string;
   rules?: string;
+  mediaUrls?: string[];
   defaultPoints: number;
   defaultTimeLimitSec: number;
   sortOrder?: number;

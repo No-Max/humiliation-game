@@ -47,6 +47,8 @@ export interface RoomState {
   tourTitle?: string;
   /** Число заданий в текущем туре (на экране TOUR_INTRO) */
   tourQuestionCount?: number;
+  /** Правила тура (HTML) на экране TOUR_INTRO */
+  tourRules?: string;
   questionPrompt?: string;
   questionContentType?: QuestionContentType;
   answerType?: AnswerType;

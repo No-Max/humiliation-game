@@ -190,7 +190,10 @@ export class GameEngine {
         : undefined,
       mediaUrls: tourStarted && question?.mediaUrls?.length
         ? question.mediaUrls
-        : undefined,
+        : !tourStarted && tour?.mediaUrls?.length
+          ? tour.mediaUrls
+          : undefined,
+      tourRules: !tourStarted ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       teamSlots: this.state.teamOrder.map((id) => {
         const team = this.teams.get(id)!;

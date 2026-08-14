@@ -65,7 +65,7 @@ adminSeriesRouter.put('/:id', async (req, res) => {
 });
 
 adminSeriesRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
-  await prisma.series.delete({ where: { id: req.params.id } });
+  await prisma.series.delete({ where: { id: String(req.params.id) } });
   res.status(204).send();
 });
 

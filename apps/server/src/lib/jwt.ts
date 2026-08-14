@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { AdminRole } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret';
@@ -10,7 +10,7 @@ export interface JwtPayload {
   type: 'admin' | 'team';
 }
 
-export function signToken(payload: JwtPayload, expiresIn = '7d'): string {
+export function signToken(payload: JwtPayload, expiresIn: SignOptions['expiresIn'] = '7d'): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 

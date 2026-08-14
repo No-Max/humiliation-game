@@ -57,7 +57,7 @@ adminToursRouter.put('/:id', async (req, res) => {
 });
 
 adminToursRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
-  await prisma.tour.delete({ where: { id: req.params.id } });
+  await prisma.tour.delete({ where: { id: String(req.params.id) } });
   res.status(204).send();
 });
 

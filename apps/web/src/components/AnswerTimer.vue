@@ -52,7 +52,7 @@ onUnmounted(() => {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #4f46e5;
-  margin-bottom: 0.75rem;
+  margin: 0;
 }
 
 .answer-timer.urgent {

@@ -1,21 +1,121 @@
 <script setup lang="ts">
-defineProps<{
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+
+const GAP_PX = 16;
+
+const props = defineProps<{
   prompt?: string;
   mediaUrls?: string[];
   large?: boolean;
 }>();
+
+const rowRef = ref<HTMLElement | null>(null);
+const rowWidth = ref(0);
+const aspectRatios = ref<number[]>([]);
+const loaded = ref<boolean[]>([]);
+
+let resizeObserver: ResizeObserver | undefined;
+
+watch(
+  () => props.mediaUrls,
+  (urls) => {
+    const count = urls?.length ?? 0;
+    aspectRatios.value = Array.from({ length: count }, () => 1);
+    loaded.value = Array.from({ length: count }, () => false);
+  },
+  { immediate: true },
+);
+
+const allLoaded = computed(
+  () =>
+    (props.mediaUrls?.length ?? 0) > 0
+    && loaded.value.length === props.mediaUrls!.length
+    && loaded.value.every(Boolean),
+);
+
+const sumAspectRatios = computed(() =>
+  aspectRatios.value.reduce((sum, ratio) => sum + ratio, 0),
+);
+
+const gapTotal = computed(() =>
+  Math.max(0, (props.mediaUrls?.length ?? 0) - 1) * GAP_PX,
+);
+
+/** Высота ряда: при фиксированной ширине W суммарная ширина картинок = W − gaps. */
+const rowHeightPx = computed(() => {
+  if (!allLoaded.value || !rowWidth.value || !sumAspectRatios.value) return null;
+  return (rowWidth.value - gapTotal.value) / sumAspectRatios.value;
+});
+
+const rowStyle = computed(() => {
+  const height = rowHeightPx.value;
+  return height ? { height: `${height}px` } : undefined;
+});
+
+function itemWidthPx(index: number): string | undefined {
+  const height = rowHeightPx.value;
+  if (!height) return undefined;
+  const ratio = aspectRatios.value[index] ?? 1;
+  return `${height * ratio}px`;
+}
+
+function registerImage(img: HTMLImageElement | null, index: number) {
+  if (!img) return;
+  if (img.complete && img.naturalWidth > 0) {
+    setRatio(index, img.naturalWidth / img.naturalHeight);
+  }
+}
+
+function onImageLoad(event: Event, index: number) {
+  const img = event.target as HTMLImageElement;
+  if (!img.naturalWidth || !img.naturalHeight) return;
+  setRatio(index, img.naturalWidth / img.naturalHeight);
+}
+
+function setRatio(index: number, ratio: number) {
+  aspectRatios.value[index] = ratio;
+  aspectRatios.value = [...aspectRatios.value];
+  loaded.value[index] = true;
+  loaded.value = [...loaded.value];
+}
+
+onMounted(() => {
+  if (!rowRef.value) return;
+  resizeObserver = new ResizeObserver(([entry]) => {
+    rowWidth.value = entry.contentRect.width;
+  });
+  resizeObserver.observe(rowRef.value);
+  rowWidth.value = rowRef.value.clientWidth;
+});
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+});
 </script>
 
 <template>
   <div class="question-content" :class="{ large }">
-    <div v-if="mediaUrls?.length" class="media-row">
-      <img
+    <div
+      v-if="mediaUrls?.length"
+      ref="rowRef"
+      class="media-row"
+      :class="{ 'media-row--ready': allLoaded && rowHeightPx }"
+      :style="rowStyle"
+    >
+      <div
         v-for="(url, index) in mediaUrls"
         :key="`${url}-${index}`"
-        :src="url"
-        alt=""
-        class="media-image"
-      />
+        class="media-image-container"
+        :style="{ width: itemWidthPx(index) }"
+      >
+        <img
+          :ref="(el) => registerImage(el as HTMLImageElement | null, index)"
+          :src="url"
+          alt=""
+          class="media-image"
+          @load="onImageLoad($event, index)"
+        />
+      </div>
     </div>
     <p v-if="prompt" class="question-text">{{ prompt }}</p>
   </div>
@@ -24,31 +124,39 @@ defineProps<{
 <style scoped>
 .question-content {
   display: grid;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .media-row {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.75rem;
-  justify-content: center;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
+  min-height: 6rem;
+  gap: 16px;
+}
+
+.media-row--ready {
+  min-height: 0;
+}
+
+.media-image-container {
+  flex: none;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .media-image {
-  flex: 1 1 0;
-  min-width: 0;
-  max-height: 220px;
   width: 100%;
-  height: auto;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #f3f4f6;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
-.large .media-image {
-  max-height: 360px;
+.large .media-row {
+  min-height: 10rem;
 }
 
 .question-text {

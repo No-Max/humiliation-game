@@ -36,9 +36,9 @@ const emit = defineEmits<{
 .question-choices {
   list-style: none;
   padding: 0;
-  margin: 1rem 0 0;
+  margin: 0;
   display: grid;
-  gap: 0.625rem;
+  gap: 16px;
 }
 
 .choice-btn,

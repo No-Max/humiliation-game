@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const GAP_PX = 16;
+const MAX_ROW_HEIGHT_PX = 400;
 
 const props = defineProps<{
   prompt?: string;
@@ -44,7 +45,8 @@ const gapTotal = computed(() =>
 /** Высота ряда: при фиксированной ширине W суммарная ширина картинок = W − gaps. */
 const rowHeightPx = computed(() => {
   if (!allLoaded.value || !rowWidth.value || !sumAspectRatios.value) return null;
-  return (rowWidth.value - gapTotal.value) / sumAspectRatios.value;
+  const height = (rowWidth.value - gapTotal.value) / sumAspectRatios.value;
+  return Math.min(height, MAX_ROW_HEIGHT_PX);
 });
 
 const rowStyle = computed(() => {
@@ -130,8 +132,10 @@ onUnmounted(() => {
 .media-row {
   display: flex;
   align-items: stretch;
+  justify-content: center;
   width: 100%;
   min-height: 6rem;
+  max-height: 400px;
   gap: 16px;
 }
 

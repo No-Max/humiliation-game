@@ -10,6 +10,7 @@
     "dev:server": "npm run dev --workspace=apps/server",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:admin": "npm run dev --workspace=apps/admin",
+    "dev:public": "bash scripts/dev-public.sh",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/server && npm run build --workspace=apps/web && npm run build --workspace=apps/admin",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",

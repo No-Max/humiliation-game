@@ -33,7 +33,12 @@ npm run db:seed
 npm run dev:server   # http://localhost:3200
 npm run dev:web      # http://localhost:3210
 npm run dev:admin    # http://localhost:3220
+
+# Публичный доступ (Cloudflare Tunnel)
+npm run dev:public   # API + web + https://….trycloudflare.com
 ```
+
+Нужен `cloudflared` (`brew install cloudflared`).
 
 ## Учётки (seed)
 

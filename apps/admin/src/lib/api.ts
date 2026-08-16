@@ -12,6 +12,13 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+function redirectToLogin() {
+  clearToken();
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login');
+  }
+}
+
 export async function adminApi<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();
   const res = await fetch(`/api/admin${path}`, {
@@ -23,6 +30,9 @@ export async function adminApi<T>(path: string, options?: RequestInit): Promise<
     },
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      redirectToLogin();
+    }
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error ?? 'Request failed');
   }
@@ -47,6 +57,9 @@ export async function adminUpload(file: File): Promise<{
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      redirectToLogin();
+    }
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error ?? 'Ошибка загрузки');
   }

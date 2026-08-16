@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoomState } from '@humiliation-game/shared';
+import { formatPoints, type RoomState } from '@humiliation-game/shared';
 
 defineProps<{
   state: RoomState;
@@ -14,10 +14,10 @@ defineProps<{
       v-if="isMyTurn !== undefined && isMyTurn && myTeamConnected !== false"
       class="question-meta-turn question-meta-turn-own"
     >
-      Ваш ход · {{ state.questionValue }} балл(ов)
+      Ваш ход · {{ formatPoints(state.questionValue) }}
     </p>
     <p v-else class="question-meta-details">
-      {{ state.questionValue }} б.
+      {{ formatPoints(state.questionValue) }}
     </p>
 
     <div v-if="state.turnNotice" class="banner wrong turn-notice">

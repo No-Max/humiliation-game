@@ -90,7 +90,15 @@ function playLabel(type: AnswerMediaType) {
   margin: 0.75rem 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.75rem;
+}
+
+.answer-reveal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .answer-image {
@@ -99,6 +107,7 @@ function playLabel(type: AnswerMediaType) {
   max-height: 280px;
   width: auto;
   height: auto;
+  margin: 0 auto;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -107,6 +116,7 @@ function playLabel(type: AnswerMediaType) {
   display: block;
   width: 100%;
   max-width: 420px;
+  margin: 0 auto;
 }
 
 .answer-video {
@@ -114,6 +124,7 @@ function playLabel(type: AnswerMediaType) {
   width: 100%;
   max-width: 560px;
   max-height: 360px;
+  margin: 0 auto;
   border-radius: 8px;
   background: #111;
 }

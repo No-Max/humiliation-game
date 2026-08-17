@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Деплой с локальной машины:
-#   VPS_HOST=root@87.232.65.69 ./deploy/deploy-from-local.sh
+#   VPS_HOST=root@178.172.236.236 ./deploy/deploy-from-local.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-HOST="${VPS_HOST:-root@87.232.65.69}"
+HOST="${VPS_HOST:-root@178.172.236.236}"
 SSH_KEY="${VPS_SSH_KEY:-$HOME/.ssh/id_rsa_hosterby}"
 KNOWN_HOSTS="${VPS_KNOWN_HOSTS:-$HOME/.ssh/known_hosts_hosterby}"
 SSH_OPTS=(-i "$SSH_KEY" -o IdentitiesOnly=yes -o "UserKnownHostsFile=$KNOWN_HOSTS" -o StrictHostKeyChecking=accept-new)

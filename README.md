@@ -115,18 +115,20 @@ bash /opt/humiliation-game/deploy/bootstrap-server.sh
 
 ```bash
 chmod +x deploy/deploy-from-local.sh
-VPS_HOST=root@87.232.65.69 ./deploy/deploy-from-local.sh
+VPS_HOST=root@178.172.236.236 ./deploy/deploy-from-local.sh
 ```
 
 Первый деплой с seed-данными:
 
 ```bash
-SEED=1 VPS_HOST=root@87.232.65.69 ./deploy/deploy-from-local.sh
+SEED=1 VPS_HOST=root@178.172.236.236 ./deploy/deploy-from-local.sh
 ```
 
-**Адреса (по IP, до настройки домена):**
+**Адреса (по IP, до настройки DNS):**
 
-- Игра: `http://IP/`
-- Админка: `http://IP:8080/`
+- Игра: `http://178.172.236.236/`
+- Админка: `http://178.172.236.236:8080/` или `http://admin.ingame.by/` (после DNS)
+
+**DNS (панель Hoster.by):** A-записи `ingame.by`, `www`, `admin` → `178.172.236.236`.
 
 После привязки домена обновите `CORS_ORIGIN` в `/opt/humiliation-game/apps/server/.env` и nginx.

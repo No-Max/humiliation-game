@@ -6,6 +6,13 @@ export type QuestionContentType =
   | 'EMOJI'
   | 'IMAGE_TEXT';
 
+export type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
+
+export interface AnswerMediaItem {
+  url: string;
+  type: AnswerMediaType;
+}
+
 export type AnswerType = 'CHOICE' | 'TEXT';
 
 export type SeriesStatus = 'DRAFT' | 'PUBLISHED';
@@ -48,6 +55,7 @@ export interface Question {
   hints?: string[];
   points?: number;
   timeLimitSec?: number;
+  answerMedia?: AnswerMediaItem[];
   createdAt: string;
   updatedAt: string;
 }

@@ -20,11 +20,15 @@ const upload = multer({
   storage,
   limits: { fileSize: Number(process.env.MAX_UPLOAD_SIZE ?? 10485760) },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (
+      file.mimetype.startsWith('image/')
+      || file.mimetype.startsWith('audio/')
+      || file.mimetype.startsWith('video/')
+    ) {
       cb(null, true);
       return;
     }
-    cb(new Error('Можно загружать только изображения'));
+    cb(new Error('Можно загружать только изображения, аудио или видео'));
   },
 });
 

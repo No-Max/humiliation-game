@@ -6,6 +6,7 @@ import {
   getSeriesIdFromRoute,
   tourQuestionsRoute,
 } from '../lib/tourNavigation';
+import AnswerMediaInput from '../components/AnswerMediaInput.vue';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
@@ -14,6 +15,12 @@ import AdminIcon from '../components/AdminIcon.vue';
 
 type ContentTypeOption = 'TEXT' | 'IMAGE_TEXT';
 type AnswerTypeOption = 'TEXT' | 'CHOICE';
+type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
+
+interface AnswerMediaItem {
+  url: string;
+  type: AnswerMediaType;
+}
 
 interface Question {
   id: string;
@@ -28,6 +35,7 @@ interface Question {
   mediaUrls?: string[];
   answerType?: string;
   choices?: string[];
+  answerMedia?: AnswerMediaItem[] | null;
 }
 
 interface Tour {
@@ -78,6 +86,7 @@ const form = ref({
   acceptableAnswers: [] as string[],
   points: '',
   timeLimitSec: '',
+  answerMedia: [] as AnswerMediaItem[],
 });
 
 const pageTitle = computed(() =>
@@ -93,6 +102,20 @@ function normalizeAnswerType(value?: string): AnswerTypeOption {
 
 function normalizeContentType(value?: string): ContentTypeOption {
   return value === 'IMAGE_TEXT' ? 'IMAGE_TEXT' : 'TEXT';
+}
+
+function normalizeAnswerMedia(value: unknown): AnswerMediaItem[] {
+  if (!Array.isArray(value)) return [];
+  const allowed = new Set(['IMAGE', 'AUDIO', 'VIDEO']);
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const url = typeof (entry as { url?: unknown }).url === 'string'
+      ? (entry as { url: string }).url.trim()
+      : '';
+    const type = (entry as { type?: unknown }).type;
+    if (!url || typeof type !== 'string' || !allowed.has(type)) return [];
+    return [{ url, type: type as AnswerMediaType }];
+  });
 }
 
 async function load() {
@@ -124,6 +147,7 @@ async function load() {
         points: foundQuestion.points != null ? String(foundQuestion.points) : '',
         timeLimitSec:
           foundQuestion.timeLimitSec != null ? String(foundQuestion.timeLimitSec) : '',
+        answerMedia: normalizeAnswerMedia(foundQuestion.answerMedia),
       };
     } else {
       form.value = {
@@ -137,6 +161,7 @@ async function load() {
         acceptableAnswers: [],
         points: '',
         timeLimitSec: '',
+        answerMedia: [],
       };
     }
   } catch (e) {
@@ -212,6 +237,13 @@ function buildPayload() {
     ? form.value.choices.map((item) => trimValue(item)).filter(Boolean)
     : [];
 
+  const answerMedia = form.value.answerMedia
+    .map((item) => ({
+      url: item.url.trim(),
+      type: item.type,
+    }))
+    .filter((item) => item.url);
+
   return {
     contentType,
     prompt: trimValue(form.value.prompt) || null,
@@ -225,6 +257,7 @@ function buildPayload() {
     timeLimitSec,
     answerType,
     choices,
+    answerMedia,
   };
 }
 
@@ -427,6 +460,8 @@ async function remove() {
 
         <AnswerVariantsInput v-model="form.acceptableAnswers" />
       </template>
+
+      <AnswerMediaInput v-model="form.answerMedia" />
 
       <HintsInput v-model="form.hints" />
 

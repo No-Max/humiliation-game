@@ -1,4 +1,6 @@
 import type {
+  AnswerMediaItem,
+  AnswerMediaType,
   AnswerType,
   QuestionContentType,
   QuestionPhase,
@@ -10,6 +12,25 @@ import type { GameTeam, Question, Series, Tour } from '@prisma/client';
 type SeriesWithContent = Series & {
   tours: (Tour & { questions: Question[] })[];
 };
+
+const ANSWER_MEDIA_TYPES = new Set<AnswerMediaType>(['IMAGE', 'AUDIO', 'VIDEO']);
+
+function parseAnswerMedia(value: unknown): AnswerMediaItem[] {
+  if (!Array.isArray(value)) return [];
+  const items: AnswerMediaItem[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue;
+    const url = typeof (entry as { url?: unknown }).url === 'string'
+      ? (entry as { url: string }).url.trim()
+      : '';
+    const type = (entry as { type?: unknown }).type;
+    if (!url || typeof type !== 'string' || !ANSWER_MEDIA_TYPES.has(type as AnswerMediaType)) {
+      continue;
+    }
+    items.push({ url, type: type as AnswerMediaType });
+  }
+  return items;
+}
 
 interface InMemoryQuestionState {
   phase: QuestionPhase;
@@ -157,6 +178,7 @@ export class GameEngine {
 
     const timerActive = this.shouldRunTimer();
     const tourStarted = this.state.phase !== 'TOUR_INTRO';
+    const answerMedia = showAnswer ? parseAnswerMedia(question?.answerMedia) : [];
 
     return {
       roomCode: this.roomCode,
@@ -195,6 +217,7 @@ export class GameEngine {
           : undefined,
       tourRules: !tourStarted ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
+      answerMedia: answerMedia.length ? answerMedia : undefined,
       teamSlots: this.state.teamOrder.map((id) => {
         const team = this.teams.get(id)!;
         return { teamId: id, name: team.name };

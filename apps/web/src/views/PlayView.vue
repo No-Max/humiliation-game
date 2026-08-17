@@ -149,6 +149,7 @@ const headerTitle = computed(() =>
       phase="CORRECT"
       :question-value="state.questionValue"
       :correct-answer="state.correctAnswer"
+      :answer-media="state.answerMedia"
       @next-question="nextQuestion"
     />
 
@@ -157,6 +158,7 @@ const headerTitle = computed(() =>
       phase="REVEAL"
       :question-value="state.questionValue"
       :correct-answer="state.correctAnswer"
+      :answer-media="state.answerMedia"
       @next-question="nextQuestion"
     />
 

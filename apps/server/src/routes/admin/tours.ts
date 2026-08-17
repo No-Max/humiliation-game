@@ -78,6 +78,7 @@ adminToursRouter.post('/:tourId/questions', async (req, res) => {
       hints: data.hints ?? [],
       points: data.points,
       timeLimitSec: data.timeLimitSec,
+      answerMedia: Array.isArray(data.answerMedia) ? data.answerMedia : [],
     },
   });
   res.status(201).json(question);
@@ -99,6 +100,7 @@ adminToursRouter.put('/questions/:questionId', async (req, res) => {
       hints: data.hints ?? [],
       points: data.points,
       timeLimitSec: data.timeLimitSec,
+      answerMedia: Array.isArray(data.answerMedia) ? data.answerMedia : [],
     },
   });
   res.json(question);

@@ -120,6 +120,7 @@ model Question {
   hints              String[]            @default([])
   points             Int?
   timeLimitSec       Int?
+  answerMedia        Json                @default("[]")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 

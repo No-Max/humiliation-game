@@ -7,6 +7,7 @@ import { connectSocket, onRoomState } from '../lib/api';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 import QuestionMetaCard from '../components/QuestionMetaCard.vue';
+import AnswerRevealMedia from '../components/AnswerRevealMedia.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
 
 const route = useRoute();
@@ -135,6 +136,10 @@ onUnmounted(() => cleanup?.());
         <div v-if="state.phase === 'REVEAL'" class="banner wrong">
           Правильный ответ: {{ state.correctAnswer }}
         </div>
+        <AnswerRevealMedia
+          v-if="state.phase === 'CORRECT' || state.phase === 'REVEAL'"
+          :items="state.answerMedia"
+        />
       </div>
     </div>
 

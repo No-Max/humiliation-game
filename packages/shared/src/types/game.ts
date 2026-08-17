@@ -1,4 +1,4 @@
-import type { AnswerType, QuestionContentType } from './content.js';
+import type { AnswerMediaItem, AnswerType, QuestionContentType } from './content.js';
 
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 
@@ -55,6 +55,7 @@ export interface RoomState {
   choices?: string[];
   mediaUrls?: string[];
   correctAnswer?: string;
+  answerMedia?: AnswerMediaItem[];
   /** Командные слоты — ссылки активны до конца игры */
   teamSlots: TeamSlot[];
   pausedBy?: string;

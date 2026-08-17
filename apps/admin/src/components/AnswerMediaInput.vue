@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { adminUpload } from '../lib/api';
+import { filesFromClipboard, focusPasteBlock } from '../lib/useClipboardFiles';
 import AdminIcon from './AdminIcon.vue';
 
 type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
@@ -15,6 +16,7 @@ const items = defineModel<AnswerMediaItem[]>({ default: () => [] });
 const uploading = ref(false);
 const error = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
+const rootRef = ref<HTMLElement | null>(null);
 
 function typeLabel(type: AnswerMediaType): string {
   if (type === 'IMAGE') return 'Картинка';
@@ -29,11 +31,8 @@ function mimeToType(mime: string): AnswerMediaType | null {
   return null;
 }
 
-async function onFilesSelected(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const files = Array.from(input.files ?? []);
-  input.value = '';
-  if (!files.length) return;
+async function uploadFiles(files: File[]) {
+  if (!files.length || uploading.value) return;
 
   uploading.value = true;
   error.value = '';
@@ -59,6 +58,24 @@ async function onFilesSelected(event: Event) {
   }
 }
 
+async function onFilesSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const files = Array.from(input.files ?? []);
+  input.value = '';
+  await uploadFiles(files);
+}
+
+async function onPaste(event: ClipboardEvent) {
+  const files = filesFromClipboard(event).filter((file) => !!mimeToType(file.type));
+  if (!files.length) return;
+  event.preventDefault();
+  await uploadFiles(files);
+}
+
+function focusBlock(event: MouseEvent) {
+  focusPasteBlock(event, rootRef.value);
+}
+
 function removeAt(index: number) {
   items.value = items.value.filter((_, i) => i !== index);
 }
@@ -77,11 +94,18 @@ function openPicker() {
 </script>
 
 <template>
-  <div class="answer-media">
+  <div
+    ref="rootRef"
+    class="answer-media"
+    tabindex="0"
+    @mousedown="focusBlock"
+    @paste="onPaste"
+  >
     <label class="label">Медиа правильного ответа</label>
     <p class="field-hint media-hint">
       Необязательно. Несколько картинок, аудио или видео — на экране правильного ответа:
       и когда кто-то ответил верно, и когда никто не угадал.
+      Кликните по блоку и вставьте картинку из буфера (Ctrl/⌘+V).
     </p>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -156,6 +180,18 @@ function openPicker() {
 <style scoped>
 .answer-media {
   margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+}
+
+.answer-media:focus,
+.answer-media:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  cursor: default;
 }
 
 .media-hint {

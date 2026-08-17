@@ -16,6 +16,7 @@ const aspectRatios = ref<number[]>([]);
 const loaded = ref<boolean[]>([]);
 
 let resizeObserver: ResizeObserver | undefined;
+let resizeRaf = 0;
 
 watch(
   () => props.mediaUrls,
@@ -62,7 +63,7 @@ function itemWidthPx(index: number): string | undefined {
 }
 
 function registerImage(img: HTMLImageElement | null, index: number) {
-  if (!img) return;
+  if (!img || loaded.value[index]) return;
   if (img.complete && img.naturalWidth > 0) {
     setRatio(index, img.naturalWidth / img.naturalHeight);
   }
@@ -70,40 +71,57 @@ function registerImage(img: HTMLImageElement | null, index: number) {
 
 function onImageLoad(event: Event, index: number) {
   const img = event.target as HTMLImageElement;
-  if (!img.naturalWidth || !img.naturalHeight) return;
+  if (!img.naturalWidth || !img.naturalHeight || loaded.value[index]) return;
   setRatio(index, img.naturalWidth / img.naturalHeight);
 }
 
 function setRatio(index: number, ratio: number) {
-  aspectRatios.value[index] = ratio;
-  aspectRatios.value = [...aspectRatios.value];
-  loaded.value[index] = true;
-  loaded.value = [...loaded.value];
+  const prevRatio = aspectRatios.value[index];
+  const wasLoaded = loaded.value[index];
+  if (wasLoaded && Math.abs(prevRatio - ratio) < 0.001) return;
+
+  const nextRatios = [...aspectRatios.value];
+  nextRatios[index] = ratio;
+  aspectRatios.value = nextRatios;
+
+  if (!wasLoaded) {
+    const nextLoaded = [...loaded.value];
+    nextLoaded[index] = true;
+    loaded.value = nextLoaded;
+  }
+}
+
+function updateRowWidth(width: number) {
+  if (Math.abs(width - rowWidth.value) < 0.5) return;
+  rowWidth.value = width;
 }
 
 onMounted(() => {
   if (!rowRef.value) return;
   resizeObserver = new ResizeObserver(([entry]) => {
-    rowWidth.value = entry.contentRect.width;
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      updateRowWidth(entry.contentRect.width);
+    });
   });
   resizeObserver.observe(rowRef.value);
-  rowWidth.value = rowRef.value.clientWidth;
+  updateRowWidth(rowRef.value.clientWidth);
 });
 
 onUnmounted(() => {
+  cancelAnimationFrame(resizeRaf);
   resizeObserver?.disconnect();
 });
 </script>
 
 <template>
   <div class="question-content" :class="{ large }">
-    <div
-      v-if="mediaUrls?.length"
-      ref="rowRef"
-      class="media-row"
-      :class="{ 'media-row--ready': allLoaded && rowHeightPx }"
-      :style="rowStyle"
-    >
+    <div v-if="mediaUrls?.length" ref="rowRef" class="media-row-measure">
+      <div
+        class="media-row"
+        :class="{ 'media-row--ready': allLoaded && rowHeightPx }"
+        :style="rowStyle"
+      >
       <div
         v-for="(url, index) in mediaUrls"
         :key="`${url}-${index}`"
@@ -118,6 +136,7 @@ onUnmounted(() => {
           @load="onImageLoad($event, index)"
         />
       </div>
+      </div>
     </div>
     <p v-if="prompt" class="question-text">{{ prompt }}</p>
   </div>
@@ -127,6 +146,10 @@ onUnmounted(() => {
 .question-content {
   display: grid;
   gap: 16px;
+}
+
+.media-row-measure {
+  width: 100%;
 }
 
 .media-row {

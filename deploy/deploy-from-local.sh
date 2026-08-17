@@ -13,6 +13,7 @@ RSYNC=(rsync -avz --delete
   --exclude node_modules
   --exclude .git
   --exclude apps/server/uploads
+  --exclude apps/server/.env
   -e "ssh ${SSH_OPTS[*]}")
 
 echo "==> Build"

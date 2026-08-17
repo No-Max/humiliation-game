@@ -11,7 +11,6 @@ interface Tour {
   id: string;
   title: string;
   rules?: string;
-  mediaUrls?: string[];
   defaultPoints: number;
   defaultTimeLimitSec: number;
   sortOrder: number;
@@ -204,15 +203,6 @@ function formatTime(sec: number) {
           </RouterLink>
         </div>
       </div>
-      <div v-if="tour.mediaUrls?.length" class="tour-media-preview">
-        <img v-for="(url, index) in tour.mediaUrls" :key="`${url}-${index}`" :src="url" alt="" />
-      </div>
-      <div
-        v-if="tour.rules"
-        class="rich-text-preview"
-        style="color: #6b7280; margin: 0.75rem 0 0"
-        v-html="tour.rules"
-      />
     </div>
 
     <AdminModal
@@ -288,20 +278,5 @@ function formatTime(sec: number) {
 .empty-pick {
   display: grid;
   gap: 0.75rem;
-}
-
-.tour-media-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.tour-media-preview img {
-  width: 96px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
 }
 </style>

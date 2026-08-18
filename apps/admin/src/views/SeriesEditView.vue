@@ -6,7 +6,9 @@ import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
 import AdminIcon from '../components/AdminIcon.vue';
 import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
+import RichTextEditor from '../components/RichTextEditor.vue';
 import { crumbSeriesList } from '../lib/adminBreadcrumbs';
+import { isEmptyRichText } from '../lib/htmlText';
 import { tourQuestionsRoute } from '../lib/tourNavigation';
 
 interface Tour {
@@ -44,6 +46,23 @@ const saving = ref(false);
 const error = ref('');
 const loading = ref(true);
 const loadError = ref('');
+const detailsSaving = ref(false);
+const detailsError = ref('');
+const statusUpdating = ref(false);
+const detailsOpen = ref(false);
+
+const detailsForm = ref({
+  title: '',
+  description: '',
+});
+
+function syncDetailsForm() {
+  if (!series.value) return;
+  detailsForm.value = {
+    title: series.value.title,
+    description: series.value.description ?? '',
+  };
+}
 
 const linkedTourIds = computed(
   () => new Set((series.value?.tours ?? []).map((t) => t.id)),
@@ -58,6 +77,7 @@ async function load() {
   loadError.value = '';
   try {
     series.value = await adminApi(`/series/${route.params.id}`);
+    syncDetailsForm();
   } catch (e) {
     series.value = null;
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить выпуск';
@@ -135,6 +155,73 @@ async function moveTour(tour: Tour, direction: -1 | 1) {
   }
 }
 
+function statusLabel(status: string) {
+  return status === 'PUBLISHED' ? 'Опубликован' : 'Черновик';
+}
+
+function buildDetailsPayload(status: string) {
+  const title = detailsForm.value.title.trim();
+  return {
+    title,
+    number: series.value!.number,
+    description: isEmptyRichText(detailsForm.value.description)
+      ? null
+      : detailsForm.value.description.trim(),
+    status,
+  };
+}
+
+async function saveDetails() {
+  if (!series.value) return;
+
+  const title = detailsForm.value.title.trim();
+  if (!title) {
+    detailsError.value = 'Введите название выпуска';
+    detailsOpen.value = true;
+    return;
+  }
+
+  detailsSaving.value = true;
+  detailsError.value = '';
+  try {
+    await adminApi(`/series/${series.value.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(buildDetailsPayload(series.value.status)),
+    });
+    await load();
+  } catch (e) {
+    detailsError.value = e instanceof Error ? e.message : 'Не удалось сохранить выпуск';
+  } finally {
+    detailsSaving.value = false;
+  }
+}
+
+async function updateStatus(status: 'DRAFT' | 'PUBLISHED') {
+  if (!series.value) return;
+
+  const title = detailsForm.value.title.trim();
+  if (!title) {
+    detailsError.value = 'Введите название выпуска';
+    detailsOpen.value = true;
+    return;
+  }
+  if (status === 'DRAFT' && !window.confirm(`Снять выпуск «${title}» с публикации?`)) return;
+
+  statusUpdating.value = true;
+  detailsError.value = '';
+  try {
+    await adminApi(`/series/${series.value.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(buildDetailsPayload(status)),
+    });
+    await load();
+  } catch (e) {
+    detailsError.value = e instanceof Error ? e.message : 'Не удалось изменить статус';
+  } finally {
+    statusUpdating.value = false;
+  }
+}
+
 function formatTime(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
@@ -161,6 +248,72 @@ const breadcrumbs = computed(() => {
 
     <template v-else-if="series">
     <h1 class="page-title">Выпуск {{ series.number }}: {{ series.title }}</h1>
+
+    <div class="series-toolbar">
+      <button
+        class="btn btn-secondary btn-sm"
+        type="button"
+        :aria-expanded="detailsOpen"
+        @click="detailsOpen = !detailsOpen"
+      >
+        <AdminIcon name="pencil-icon" />
+        {{ detailsOpen ? 'Свернуть' : 'Редактировать' }}
+      </button>
+      <span class="field-hint series-status-inline">Статус: {{ statusLabel(series.status) }}</span>
+    </div>
+
+    <div v-show="detailsOpen" class="card series-details-card">
+      <p v-if="detailsError" class="error">{{ detailsError }}</p>
+
+      <label class="label" for="series-edit-title">Название</label>
+      <input
+        id="series-edit-title"
+        v-model="detailsForm.title"
+        class="input"
+        placeholder="Название выпуска"
+      />
+
+      <label class="label" for="series-edit-description">Описание</label>
+      <RichTextEditor
+        v-model="detailsForm.description"
+        input-id="series-edit-description"
+        placeholder="Краткое описание для страницы выпусков"
+      />
+
+      <div class="form-actions">
+        <button
+          v-if="series.status !== 'PUBLISHED'"
+          class="btn btn-success"
+          type="button"
+          :disabled="statusUpdating || detailsSaving || saving"
+          @click="updateStatus('PUBLISHED')"
+        >
+          <AdminIcon name="publish-icon" />
+          {{ statusUpdating ? 'Сохранение…' : 'Опубликовать' }}
+        </button>
+        <button
+          v-else
+          class="btn btn-warning"
+          type="button"
+          :disabled="statusUpdating || detailsSaving || saving"
+          @click="updateStatus('DRAFT')"
+        >
+          <AdminIcon name="unpublish-icon" />
+          {{ statusUpdating ? 'Сохранение…' : 'Снять с публикации' }}
+        </button>
+        <div class="form-actions-main">
+          <button
+            class="btn"
+            type="button"
+            :disabled="detailsSaving || statusUpdating || saving"
+            @click="saveDetails"
+          >
+            <AdminIcon name="check-icon" />
+            {{ detailsSaving ? 'Сохранение…' : 'Сохранить' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
       <h2>Туры в выпуске</h2>
@@ -254,6 +407,22 @@ const breadcrumbs = computed(() => {
 </template>
 
 <style scoped>
+.series-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.series-status-inline {
+  margin: 0;
+}
+
+.series-details-card {
+  margin-bottom: 1rem;
+}
+
 .pick-list {
   list-style: none;
   padding: 0;

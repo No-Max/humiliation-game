@@ -35,7 +35,11 @@ onMounted(async () => {
     <div v-else-if="!series.length" class="card">Пока нет опубликованных выпусков</div>
     <div v-for="item in series" :key="item.id" class="card">
       <h2>Выпуск {{ item.number }}: {{ item.title }}</h2>
-      <p v-if="item.description" style="margin: 0.5rem 0">{{ item.description }}</p>
+      <div
+        v-if="item.description"
+        class="rich-text-preview series-description"
+        v-html="item.description"
+      />
       <ul v-if="item.tours.length" class="series-tours-list">
         <li v-for="tour in item.tours" :key="tour.id">
           {{ tour.title }} — {{ formatQuestionCount(tour._count.questions) }}
@@ -48,6 +52,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.series-description {
+  margin: 0.5rem 0;
+}
+
 .series-tours-list {
   list-style: none;
   padding: 0;

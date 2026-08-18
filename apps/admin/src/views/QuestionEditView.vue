@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
-import {
-  getSeriesIdFromRoute,
-  tourQuestionsRoute,
-} from '../lib/tourNavigation';
+import { getSeriesIdFromRoute, tourQuestionsRoute } from '../lib/tourNavigation';
 import AnswerMediaInput from '../components/AnswerMediaInput.vue';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
+import RichTextEditor from '../components/RichTextEditor.vue';
 import AdminIcon from '../components/AdminIcon.vue';
+import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
+import { isEmptyRichText } from '../lib/htmlText';
+import {
+  buildTourContextCrumbs,
+  crumbTourQuestions,
+  useSeriesBreadcrumb,
+} from '../lib/adminBreadcrumbs';
 
-type ContentTypeOption = 'TEXT' | 'IMAGE_TEXT';
 type AnswerTypeOption = 'TEXT' | 'CHOICE';
 type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
 
@@ -46,11 +50,6 @@ interface Tour {
   questions: Question[];
 }
 
-const CONTENT_TYPES: { value: ContentTypeOption; label: string }[] = [
-  { value: 'TEXT', label: 'Текст' },
-  { value: 'IMAGE_TEXT', label: 'Текст + картинка' },
-];
-
 const ANSWER_TYPES: { value: AnswerTypeOption; label: string }[] = [
   { value: 'TEXT', label: 'Текстовый ввод' },
   { value: 'CHOICE', label: 'Варианты ответов' },
@@ -61,7 +60,7 @@ const router = useRouter();
 
 const tourId = computed(() => String(route.params.tourId));
 const seriesId = computed(() => getSeriesIdFromRoute(route));
-const questionsRoute = computed(() => tourQuestionsRoute(tourId.value, seriesId.value));
+const { seriesMeta } = useSeriesBreadcrumb(seriesId);
 const questionId = computed(() =>
   route.params.questionId ? String(route.params.questionId) : null,
 );
@@ -76,7 +75,6 @@ const error = ref('');
 const loadError = ref('');
 
 const form = ref({
-  contentType: 'TEXT' as ContentTypeOption,
   answerType: 'TEXT' as AnswerTypeOption,
   prompt: '',
   mediaUrls: [] as string[],
@@ -93,15 +91,21 @@ const pageTitle = computed(() =>
   isEdit.value ? 'Редактировать задание' : 'Новое задание',
 );
 
-const showImages = computed(() => form.value.contentType === 'IMAGE_TEXT');
+const breadcrumbs = computed(() => {
+  const items = buildTourContextCrumbs(seriesId.value, seriesMeta.value);
+  if (tour.value) {
+    items.push(crumbTourQuestions(tourId.value, tour.value.title, seriesId.value));
+  } else if (loading.value) {
+    items.push({ label: 'Задания' });
+  }
+  items.push({ label: pageTitle.value });
+  return items;
+});
+
 const isChoiceAnswer = computed(() => form.value.answerType === 'CHOICE');
 
 function normalizeAnswerType(value?: string): AnswerTypeOption {
   return value === 'CHOICE' ? 'CHOICE' : 'TEXT';
-}
-
-function normalizeContentType(value?: string): ContentTypeOption {
-  return value === 'IMAGE_TEXT' ? 'IMAGE_TEXT' : 'TEXT';
 }
 
 function normalizeAnswerMedia(value: unknown): AnswerMediaItem[] {
@@ -136,7 +140,6 @@ async function load() {
         return;
       }
       form.value = {
-        contentType: normalizeContentType(foundQuestion.contentType),
         answerType: normalizeAnswerType(foundQuestion.answerType),
         prompt: foundQuestion.prompt ?? '',
         mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
@@ -151,7 +154,6 @@ async function load() {
       };
     } else {
       form.value = {
-        contentType: 'TEXT',
         answerType: 'TEXT',
         prompt: '',
         mediaUrls: [],
@@ -178,15 +180,6 @@ watch(
     void load();
   },
   { immediate: true },
-);
-
-watch(
-  () => form.value.contentType,
-  (type) => {
-    if (type === 'TEXT') {
-      form.value.mediaUrls = [];
-    }
-  },
 );
 
 watch(
@@ -231,7 +224,8 @@ function parsePositiveInt(value: string | number, min: number): number | null {
 function buildPayload() {
   const points = parsePositiveInt(form.value.points, 1);
   const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
-  const contentType = form.value.contentType;
+  const mediaUrls = form.value.mediaUrls;
+  const contentType = mediaUrls.length > 0 ? 'IMAGE_TEXT' : 'TEXT';
   const answerType = form.value.answerType;
   const choices = answerType === 'CHOICE'
     ? form.value.choices.map((item) => trimValue(item)).filter(Boolean)
@@ -246,8 +240,8 @@ function buildPayload() {
 
   return {
     contentType,
-    prompt: trimValue(form.value.prompt) || null,
-    mediaUrls: contentType === 'IMAGE_TEXT' ? form.value.mediaUrls : [],
+    prompt: isEmptyRichText(form.value.prompt) ? null : form.value.prompt.trim(),
+    mediaUrls: contentType === 'IMAGE_TEXT' ? mediaUrls : [],
     correctAnswer: trimValue(form.value.correctAnswer),
     hints: form.value.hints.map((item) => trimValue(item)).filter(Boolean),
     acceptableAnswers: answerType === 'TEXT'
@@ -262,12 +256,8 @@ function buildPayload() {
 }
 
 function validate(): boolean {
-  if (!trimValue(form.value.prompt)) {
+  if (isEmptyRichText(form.value.prompt)) {
     error.value = 'Введите текст задания';
-    return false;
-  }
-  if (form.value.contentType === 'IMAGE_TEXT' && form.value.mediaUrls.length === 0) {
-    error.value = 'Загрузите хотя бы одну картинку';
     return false;
   }
   if (form.value.answerType === 'CHOICE') {
@@ -303,7 +293,7 @@ function validate(): boolean {
 }
 
 function goBack() {
-  router.push(questionsRoute.value);
+  router.push(tourQuestionsRoute(tourId.value, seriesId.value));
 }
 
 async function save() {
@@ -363,33 +353,60 @@ async function remove() {
 
 <template>
   <div>
-    <p class="back-link">
-      <RouterLink :to="questionsRoute">
-        <AdminIcon name="arrow-left-icon" />
-        К заданиям
-      </RouterLink>
-    </p>
+    <AdminBreadcrumbs :items="breadcrumbs" />
 
     <h1 class="page-title">{{ pageTitle }}</h1>
 
     <p v-if="loading" class="field-hint">Загрузка…</p>
     <p v-else-if="loadError" class="error">{{ loadError }}</p>
 
-    <form v-else-if="tour" class="card" @submit.prevent="save">
+    <form v-else-if="tour" class="card question-form" @submit.prevent="save">
       <p class="field-hint" style="margin-top: 0">Тур «{{ tour.title }}»</p>
 
       <p v-if="error" class="error">{{ error }}</p>
 
-      <div class="meta-row">
-        <div class="meta-field">
-          <label class="label" for="question-type">Тип задания</label>
-          <select id="question-type" v-model="form.contentType" class="select">
-            <option v-for="option in CONTENT_TYPES" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+      <section class="form-section">
+        <h2 class="form-section-title">Вопрос</h2>
+
+        <div class="meta-row">
+          <div class="meta-field">
+            <label class="label" for="question-points">Стоимость (баллы)</label>
+            <input
+              id="question-points"
+              v-model="form.points"
+              class="input"
+              type="number"
+              min="1"
+              :placeholder="`Дефолт: ${tour.defaultPoints}`"
+            />
+          </div>
+          <div class="meta-field">
+            <label class="label" for="question-time">Время на ответ (сек)</label>
+            <input
+              id="question-time"
+              v-model="form.timeLimitSec"
+              class="input"
+              type="number"
+              min="5"
+              :placeholder="`Дефолт: ${tour.defaultTimeLimitSec}`"
+            />
+          </div>
         </div>
-        <div class="meta-field">
+
+        <label class="label" for="question-prompt">Текст задания</label>
+        <RichTextEditor
+          v-model="form.prompt"
+          input-id="question-prompt"
+          placeholder="Вопрос или задание"
+        />
+
+        <MediaImagesInput v-model="form.mediaUrls" />
+      </section>
+
+      <section class="form-section">
+        <h2 class="form-section-title">Ответ</h2>
+
+        <div class="meta-field answer-type-field">
           <label class="label" for="answer-type">Тип ответа</label>
           <select id="answer-type" v-model="form.answerType" class="select">
             <option v-for="option in ANSWER_TYPES" :key="option.value" :value="option.value">
@@ -397,73 +414,40 @@ async function remove() {
             </option>
           </select>
         </div>
-        <div class="meta-field">
-          <label class="label" for="question-points">Стоимость (баллы)</label>
+
+        <template v-if="isChoiceAnswer">
+          <ChoicesInput v-model="form.choices" />
+
+          <label class="label" for="question-choice-answer">Правильный вариант</label>
+          <select
+            id="question-choice-answer"
+            v-model="form.correctAnswer"
+            class="select"
+            :disabled="form.choices.length === 0"
+          >
+            <option value="" disabled>Выберите правильный ответ</option>
+            <option v-for="choice in form.choices" :key="choice" :value="choice">
+              {{ choice }}
+            </option>
+          </select>
+        </template>
+
+        <template v-else>
+          <label class="label" for="question-answer">Основной правильный ответ</label>
           <input
-            id="question-points"
-            v-model="form.points"
+            id="question-answer"
+            v-model="form.correctAnswer"
             class="input"
-            type="number"
-            min="1"
-            :placeholder="`Дефолт: ${tour.defaultPoints}`"
+            placeholder="Главный вариант ответа"
           />
-        </div>
-        <div class="meta-field">
-          <label class="label" for="question-time">Время на ответ (сек)</label>
-          <input
-            id="question-time"
-            v-model="form.timeLimitSec"
-            class="input"
-            type="number"
-            min="5"
-            :placeholder="`Дефолт: ${tour.defaultTimeLimitSec}`"
-          />
-        </div>
-      </div>
 
-      <label class="label" for="question-prompt">Текст задания</label>
-      <textarea
-        id="question-prompt"
-        v-model="form.prompt"
-        class="textarea"
-        placeholder="Вопрос или задание"
-        autofocus
-      />
+          <AnswerVariantsInput v-model="form.acceptableAnswers" />
+        </template>
 
-      <MediaImagesInput v-if="showImages" v-model="form.mediaUrls" />
+        <AnswerMediaInput v-model="form.answerMedia" />
 
-      <template v-if="isChoiceAnswer">
-        <ChoicesInput v-model="form.choices" />
-
-        <label class="label" for="question-choice-answer">Правильный вариант</label>
-        <select
-          id="question-choice-answer"
-          v-model="form.correctAnswer"
-          class="select"
-          :disabled="form.choices.length === 0"
-        >
-          <option value="" disabled>Выберите правильный ответ</option>
-          <option v-for="choice in form.choices" :key="choice" :value="choice">
-            {{ choice }}
-          </option>
-        </select>
-      </template>
-
-      <template v-else>
-        <label class="label" for="question-answer">Основной правильный ответ</label>
-        <input
-          id="question-answer"
-          v-model="form.correctAnswer"
-          class="input"
-          placeholder="Главный вариант ответа"
-        />
-
-        <AnswerVariantsInput v-model="form.acceptableAnswers" />
-      </template>
-
-      <AnswerMediaInput v-model="form.answerMedia" />
-
-      <HintsInput v-model="form.hints" />
+        <HintsInput v-model="form.hints" />
+      </section>
 
       <div class="form-actions">
         <button
@@ -492,6 +476,29 @@ async function remove() {
 </template>
 
 <style scoped>
+.question-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.form-section {
+  padding: 1.25rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-section:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.form-section-title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
 .meta-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -502,6 +509,11 @@ async function remove() {
 .meta-field .input,
 .meta-field .select {
   margin-bottom: 0;
+}
+
+.answer-type-field {
+  max-width: 20rem;
+  margin-bottom: 0.75rem;
 }
 
 @media (max-width: 720px) {

@@ -5,14 +5,6 @@ export function getSeriesIdFromRoute(route: RouteLocationNormalizedLoaded): stri
   return typeof id === 'string' ? id : null;
 }
 
-export function toursBackRoute(seriesId: string | null): RouteLocationRaw {
-  return seriesId ? `/series/${seriesId}` : '/tours';
-}
-
-export function toursBackLabel(seriesId: string | null): string {
-  return seriesId ? '← К выпуску' : '← К турам';
-}
-
 export function tourSettingsNewRoute(): RouteLocationRaw {
   return '/tours/new';
 }

@@ -171,7 +171,11 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    <p v-if="prompt" class="question-text">{{ prompt }}</p>
+    <div
+      v-if="prompt"
+      class="question-text rich-text-preview"
+      v-html="prompt"
+    />
   </div>
 </template>
 

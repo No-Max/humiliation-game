@@ -5,6 +5,8 @@ import { formatQuestionCount } from '@humiliation-game/shared';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
 import AdminIcon from '../components/AdminIcon.vue';
+import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
+import { crumbSeriesList } from '../lib/adminBreadcrumbs';
 import { tourQuestionsRoute } from '../lib/tourNavigation';
 
 interface Tour {
@@ -138,10 +140,22 @@ function formatTime(sec: number) {
   const s = sec % 60;
   return s ? `${m} мин ${s} сек` : `${m} мин`;
 }
+
+const breadcrumbs = computed(() => {
+  const items = [crumbSeriesList()];
+  if (series.value) {
+    items.push({ label: `Выпуск ${series.value.number}: ${series.value.title}` });
+  } else if (loading.value) {
+    items.push({ label: '…' });
+  }
+  return items;
+});
 </script>
 
 <template>
   <div>
+    <AdminBreadcrumbs :items="breadcrumbs" />
+
     <p v-if="loading" class="field-hint">Загрузка…</p>
     <p v-else-if="loadError" class="error">{{ loadError }}</p>
 

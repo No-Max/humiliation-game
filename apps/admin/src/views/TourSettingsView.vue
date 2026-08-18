@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminIcon from '../components/AdminIcon.vue';
+import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
 import RichTextEditor from '../components/RichTextEditor.vue';
+import { crumbToursList } from '../lib/adminBreadcrumbs';
 import { isEmptyRichText } from '../lib/htmlText';
 
 interface TourDetail {
@@ -119,16 +121,19 @@ async function save() {
     saving.value = false;
   }
 }
+
+const breadcrumbs = computed(() => {
+  if (isNew.value) {
+    return [crumbToursList(), { label: 'Новый тур' }];
+  }
+  const title = form.value.title.trim() || (loading.value ? '…' : 'Редактировать тур');
+  return [crumbToursList(), { label: title }];
+});
 </script>
 
 <template>
   <div>
-    <p class="back-link">
-      <RouterLink to="/tours">
-        <AdminIcon name="arrow-left-icon" />
-        К турам
-      </RouterLink>
-    </p>
+    <AdminBreadcrumbs :items="breadcrumbs" />
 
     <h1 class="page-title">{{ isNew ? 'Новый тур' : 'Редактировать тур' }}</h1>
 

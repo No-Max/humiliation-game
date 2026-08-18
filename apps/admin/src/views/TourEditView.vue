@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import {
   getSeriesIdFromRoute,
   tourQuestionEditRoute,
   tourQuestionNewRoute,
-  toursBackLabel,
-  toursBackRoute,
 } from '../lib/tourNavigation';
 import AdminIcon from '../components/AdminIcon.vue';
+import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
+import { formatQuestionCount } from '@humiliation-game/shared';
 import { stripHtml } from '../lib/htmlText';
+import { buildTourContextCrumbs, useSeriesBreadcrumb } from '../lib/adminBreadcrumbs';
 
 interface Question {
   id: string;
@@ -44,8 +45,17 @@ const loadError = ref('');
 
 const tourId = () => String(route.params.tourId);
 const seriesId = computed(() => getSeriesIdFromRoute(route));
-const backRoute = computed(() => toursBackRoute(seriesId.value));
-const backLabel = computed(() => toursBackLabel(seriesId.value));
+const { seriesMeta } = useSeriesBreadcrumb(seriesId);
+
+const breadcrumbs = computed(() => {
+  const items = buildTourContextCrumbs(seriesId.value, seriesMeta.value);
+  if (tour.value) {
+    items.push({ label: `Задания: ${tour.value.title}` });
+  } else if (loading.value) {
+    items.push({ label: 'Задания' });
+  }
+  return items;
+});
 
 async function load() {
   loading.value = true;
@@ -81,25 +91,19 @@ function formatTime(sec: number) {
 
 <template>
   <div>
-    <p class="back-link">
-      <RouterLink :to="backRoute">
-        <AdminIcon name="arrow-left-icon" />
-        {{ backLabel }}
-      </RouterLink>
-    </p>
+    <AdminBreadcrumbs :items="breadcrumbs" />
 
     <p v-if="loading" class="field-hint">Загрузка…</p>
     <p v-else-if="loadError" class="error">{{ loadError }}</p>
 
     <template v-else-if="tour">
       <h1 class="page-title">Задания: {{ tour.title }}</h1>
-      <p class="field-hint" style="margin-top: 0">
-        {{ tour.defaultPoints }} б. · ⏱ {{ formatTime(tour.defaultTimeLimitSec) }}
-        <span v-if="tour.rules"> · {{ stripHtml(tour.rules) }}</span>
-      </p>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
-        <h2 style="margin: 0">Список заданий</h2>
+        <h2 style="margin: 0">
+          Список заданий
+          <span class="question-count">· {{ formatQuestionCount(tour.questions.length) }}</span>
+        </h2>
         <button class="btn" type="button" @click="openAddQuestion">
           <AdminIcon name="plus-icon" />
           Задание
@@ -110,7 +114,7 @@ function formatTime(sec: number) {
         <ul v-if="tour.questions.length" class="question-list">
           <li v-for="q in tour.questions" :key="q.id" class="question-item">
             <div class="question-content">
-              <div>{{ q.prompt }}</div>
+              <div>{{ stripHtml(q.prompt ?? '') }}</div>
               <div class="question-meta">
                 <span v-if="q.contentType === 'IMAGE_TEXT'">🖼 · </span>
                 <span v-if="q.answerType === 'CHOICE'">🔘 · </span>
@@ -165,5 +169,11 @@ function formatTime(sec: number) {
   font-size: 0.875rem;
   color: #6b7280;
   margin-top: 0.25rem;
+}
+
+.question-count {
+  font-weight: normal;
+  font-size: 1rem;
+  color: #6b7280;
 }
 </style>

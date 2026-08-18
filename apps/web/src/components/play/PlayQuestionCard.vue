@@ -2,6 +2,7 @@
 import type { RoomState, TeamState } from '@humiliation-game/shared';
 import QuestionChoices from '../QuestionChoices.vue';
 import QuestionContent from '../QuestionContent.vue';
+import QuestionHints from '../QuestionHints.vue';
 
 defineProps<{
   state: RoomState;
@@ -24,19 +25,7 @@ defineEmits<{
 <template>
   <div class="card">
     <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" />
-    <div v-if="state.hints?.length" class="hints-list">
-      <p v-if="state.hintsTotal" class="hints-caption">
-        Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
-      </p>
-      <p
-        v-for="(hint, index) in state.hints"
-        :key="`${index}-${hint}`"
-        class="hint"
-        :class="{ 'hint-latest': index === state.hints.length - 1 }"
-      >
-        💡 {{ index + 1 }}. {{ hint }}
-      </p>
-    </div>
+    <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
 
     <template v-if="isMyTurn && myTeam?.connected !== false">
       <template v-if="isChoiceQuestion && state.choices?.length">

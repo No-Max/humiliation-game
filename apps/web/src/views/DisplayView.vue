@@ -6,6 +6,7 @@ import { teamsSortedByScore, formatQuestionCount, formatTourLabel, playScreenTit
 import { connectSocket, onRoomState } from '../lib/api';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
+import QuestionHints from '../components/QuestionHints.vue';
 import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 import AnswerRevealMedia from '../components/AnswerRevealMedia.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
@@ -117,19 +118,7 @@ onUnmounted(() => cleanup?.());
           readonly
           :choices="state.choices"
         />
-        <div v-if="state.hints?.length" class="hints-list">
-          <p v-if="state.hintsTotal" class="hints-caption">
-            Подсказки {{ state.hints.length }} из {{ state.hintsTotal }}
-          </p>
-          <p
-            v-for="(hint, index) in state.hints"
-            :key="`${index}-${hint}`"
-            class="hint"
-            :class="{ 'hint-latest': index === state.hints.length - 1 }"
-          >
-            💡 {{ index + 1 }}. {{ hint }}
-          </p>
-        </div>
+        <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
         <div v-if="state.phase === 'CORRECT'" class="banner correct">
           Верный ответ: {{ state.correctAnswer }}
         </div>

@@ -341,7 +341,7 @@ async function remove() {
   saving.value = true;
   error.value = '';
   try {
-    await adminApi(`/series/questions/${question.value.id}`, {
+    await adminApi(`/tours/questions/${question.value.id}`, {
       method: 'DELETE',
     });
     goBack();

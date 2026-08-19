@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminIcon from '../components/AdminIcon.vue';
@@ -42,6 +42,15 @@ const form = ref({
 
 async function loadTour() {
   if (isNew.value || !tourId.value) {
+    form.value = {
+      title: '',
+      mediaUrls: [] as string[],
+      rules: '',
+      defaultPoints: '3',
+      defaultTimeLimitSec: '60',
+      limitQuestionsToTeamCount: false,
+    };
+    loadError.value = '';
     loading.value = false;
     return;
   }
@@ -66,6 +75,13 @@ async function loadTour() {
 }
 
 onMounted(loadTour);
+
+watch(
+  () => [route.path, route.params.tourId],
+  () => {
+    void loadTour();
+  },
+);
 
 function parsePositiveInt(value: string | number, min: number): number | typeof NaN {
   const trimmed = String(value ?? '').trim();

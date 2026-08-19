@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import {
@@ -42,6 +42,8 @@ const router = useRouter();
 const tour = ref<TourDetail | null>(null);
 const loading = ref(true);
 const loadError = ref('');
+const deletingId = ref<string | null>(null);
+const error = ref('');
 
 const tourId = () => String(route.params.tourId);
 const seriesId = computed(() => getSeriesIdFromRoute(route));
@@ -72,6 +74,13 @@ async function load() {
 
 onMounted(load);
 
+watch(
+  () => route.params.tourId,
+  () => {
+    void load();
+  },
+);
+
 function openAddQuestion() {
   if (!tour.value) return;
   router.push(tourQuestionNewRoute(tour.value.id, seriesId.value));
@@ -80,6 +89,23 @@ function openAddQuestion() {
 function openEditQuestion(question: Question) {
   if (!tour.value) return;
   router.push(tourQuestionEditRoute(tour.value.id, question.id, seriesId.value));
+}
+
+async function removeQuestion(question: Question) {
+  if (!tour.value) return;
+  const prompt = stripHtml(question.prompt ?? '') || 'это задание';
+  if (!window.confirm(`Удалить задание «${prompt}»?`)) return;
+
+  deletingId.value = question.id;
+  error.value = '';
+  try {
+    await adminApi(`/tours/questions/${question.id}`, { method: 'DELETE' });
+    await load();
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось удалить задание';
+  } finally {
+    deletingId.value = null;
+  }
 }
 
 function formatTime(sec: number) {
@@ -110,6 +136,8 @@ function formatTime(sec: number) {
         </button>
       </div>
 
+      <p v-if="error" class="error">{{ error }}</p>
+
       <div class="card">
         <ul v-if="tour.questions.length" class="question-list">
           <li v-for="q in tour.questions" :key="q.id" class="question-item">
@@ -126,10 +154,21 @@ function formatTime(sec: number) {
                 <span> · ⏱ {{ formatTime(q.timeLimitSec ?? tour.defaultTimeLimitSec) }}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" type="button" @click="openEditQuestion(q)">
-              <AdminIcon name="pencil-icon" />
-              Изменить
-            </button>
+            <div class="question-actions">
+              <button class="btn btn-secondary btn-sm" type="button" @click="openEditQuestion(q)">
+                <AdminIcon name="pencil-icon" />
+                Изменить
+              </button>
+              <button
+                class="btn btn-danger btn-sm"
+                type="button"
+                :disabled="deletingId === q.id"
+                @click="removeQuestion(q)"
+              >
+                <AdminIcon name="trash-icon" />
+                {{ deletingId === q.id ? 'Удаление…' : 'Удалить' }}
+              </button>
+            </div>
           </li>
         </ul>
         <p v-else style="color: #6b7280; margin: 0">Заданий пока нет</p>
@@ -163,6 +202,12 @@ function formatTime(sec: number) {
 .question-content {
   flex: 1;
   min-width: 0;
+}
+
+.question-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .question-meta {

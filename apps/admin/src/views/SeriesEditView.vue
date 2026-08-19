@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { formatQuestionCount } from '@humiliation-game/shared';
 import { adminApi } from '../lib/api';
@@ -87,6 +87,13 @@ async function load() {
 }
 
 onMounted(load);
+
+watch(
+  () => route.params.id,
+  () => {
+    void load();
+  },
+);
 
 async function openPickModal() {
   libraryTours.value = await adminApi('/tours');
@@ -382,7 +389,7 @@ const breadcrumbs = computed(() => {
     >
       <p v-if="error" class="error">{{ error }}</p>
       <p class="field-hint" style="margin-top: 0">
-        Выберите тур для добавления в выпуск.
+        Выберите тур для добавления в выпуск. В выпуск попадёт копия тура без заданий — их нужно будет добавить отдельно.
       </p>
 
       <div v-if="!availableTours.length" class="empty-pick">

@@ -1,5 +1,8 @@
 import type { AnswerMediaItem, AnswerType, QuestionContentType } from './content.js';
 
+/** Максимум команд в одной игровой комнате */
+export const MAX_ROOM_TEAMS = 4;
+
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 
 export type ClientRole = 'team' | 'display';

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { RoomState } from '@humiliation-game/shared';
+import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
 import {
@@ -33,6 +34,10 @@ const displayUrl = computed(() => getDisplayUrl(props.roomCode));
 const joinUrl = computed(() => getJoinUrl(props.roomCode));
 const mySlotUrl = computed(() =>
   props.teamId ? getTeamSlotUrl(props.roomCode, props.teamId) : '',
+);
+
+const canAddTeam = computed(
+  () => (props.state?.teamSlots.length ?? 0) < MAX_ROOM_TEAMS,
 );
 
 function onLinkCopied(label: string) {
@@ -211,13 +216,16 @@ defineExpose({ reset });
       </div>
 
       <button
-        v-if="!showAddTeamLink"
+        v-if="canAddTeam && !showAddTeamLink"
         type="button"
         class="btn btn-secondary add-team-btn"
         @click="addTeam"
       >
         Добавить команду
       </button>
+      <p v-else-if="!canAddTeam" class="teams-limit-notice">
+        Достигнут лимит — в комнате максимум {{ MAX_ROOM_TEAMS }} команды.
+      </p>
       <div v-else class="add-team-link">
         <p class="link-desc">
           Чтобы добавить команду, откройте ссылку на другом устройстве или отсканируйте QR-код.
@@ -320,6 +328,13 @@ defineExpose({ reset });
 .add-team-btn {
   width: 100%;
   margin-top: 0.75rem;
+}
+
+.teams-limit-notice {
+  margin: 0.75rem 0 0;
+  color: #92400e;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .add-team-link {

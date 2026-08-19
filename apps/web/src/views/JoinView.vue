@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import { getPreferredTeamName } from '../lib/teamPreferences';
@@ -16,6 +17,8 @@ const teamName = ref('');
 const error = ref('');
 const loading = ref(false);
 const existingTeams = ref<RoomTeam[]>([]);
+
+const teamsFull = computed(() => existingTeams.value.length >= MAX_ROOM_TEAMS);
 
 onMounted(async () => {
   teamName.value = getPreferredTeamName();
@@ -34,6 +37,10 @@ function goToSlot(code: string, teamId: string, name: string, seriesTitle = 'И�
 }
 
 async function joinNew() {
+  if (teamsFull.value) {
+    error.value = `В комнате уже максимум ${MAX_ROOM_TEAMS} команд`;
+    return;
+  }
   if (!teamName.value.trim()) {
     error.value = 'Введите название команды';
     return;
@@ -104,13 +111,18 @@ function reconnectAs(team: RoomTeam) {
         Если телефон выключился — откройте <strong>ссылку командного слота</strong>,
         которую сохранили в начале игры.
       </p>
-      <input v-model="teamName" class="input" placeholder="Название новой команды" />
-      <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem">
-        Название сохраняется на этом устройстве — его можно изменить перед входом.
+      <p v-if="teamsFull" class="teams-limit-notice">
+        В комнате уже {{ MAX_ROOM_TEAMS }} команды — новую добавить нельзя.
       </p>
-      <button class="btn" :disabled="loading" @click="joinNew">
-        {{ loading ? 'Подключение...' : 'Войти' }}
-      </button>
+      <template v-else>
+        <input v-model="teamName" class="input" placeholder="Название новой команды" />
+        <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem">
+          Название сохраняется на этом устройстве — его можно изменить перед входом.
+        </p>
+        <button class="btn" :disabled="loading" @click="joinNew">
+          {{ loading ? 'Подключение...' : 'Войти' }}
+        </button>
+      </template>
     </div>
 
     <div v-if="existingTeams.length" class="card">
@@ -134,3 +146,12 @@ function reconnectAs(team: RoomTeam) {
     <p v-if="error" style="color: #dc2626; margin-top: 1rem">{{ error }}</p>
   </div>
 </template>
+
+<style scoped>
+.teams-limit-notice {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+</style>

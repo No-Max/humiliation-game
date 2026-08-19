@@ -4,6 +4,7 @@ import type {
   JoinRoomPayload,
   ServerToClientEvents,
 } from '@humiliation-game/shared';
+import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { mapSeriesWithTours } from '../lib/seriesContent.js';
 import { GameEngine } from '../game/engine.js';
@@ -118,6 +119,14 @@ export function setupSocketHandlers(io: GameServer) {
             callback({
               ok: false,
               error: 'Команда уже есть — используйте ссылку командного слота',
+            });
+            return;
+          }
+
+          if (room.teams.length >= MAX_ROOM_TEAMS) {
+            callback({
+              ok: false,
+              error: `В комнате уже максимум ${MAX_ROOM_TEAMS} команд`,
             });
             return;
           }

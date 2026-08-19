@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import { getSeriesIdFromRoute, tourQuestionsRoute } from '../lib/tourNavigation';
@@ -170,6 +170,7 @@ async function load() {
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить данные';
   } finally {
     loading.value = false;
+    await nextTick();
     hydrating.value = false;
   }
 }
@@ -198,6 +199,7 @@ watch(
 watch(
   () => form.value.choices,
   (choices) => {
+    if (hydrating.value) return;
     if (
       form.value.answerType === 'CHOICE' &&
       form.value.correctAnswer &&

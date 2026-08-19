@@ -2,7 +2,12 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
-import { teamsSortedByScore, formatQuestionCount, formatTourLabel, playScreenTitle } from '@humiliation-game/shared';
+import {
+  teamsSortedByScore,
+  formatTourLabel,
+  formatTourQuestionMeta,
+  playScreenTitle,
+} from '@humiliation-game/shared';
 import { connectSocket, onRoomState } from '../lib/api';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
@@ -70,7 +75,7 @@ onUnmounted(() => cleanup?.());
         </div>
         <p>Следующий тур: {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</p>
         <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-          {{ formatQuestionCount(state.tourQuestionCount) }}
+          {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
         </p>
         <template v-if="state.mediaUrls?.length">
           <h3 class="tour-intro-subtitle">Пример задания</h3>
@@ -86,7 +91,7 @@ onUnmounted(() => cleanup?.());
       <template v-else>
         <h2>{{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</h2>
         <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-          {{ formatQuestionCount(state.tourQuestionCount) }}
+          {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
         </p>
         <template v-if="state.mediaUrls?.length">
           <h3 class="tour-intro-subtitle">Пример задания</h3>

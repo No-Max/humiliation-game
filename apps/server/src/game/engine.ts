@@ -199,7 +199,14 @@ export class GameEngine {
       hintsTotal: tourStarted && question ? this.getQuestionHints(question).length : undefined,
       displayCount: this.displayCount,
       tourTitle: tour?.title,
-      tourQuestionCount: this.state.phase === 'TOUR_INTRO' ? tour?.questions.length : undefined,
+      tourQuestionCount:
+        this.state.phase === 'TOUR_INTRO' && tour
+          ? this.getEffectiveQuestionCount(tour)
+          : undefined,
+      limitQuestionsToTeamCount:
+        this.state.phase === 'TOUR_INTRO' && tour?.limitQuestionsToTeamCount
+          ? true
+          : undefined,
       questionPrompt: tourStarted ? question?.prompt ?? undefined : undefined,
       questionContentType: tourStarted
         ? (question?.contentType as QuestionContentType | undefined)
@@ -314,7 +321,8 @@ export class GameEngine {
     const tour = this.series.tours[this.state.currentTourIndex];
     if (!tour) return { ok: false, error: 'No tour' };
 
-    if (this.state.currentQuestionIndex + 1 < tour.questions.length) {
+    const questionLimit = this.getEffectiveQuestionCount(tour);
+    if (this.state.currentQuestionIndex + 1 < questionLimit) {
       this.state.currentQuestionIndex += 1;
       this.state.currentTeamIndex =
         (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
@@ -503,6 +511,17 @@ export class GameEngine {
     this.turnNotice = undefined;
     this.state.passedTeamIds = new Set();
     this.state.attemptedTeamIds = new Set();
+  }
+
+  private getTeamCount(): number {
+    return this.teams.size;
+  }
+
+  private getEffectiveQuestionCount(tour: Tour & { questions: Question[] }): number {
+    if (!tour.limitQuestionsToTeamCount) {
+      return tour.questions.length;
+    }
+    return Math.min(tour.questions.length, this.getTeamCount());
   }
 
   private getCurrentQuestion(): Question | undefined {

@@ -35,7 +35,8 @@ adminToursRouter.get('/:id', async (req, res) => {
 });
 
 adminToursRouter.post('/', async (req, res) => {
-  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec } = req.body;
+  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec, limitQuestionsToTeamCount } =
+    req.body;
   const tour = await prisma.tour.create({
     data: {
       title,
@@ -43,16 +44,25 @@ adminToursRouter.post('/', async (req, res) => {
       mediaUrls: mediaUrls ?? [],
       defaultPoints: defaultPoints ?? 3,
       defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
+      limitQuestionsToTeamCount: Boolean(limitQuestionsToTeamCount),
     },
   });
   res.status(201).json(tour);
 });
 
 adminToursRouter.put('/:id', async (req, res) => {
-  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec } = req.body;
+  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec, limitQuestionsToTeamCount } =
+    req.body;
   const tour = await prisma.tour.update({
     where: { id: req.params.id },
-    data: { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec },
+    data: {
+      title,
+      rules,
+      mediaUrls,
+      defaultPoints,
+      defaultTimeLimitSec,
+      limitQuestionsToTeamCount: Boolean(limitQuestionsToTeamCount),
+    },
   });
   res.json(tour);
 });

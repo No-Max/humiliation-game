@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { formatQuestionCount } from '@humiliation-game/shared';
+import { formatTourQuestionMeta } from '@humiliation-game/shared';
 import { api } from '../lib/api';
 
 interface SeriesItem {
@@ -9,7 +9,12 @@ interface SeriesItem {
   title: string;
   number: number;
   description?: string;
-  tours: { id: string; title: string; _count: { questions: number } }[];
+  tours: {
+    id: string;
+    title: string;
+    limitQuestionsToTeamCount?: boolean;
+    _count: { questions: number };
+  }[];
 }
 
 const series = ref<SeriesItem[]>([]);
@@ -42,7 +47,8 @@ onMounted(async () => {
       />
       <ul v-if="item.tours.length" class="series-tours-list">
         <li v-for="tour in item.tours" :key="tour.id">
-          {{ tour.title }} — {{ formatQuestionCount(tour._count.questions) }}
+          {{ tour.title }} —
+          {{ formatTourQuestionMeta(tour._count.questions, tour.limitQuestionsToTeamCount) }}
         </li>
       </ul>
       <p v-else style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0">Туры не добавлены</p>

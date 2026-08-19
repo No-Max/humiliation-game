@@ -50,6 +50,8 @@ export interface RoomState {
   tourTitle?: string;
   /** Число заданий в текущем туре (на экране TOUR_INTRO) */
   tourQuestionCount?: number;
+  /** В туре играют не больше вопросов, чем команд (по одному на команду) */
+  limitQuestionsToTeamCount?: boolean;
   /** Правила тура (HTML) на экране TOUR_INTRO */
   tourRules?: string;
   questionPrompt?: string;
@@ -111,6 +113,16 @@ export function formatQuestionCount(count: number): string {
   if (mod10 === 1) return `${n} вопрос`;
   if (mod10 >= 2 && mod10 <= 4) return `${n} вопроса`;
   return `${n} вопросов`;
+}
+
+export const TOUR_ONE_QUESTION_PER_TEAM_LABEL = 'по 1 вопросу на команду';
+
+export function formatTourQuestionMeta(
+  count: number,
+  limitQuestionsToTeamCount?: boolean,
+): string {
+  if (limitQuestionsToTeamCount) return TOUR_ONE_QUESTION_PER_TEAM_LABEL;
+  return formatQuestionCount(count);
 }
 
 export function formatHintsCount(count: number): string {

@@ -97,6 +97,7 @@ model Tour {
   mediaUrls           String[] @default([])
   defaultPoints       Int      @default(3)
   defaultTimeLimitSec Int      @default(60)
+  limitQuestionsToTeamCount Boolean @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

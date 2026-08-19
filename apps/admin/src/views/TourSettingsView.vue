@@ -16,6 +16,7 @@ interface TourDetail {
   mediaUrls?: string[];
   defaultPoints: number;
   defaultTimeLimitSec: number;
+  limitQuestionsToTeamCount?: boolean;
   _count?: { seriesTours: number };
 }
 
@@ -36,6 +37,7 @@ const form = ref({
   rules: '',
   defaultPoints: '3',
   defaultTimeLimitSec: '60',
+  limitQuestionsToTeamCount: false,
 });
 
 async function loadTour() {
@@ -54,6 +56,7 @@ async function loadTour() {
       rules: tour.rules ?? '',
       defaultPoints: String(tour.defaultPoints),
       defaultTimeLimitSec: String(tour.defaultTimeLimitSec),
+      limitQuestionsToTeamCount: tour.limitQuestionsToTeamCount ?? false,
     };
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить тур';
@@ -82,6 +85,7 @@ function buildPayload() {
     rules: isEmptyRichText(form.value.rules) ? null : form.value.rules.trim(),
     defaultPoints,
     defaultTimeLimitSec,
+    limitQuestionsToTeamCount: form.value.limitQuestionsToTeamCount,
   };
 }
 
@@ -163,6 +167,18 @@ const breadcrumbs = computed(() => {
         </div>
       </div>
 
+      <label class="checkbox-row">
+        <input
+          id="tour-limit-questions"
+          v-model="form.limitQuestionsToTeamCount"
+          type="checkbox"
+        />
+        <span>По одному вопросу на команду</span>
+      </label>
+      <p class="field-hint tour-limit-hint">
+        В игре будет не больше вопросов, чем команд в комнате — каждая команда ответит на один вопрос.
+      </p>
+
       <MediaImagesInput v-model="form.mediaUrls" />
 
       <label class="label" for="tour-rules">Правила</label>
@@ -196,6 +212,23 @@ const breadcrumbs = computed(() => {
 
 .meta-field .input {
   margin-bottom: 0;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.checkbox-row input {
+  margin-top: 0.2rem;
+}
+
+.tour-limit-hint {
+  margin-top: 0.35rem;
 }
 
 @media (max-width: 720px) {

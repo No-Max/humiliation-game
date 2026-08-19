@@ -36,6 +36,7 @@ export interface Tour {
   mediaUrls?: string[];
   defaultPoints: number;
   defaultTimeLimitSec: number;
+  limitQuestionsToTeamCount?: boolean;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;

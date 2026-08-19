@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RoomState, TeamState } from '@humiliation-game/shared';
-import { formatQuestionCount, formatTourLabel } from '@humiliation-game/shared';
+import { formatTourLabel, formatTourQuestionMeta } from '@humiliation-game/shared';
 import QuestionContent from '../QuestionContent.vue';
 
 defineProps<{
@@ -20,7 +20,7 @@ defineEmits<{
       {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}
     </h2>
     <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-      {{ formatQuestionCount(state.tourQuestionCount) }}
+      {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
     </p>
     <div v-if="showTourResults" class="banner correct tour-results">
       <p class="tour-results-title">Итоги тура</p>

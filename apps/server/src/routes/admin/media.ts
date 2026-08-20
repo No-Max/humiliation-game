@@ -105,12 +105,82 @@ adminMediaRouter.post('/upload/answer-media', (req, res) => {
   });
 });
 
-adminMediaRouter.get('/', async (_req, res) => {
-  const files = await prisma.mediaFile.findMany({ orderBy: { createdAt: 'desc' } });
-  res.json(
-    files.map((f) => ({
+adminMediaRouter.get('/', async (req, res) => {
+  const page = Math.max(1, Number.parseInt(String(req.query.page ?? '1'), 10) || 1);
+  const limit = Math.min(
+    100,
+    Math.max(1, Number.parseInt(String(req.query.limit ?? '20'), 10) || 20),
+  );
+  const kind = String(req.query.kind ?? 'all');
+
+  const where =
+    kind === 'image'
+      ? { mimeType: { startsWith: 'image/' } }
+      : kind === 'audio'
+        ? { mimeType: { startsWith: 'audio/' } }
+        : kind === 'video'
+          ? { mimeType: { startsWith: 'video/' } }
+          : {};
+
+  const [total, files] = await Promise.all([
+    prisma.mediaFile.count({ where }),
+    prisma.mediaFile.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+
+  const totalPages = total === 0 ? 1 : Math.ceil(total / limit);
+
+  res.json({
+    items: files.map((f) => ({
       ...f,
       url: `/uploads/${f.path}`,
     })),
-  );
+    page,
+    limit,
+    total,
+    totalPages,
+  });
+});
+
+adminMediaRouter.put('/:id', async (req, res) => {
+  const id = String(req.params.id);
+  const filename = String(req.body?.filename ?? '').trim();
+  if (!filename) {
+    res.status(400).json({ error: 'filename required' });
+    return;
+  }
+
+  try {
+    const media = await prisma.mediaFile.update({
+      where: { id },
+      data: { filename },
+    });
+    res.json({
+      ...media,
+      url: `/uploads/${media.path}`,
+    });
+  } catch {
+    res.status(404).json({ error: 'Media not found' });
+  }
+});
+
+adminMediaRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
+  const id = String(req.params.id);
+  const media = await prisma.mediaFile.findUnique({ where: { id } });
+  if (!media) {
+    res.status(404).json({ error: 'Media not found' });
+    return;
+  }
+
+  const filePath = path.join(uploadDir, media.path);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+
+  await prisma.mediaFile.delete({ where: { id: media.id } });
+  res.status(204).send();
 });

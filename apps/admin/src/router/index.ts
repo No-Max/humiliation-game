@@ -6,6 +6,7 @@ import ToursListView from '../views/ToursListView.vue';
 import TourSettingsView from '../views/TourSettingsView.vue';
 import TourEditView from '../views/TourEditView.vue';
 import QuestionEditView from '../views/QuestionEditView.vue';
+import MediaLibraryView from '../views/MediaLibraryView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -20,6 +21,11 @@ export const router = createRouter({
     {
       path: '/series/:id',
       component: SeriesEditView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/media',
+      component: MediaLibraryView,
       meta: { requiresAuth: true },
     },
     {

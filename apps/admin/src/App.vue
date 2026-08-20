@@ -26,6 +26,10 @@ function logout() {
           <AdminIcon name="layers-icon" />
           Туры
         </RouterLink>
+        <RouterLink to="/media" class="header-nav-link">
+          <AdminIcon name="publish-icon" />
+          Галерея
+        </RouterLink>
       </nav>
       <div class="header-actions">
         <button class="link-btn" type="button" @click="logout">

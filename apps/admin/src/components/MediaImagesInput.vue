@@ -3,11 +3,14 @@ import { ref } from 'vue';
 import { adminUpload } from '../lib/api';
 import { filesFromClipboard, focusPasteBlock } from '../lib/useClipboardFiles';
 import AdminIcon from './AdminIcon.vue';
+import MediaPickerModal from './MediaPickerModal.vue';
+import type { MediaLibraryItem } from '../lib/mediaLibrary';
 
 const urls = defineModel<string[]>({ default: () => [] });
 
 const uploading = ref(false);
 const error = ref('');
+const showGallery = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
 const rootRef = ref<HTMLElement | null>(null);
 
@@ -66,6 +69,15 @@ function moveAt(index: number, direction: -1 | 1) {
 
 function openPicker() {
   inputRef.value?.click();
+}
+
+function openGallery() {
+  showGallery.value = true;
+}
+
+function onGallerySelect(selected: MediaLibraryItem[]) {
+  const newUrls = selected.map((item) => item.url);
+  urls.value = [...urls.value, ...newUrls.filter((url) => !urls.value.includes(url))];
 }
 </script>
 
@@ -127,15 +139,29 @@ function openPicker() {
       multiple
       @change="onFilesSelected"
     />
-    <button
-      class="btn btn-secondary"
-      type="button"
-      :disabled="uploading"
-      @click="openPicker"
-    >
-      <AdminIcon name="publish-icon" />
-      {{ uploading ? 'Загрузка…' : 'Загрузить картинки' }}
-    </button>
+    <div class="media-upload-actions">
+      <button
+        class="btn btn-secondary"
+        type="button"
+        :disabled="uploading"
+        @click="openPicker"
+      >
+        <AdminIcon name="publish-icon" />
+        {{ uploading ? 'Загрузка…' : 'Загрузить картинки' }}
+      </button>
+      <button class="btn btn-secondary" type="button" :disabled="uploading" @click="openGallery">
+        <AdminIcon name="layers-icon" />
+        Из галереи
+      </button>
+    </div>
+
+    <MediaPickerModal
+      :open="showGallery"
+      filter="image"
+      upload-mode="image"
+      @close="showGallery = false"
+      @select="onGallerySelect"
+    />
   </div>
 </template>
 
@@ -215,5 +241,11 @@ function openPicker() {
 
 .media-file-input {
   display: none;
+}
+
+.media-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 </style>

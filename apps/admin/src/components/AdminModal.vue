@@ -8,6 +8,7 @@ defineProps<{
   deleteLabel?: string;
   loading?: boolean;
   hideSubmit?: boolean;
+  maxWidth?: string;
 }>();
 
 const emit = defineEmits<{
@@ -20,7 +21,12 @@ const emit = defineEmits<{
 <template>
   <Teleport to="body">
     <div v-if="open" class="modal-overlay" @click.self="emit('close')">
-      <div class="modal" role="dialog" :aria-labelledby="title">
+      <div
+        class="modal"
+        role="dialog"
+        :aria-labelledby="title"
+        :style="maxWidth ? { maxWidth, width: `min(${maxWidth}, 100%)` } : undefined"
+      >
         <div class="modal-header">
           <h2 :id="title">{{ title }}</h2>
           <button class="modal-close" type="button" aria-label="Закрыть" @click="emit('close')">
@@ -40,6 +46,9 @@ const emit = defineEmits<{
               <AdminIcon name="trash-icon" />
               {{ deleteLabel }}
             </button>
+            <div v-if="$slots['actions-start']" class="modal-actions-start">
+              <slot name="actions-start" />
+            </div>
             <div class="modal-actions-main">
               <button class="btn btn-secondary" type="button" :disabled="loading" @click="emit('close')">
                 <AdminIcon name="close-icon" />

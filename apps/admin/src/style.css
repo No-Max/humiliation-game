@@ -540,6 +540,12 @@ a.btn.btn-success:visited {
   margin-left: auto;
 }
 
+.modal-actions-start {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .modal-delete {
   margin-right: auto;
 }

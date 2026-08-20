@@ -7,6 +7,8 @@ import {
   isAnswerMediaTooLarge,
 } from '../lib/uploadLimits';
 import AdminIcon from './AdminIcon.vue';
+import MediaPickerModal from './MediaPickerModal.vue';
+import type { MediaLibraryItem } from '../lib/mediaLibrary';
 
 type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
 
@@ -19,6 +21,7 @@ const items = defineModel<AnswerMediaItem[]>({ default: () => [] });
 
 const uploading = ref(false);
 const error = ref('');
+const showGallery = ref(false);
 const inputRef = ref<HTMLInputElement | null>(null);
 const rootRef = ref<HTMLElement | null>(null);
 
@@ -98,6 +101,21 @@ function moveAt(index: number, direction: -1 | 1) {
 function openPicker() {
   inputRef.value?.click();
 }
+
+function openGallery() {
+  showGallery.value = true;
+}
+
+function onGallerySelect(selected: MediaLibraryItem[]) {
+  const existing = new Set(items.value.map((item) => item.url));
+  const added = selected.flatMap((item) => {
+    const type = mimeToType(item.mimeType);
+    if (!type || existing.has(item.url)) return [];
+    existing.add(item.url);
+    return [{ url: item.url, type }];
+  });
+  items.value = [...items.value, ...added];
+}
 </script>
 
 <template>
@@ -173,15 +191,29 @@ function openPicker() {
       multiple
       @change="onFilesSelected"
     />
-    <button
-      class="btn btn-secondary"
-      type="button"
-      :disabled="uploading"
-      @click="openPicker"
-    >
-      <AdminIcon name="publish-icon" />
-      {{ uploading ? 'Загрузка…' : 'Загрузить файлы' }}
-    </button>
+    <div class="media-upload-actions">
+      <button
+        class="btn btn-secondary"
+        type="button"
+        :disabled="uploading"
+        @click="openPicker"
+      >
+        <AdminIcon name="publish-icon" />
+        {{ uploading ? 'Загрузка…' : 'Загрузить файлы' }}
+      </button>
+      <button class="btn btn-secondary" type="button" :disabled="uploading" @click="openGallery">
+        <AdminIcon name="layers-icon" />
+        Из галереи
+      </button>
+    </div>
+
+    <MediaPickerModal
+      :open="showGallery"
+      filter="all"
+      upload-mode="answer-media"
+      @close="showGallery = false"
+      @select="onGallerySelect"
+    />
   </div>
 </template>
 
@@ -288,5 +320,11 @@ function openPicker() {
 
 .media-file-input {
   display: none;
+}
+
+.media-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 </style>

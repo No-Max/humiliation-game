@@ -17,10 +17,11 @@ adminToursRouter.get('/', async (_req, res) => {
 });
 
 adminToursRouter.get('/:id', async (req, res) => {
+  const seriesId = typeof req.query.seriesId === 'string' ? req.query.seriesId : null;
+
   const tour = await prisma.tour.findUnique({
     where: { id: req.params.id },
     include: {
-      questions: { orderBy: { sortOrder: 'asc' } },
       seriesTours: {
         orderBy: { sortOrder: 'asc' },
         include: { series: { select: { id: true, title: true, number: true } } },
@@ -31,22 +32,71 @@ adminToursRouter.get('/:id', async (req, res) => {
     res.status(404).json({ error: 'Tour not found' });
     return;
   }
-  res.json(tour);
+
+  if (seriesId) {
+    const linked = tour.seriesTours.some((item) => item.seriesId === seriesId);
+    if (!linked) {
+      res.status(404).json({ error: 'Tour is not linked to this series' });
+      return;
+    }
+  }
+
+  const questions = await prisma.question.findMany({
+    where: {
+      tourId: tour.id,
+      ...(seriesId ? { seriesId } : {}),
+    },
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  res.json({ ...tour, questions });
 });
 
 adminToursRouter.post('/', async (req, res) => {
-  const { title, rules, mediaUrls, defaultPoints, defaultTimeLimitSec, limitQuestionsToTeamCount } =
-    req.body;
-  const tour = await prisma.tour.create({
-    data: {
-      title,
-      rules,
-      mediaUrls: mediaUrls ?? [],
-      defaultPoints: defaultPoints ?? 3,
-      defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
-      limitQuestionsToTeamCount: Boolean(limitQuestionsToTeamCount),
-    },
+  const {
+    title,
+    rules,
+    mediaUrls,
+    defaultPoints,
+    defaultTimeLimitSec,
+    limitQuestionsToTeamCount,
+    seriesId,
+  } = req.body;
+
+  if (seriesId) {
+    const series = await prisma.series.findUnique({ where: { id: seriesId } });
+    if (!series) {
+      res.status(404).json({ error: 'Series not found' });
+      return;
+    }
+  }
+
+  const tour = await prisma.$transaction(async (tx) => {
+    const created = await tx.tour.create({
+      data: {
+        title,
+        rules,
+        mediaUrls: mediaUrls ?? [],
+        defaultPoints: defaultPoints ?? 3,
+        defaultTimeLimitSec: defaultTimeLimitSec ?? 60,
+        limitQuestionsToTeamCount: Boolean(limitQuestionsToTeamCount),
+      },
+    });
+
+    if (seriesId) {
+      const existingCount = await tx.seriesTour.count({ where: { seriesId } });
+      await tx.seriesTour.create({
+        data: {
+          seriesId,
+          tourId: created.id,
+          sortOrder: existingCount,
+        },
+      });
+    }
+
+    return created;
   });
+
   res.status(201).json(tour);
 });
 
@@ -74,13 +124,34 @@ adminToursRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
 
 adminToursRouter.post('/:tourId/questions', async (req, res) => {
   const data = req.body;
+  const seriesId = typeof data.seriesId === 'string' ? data.seriesId : null;
+  if (!seriesId) {
+    res.status(400).json({ error: 'seriesId required' });
+    return;
+  }
+
+  const linked = await prisma.seriesTour.findUnique({
+    where: {
+      seriesId_tourId: {
+        seriesId,
+        tourId: req.params.tourId,
+      },
+    },
+  });
+  if (!linked) {
+    res.status(400).json({ error: 'Tour is not linked to this series' });
+    return;
+  }
+
   const maxSort = await prisma.question.aggregate({
-    where: { tourId: req.params.tourId },
+    where: { tourId: req.params.tourId, seriesId },
     _max: { sortOrder: true },
   });
+
   const question = await prisma.question.create({
     data: {
       tourId: req.params.tourId,
+      seriesId,
       sortOrder: data.sortOrder ?? (maxSort._max.sortOrder ?? -1) + 1,
       contentType: data.contentType ?? 'TEXT',
       prompt: data.prompt,
@@ -100,26 +171,32 @@ adminToursRouter.post('/:tourId/questions', async (req, res) => {
 
 adminToursRouter.put('/:tourId/questions/order', async (req, res) => {
   const { questionIds } = req.body as { questionIds?: string[] };
+  const seriesId = typeof req.query.seriesId === 'string'
+    ? req.query.seriesId
+    : typeof req.body?.seriesId === 'string'
+      ? req.body.seriesId
+      : null;
+
   if (!Array.isArray(questionIds)) {
     res.status(400).json({ error: 'questionIds array required' });
     return;
   }
-
-  const tour = await prisma.tour.findUnique({
-    where: { id: req.params.tourId },
-    include: { questions: { select: { id: true } } },
-  });
-  if (!tour) {
-    res.status(404).json({ error: 'Tour not found' });
+  if (!seriesId) {
+    res.status(400).json({ error: 'seriesId required' });
     return;
   }
 
-  const tourQuestionIds = new Set(tour.questions.map((q) => q.id));
+  const questions = await prisma.question.findMany({
+    where: { tourId: req.params.tourId, seriesId },
+    select: { id: true },
+  });
+
+  const tourQuestionIds = new Set(questions.map((q) => q.id));
   if (
-    questionIds.length !== tour.questions.length
+    questionIds.length !== questions.length
     || !questionIds.every((id) => tourQuestionIds.has(id))
   ) {
-    res.status(400).json({ error: 'questionIds must list all tour questions' });
+    res.status(400).json({ error: 'questionIds must list all series tour questions' });
     return;
   }
 
@@ -132,17 +209,26 @@ adminToursRouter.put('/:tourId/questions/order', async (req, res) => {
     ),
   );
 
-  const updated = await prisma.tour.findUnique({
+  const tour = await prisma.tour.findUnique({
     where: { id: req.params.tourId },
     include: {
-      questions: { orderBy: { sortOrder: 'asc' } },
       seriesTours: {
         orderBy: { sortOrder: 'asc' },
         include: { series: { select: { id: true, title: true, number: true } } },
       },
     },
   });
-  res.json(updated);
+  if (!tour) {
+    res.status(404).json({ error: 'Tour not found' });
+    return;
+  }
+
+  const orderedQuestions = await prisma.question.findMany({
+    where: { tourId: tour.id, seriesId },
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  res.json({ ...tour, questions: orderedQuestions });
 });
 
 adminToursRouter.put('/questions/:questionId', async (req, res) => {

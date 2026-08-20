@@ -8,14 +8,6 @@ async function ensureTour(
   data: {
     rules: string;
     defaultPoints: number;
-    questions: Array<{
-      sortOrder: number;
-      contentType: 'TEXT' | 'EMOJI' | 'LYRICS';
-      prompt: string;
-      correctAnswer: string;
-      acceptableAnswers: string[];
-      hints?: string[];
-    }>;
   },
 ) {
   let tour = await prisma.tour.findFirst({ where: { title } });
@@ -25,22 +17,40 @@ async function ensureTour(
         title,
         rules: data.rules,
         defaultPoints: data.defaultPoints,
-        questions: { create: data.questions },
       },
     });
-    return tour;
-  }
-
-  const questionCount = await prisma.question.count({ where: { tourId: tour.id } });
-  if (questionCount === 0) {
-    await prisma.question.createMany({
-      data: data.questions.map((q) => ({ ...q, tourId: tour.id, answerType: 'TEXT' })),
+  } else {
+    tour = await prisma.tour.update({
+      where: { id: tour.id },
+      data: { rules: data.rules, defaultPoints: data.defaultPoints },
     });
   }
 
-  return prisma.tour.update({
-    where: { id: tour.id },
-    data: { rules: data.rules, defaultPoints: data.defaultPoints },
+  return tour;
+}
+
+async function ensureQuestionsForSeries(
+  tourId: string,
+  seriesId: string,
+  questions: Array<{
+    sortOrder: number;
+    contentType: 'TEXT' | 'EMOJI' | 'LYRICS';
+    prompt: string;
+    correctAnswer: string;
+    acceptableAnswers: string[];
+    hints?: string[];
+  }>,
+) {
+  const questionCount = await prisma.question.count({ where: { tourId, seriesId } });
+  if (questionCount > 0) return;
+
+  await prisma.question.createMany({
+    data: questions.map((q) => ({
+      ...q,
+      tourId,
+      seriesId,
+      answerType: 'TEXT',
+    })),
   });
 }
 
@@ -68,40 +78,42 @@ async function main() {
     },
   });
 
+  const memesQuestions = [
+    {
+      sortOrder: 0,
+      contentType: 'TEXT' as const,
+      prompt: 'Какой мем: "One does not simply..."?',
+      correctAnswer: 'walk into mordor',
+      acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
+      hints: ['Властелин колец', 'Boromir meme'],
+    },
+    {
+      sortOrder: 1,
+      contentType: 'EMOJI' as const,
+      prompt: '🐸☕',
+      correctAnswer: 'but thats none of my business',
+      acceptableAnswers: ['kermit tea', "but that's none of my business"],
+    },
+  ];
+
+  const musicQuestions = [
+    {
+      sortOrder: 0,
+      contentType: 'LYRICS' as const,
+      prompt: 'Is this the real life? Is this just fantasy?',
+      correctAnswer: 'bohemian rhapsody',
+      acceptableAnswers: ['queen bohemian rhapsody'],
+    },
+  ];
+
   const memesTour = await ensureTour('Мемы', {
     rules: 'Угадай мем по картинке',
     defaultPoints: 3,
-    questions: [
-      {
-        sortOrder: 0,
-        contentType: 'TEXT',
-        prompt: 'Какой мем: "One does not simply..."?',
-        correctAnswer: 'walk into mordor',
-        acceptableAnswers: ['simply walk into mordor', 'one does not simply walk into mordor'],
-        hints: ['Властелин колец', 'Boromir meme'],
-      },
-      {
-        sortOrder: 1,
-        contentType: 'EMOJI',
-        prompt: '🐸☕',
-        correctAnswer: 'but thats none of my business',
-        acceptableAnswers: ['kermit tea', "but that's none of my business"],
-      },
-    ],
   });
 
   const musicTour = await ensureTour('Музыка', {
     rules: 'Угадай песню',
     defaultPoints: 2,
-    questions: [
-      {
-        sortOrder: 0,
-        contentType: 'LYRICS',
-        prompt: 'Is this the real life? Is this just fantasy?',
-        correctAnswer: 'bohemian rhapsody',
-        acceptableAnswers: ['queen bohemian rhapsody'],
-      },
-    ],
   });
 
   const series = await prisma.series.upsert({
@@ -132,6 +144,9 @@ async function main() {
       },
     });
   }
+
+  await ensureQuestionsForSeries(memesTour.id, series.id, memesQuestions);
+  await ensureQuestionsForSeries(musicTour.id, series.id, musicQuestions);
 
   await prisma.question.updateMany({
     where: { prompt: { contains: 'One does not simply' } },

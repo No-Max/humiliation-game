@@ -45,6 +45,7 @@ export interface Tour {
 export interface Question {
   id: string;
   tourId: string;
+  seriesId: string;
   sortOrder: number;
   contentType: QuestionContentType;
   prompt?: string;

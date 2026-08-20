@@ -9,7 +9,7 @@ import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
 import RichTextEditor from '../components/RichTextEditor.vue';
 import { crumbSeriesList } from '../lib/adminBreadcrumbs';
 import { isEmptyRichText } from '../lib/htmlText';
-import { tourQuestionsRoute } from '../lib/tourNavigation';
+import { tourQuestionsRoute, tourSettingsNewRoute } from '../lib/tourNavigation';
 
 interface Tour {
   id: string;
@@ -324,10 +324,16 @@ const breadcrumbs = computed(() => {
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
       <h2>Туры в выпуске</h2>
-      <button class="btn" type="button" :disabled="saving" @click="openPickModal">
-        <AdminIcon name="plus-icon" />
-        Добавить тур
-      </button>
+      <div class="actions-cell">
+        <RouterLink :to="tourSettingsNewRoute(series.id)" class="btn btn-secondary">
+          <AdminIcon name="plus-icon" />
+          Новый тур
+        </RouterLink>
+        <button class="btn" type="button" :disabled="saving" @click="openPickModal">
+          <AdminIcon name="plus-icon" />
+          Из библиотеки
+        </button>
+      </div>
     </div>
 
     <p v-if="error && !showPickModal" class="error">{{ error }}</p>
@@ -335,7 +341,8 @@ const breadcrumbs = computed(() => {
     <div v-if="!series.tours.length" class="card">
       <p style="color: #6b7280; margin: 0">
         Туры не выбраны. Добавьте готовые туры из библиотеки или
-        <RouterLink to="/tours" class="text-link">создайте новый</RouterLink>.
+        <RouterLink :to="tourSettingsNewRoute(series.id)" class="text-link">создайте новый</RouterLink>
+        — он сразу привяжется к этому выпуску.
       </p>
     </div>
 
@@ -394,7 +401,11 @@ const breadcrumbs = computed(() => {
 
       <div v-if="!availableTours.length" class="empty-pick">
         <p>Нет доступных туров.</p>
-        <RouterLink to="/tours" class="btn btn-secondary" @click="closePickModal">
+        <RouterLink
+          :to="tourSettingsNewRoute(series.id)"
+          class="btn btn-secondary"
+          @click="closePickModal"
+        >
           <AdminIcon name="plus-icon" />
           Создать тур
         </RouterLink>

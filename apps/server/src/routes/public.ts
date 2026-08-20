@@ -22,19 +22,33 @@ publicRouter.get('/series', async (_req, res) => {
               title: true,
               defaultPoints: true,
               limitQuestionsToTeamCount: true,
-              _count: { select: { questions: true } },
             },
           },
         },
       },
     },
   });
+
+  const counts = await prisma.question.groupBy({
+    by: ['seriesId', 'tourId'],
+    where: {
+      seriesId: { in: series.map((item) => item.id) },
+    },
+    _count: { _all: true },
+  });
+  const countMap = new Map(
+    counts.map((item) => [`${item.seriesId}:${item.tourId}`, item._count._all]),
+  );
+
   res.json(
     series.map(({ seriesTours, ...item }) => ({
       ...item,
       tours: seriesTours.map(({ sortOrder, tour }) => ({
         ...tour,
         sortOrder,
+        _count: {
+          questions: countMap.get(`${item.id}:${tour.id}`) ?? 0,
+        },
       })),
     })),
   );
@@ -54,7 +68,6 @@ publicRouter.get('/series/:id', async (req, res) => {
               rules: true,
               defaultPoints: true,
               limitQuestionsToTeamCount: true,
-              _count: { select: { questions: true } },
             },
           },
         },
@@ -65,12 +78,23 @@ publicRouter.get('/series/:id', async (req, res) => {
     res.status(404).json({ error: 'Series not found' });
     return;
   }
+
+  const counts = await prisma.question.groupBy({
+    by: ['tourId'],
+    where: { seriesId: series.id },
+    _count: { _all: true },
+  });
+  const countMap = new Map(counts.map((item) => [item.tourId, item._count._all]));
+
   const { seriesTours, ...rest } = series;
   res.json({
     ...rest,
     tours: seriesTours.map(({ sortOrder, tour }) => ({
       ...tour,
       sortOrder,
+      _count: {
+        questions: countMap.get(tour.id) ?? 0,
+      },
     })),
   });
 });

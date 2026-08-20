@@ -9,29 +9,45 @@ const seriesToursInclude = {
   seriesTours: {
     orderBy: { sortOrder: 'asc' as const },
     include: {
-      tour: {
-        include: {
-          questions: { orderBy: { sortOrder: 'asc' as const } },
-        },
-      },
+      tour: true,
     },
   },
 };
 
-export function mapSeriesWithTours(
+export async function mapSeriesWithTours(
   series: Series & {
     seriesTours: Array<{
       sortOrder: number;
-      tour: Tour & { questions: Question[] };
+      tour: Tour;
     }>;
   },
-): SeriesWithTours {
+): Promise<SeriesWithTours> {
   const { seriesTours, ...rest } = series;
+  const tourIds = seriesTours.map((item) => item.tour.id);
+
+  const questions = tourIds.length
+    ? await prisma.question.findMany({
+        where: {
+          seriesId: series.id,
+          tourId: { in: tourIds },
+        },
+        orderBy: { sortOrder: 'asc' },
+      })
+    : [];
+
+  const questionsByTour = new Map<string, Question[]>();
+  for (const question of questions) {
+    const list = questionsByTour.get(question.tourId) ?? [];
+    list.push(question);
+    questionsByTour.set(question.tourId, list);
+  }
+
   return {
     ...rest,
     tours: seriesTours.map(({ sortOrder, tour }) => ({
       ...tour,
       sortOrder,
+      questions: questionsByTour.get(tour.id) ?? [],
     })),
   };
 }

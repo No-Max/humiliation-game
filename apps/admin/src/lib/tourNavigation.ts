@@ -5,12 +5,22 @@ export function getSeriesIdFromRoute(route: RouteLocationNormalizedLoaded): stri
   return typeof id === 'string' ? id : null;
 }
 
-export function tourSettingsNewRoute(): RouteLocationRaw {
-  return '/tours/new';
+export function toursBackRoute(seriesId: string | null): RouteLocationRaw {
+  return seriesId ? `/series/${seriesId}` : '/tours';
 }
 
-export function tourSettingsRoute(tourId: string): RouteLocationRaw {
-  return `/tours/${tourId}/edit`;
+export function toursBackLabel(seriesId: string | null): string {
+  return seriesId ? '← К выпуску' : '← К турам';
+}
+
+export function tourSettingsNewRoute(seriesId?: string | null): RouteLocationRaw {
+  return seriesId ? { path: '/tours/new', query: { seriesId } } : '/tours/new';
+}
+
+export function tourSettingsRoute(tourId: string, seriesId?: string | null): RouteLocationRaw {
+  return seriesId
+    ? { path: `/tours/${tourId}/edit`, query: { seriesId } }
+    : `/tours/${tourId}/edit`;
 }
 
 export function tourQuestionsRoute(tourId: string, seriesId: string | null): RouteLocationRaw {

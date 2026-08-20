@@ -64,7 +64,13 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    tour.value = await adminApi(`/tours/${tourId()}`);
+    if (!seriesId.value) {
+      loadError.value = 'Задания редактируются только из выпуска';
+      tour.value = null;
+      return;
+    }
+    const query = `?seriesId=${encodeURIComponent(seriesId.value)}`;
+    tour.value = await adminApi(`/tours/${tourId()}${query}`);
   } catch (e) {
     tour.value = null;
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить тур';
@@ -84,6 +90,10 @@ watch(
 
 function openAddQuestion() {
   if (!tour.value) return;
+  if (!seriesId.value) {
+    loadError.value = 'Задания добавляются только из выпуска';
+    return;
+  }
   router.push(tourQuestionNewRoute(tour.value.id, seriesId.value));
 }
 
@@ -123,7 +133,10 @@ async function moveQuestion(question: Question, direction: -1 | 1) {
   try {
     tour.value = await adminApi(`/tours/${tour.value.id}/questions/order`, {
       method: 'PUT',
-      body: JSON.stringify({ questionIds: ids }),
+      body: JSON.stringify({
+        questionIds: ids,
+        seriesId: seriesId.value,
+      }),
     });
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось изменить порядок';

@@ -70,7 +70,8 @@ model Series {
   updatedAt   DateTime     @updatedAt
 
   seriesTours SeriesTour[]
-  rooms GameRoom[]
+  questions   Question[]
+  rooms       GameRoom[]
 
   @@unique([number])
 }
@@ -110,6 +111,7 @@ model Tour {
 model Question {
   id                 String              @id @default(cuid())
   tourId             String
+  seriesId           String
   sortOrder          Int                 @default(0)
   contentType        QuestionContentType @default(TEXT)
   prompt             String?
@@ -125,9 +127,12 @@ model Question {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
-  tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
   @@index([tourId])
+  @@index([seriesId])
+  @@index([tourId, seriesId])
 }
 
 model GameRoom {

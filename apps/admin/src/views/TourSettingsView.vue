@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { adminApi } from '../lib/api';
+import {
+  getSeriesIdFromRoute,
+  toursBackRoute,
+  tourQuestionsRoute,
+} from '../lib/tourNavigation';
 import AdminIcon from '../components/AdminIcon.vue';
 import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
 import RichTextEditor from '../components/RichTextEditor.vue';
-import { crumbToursList } from '../lib/adminBreadcrumbs';
+import { useSeriesBreadcrumb, buildTourContextCrumbs } from '../lib/adminBreadcrumbs';
 import { isEmptyRichText } from '../lib/htmlText';
 
 interface TourDetail {
@@ -25,6 +30,9 @@ const router = useRouter();
 
 const isNew = computed(() => route.path.endsWith('/new'));
 const tourId = computed(() => (isNew.value ? null : String(route.params.tourId)));
+const seriesId = computed(() => getSeriesIdFromRoute(route));
+const backRoute = computed(() => toursBackRoute(seriesId.value));
+const { seriesMeta } = useSeriesBreadcrumb(seriesId);
 
 const loading = ref(true);
 const saving = ref(false);
@@ -124,17 +132,25 @@ async function save() {
   error.value = '';
   try {
     if (isNew.value) {
-      await adminApi('/tours', {
+      const created = await adminApi<{ id: string }>('/tours', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          ...(seriesId.value ? { seriesId: seriesId.value } : {}),
+        }),
       });
+      if (seriesId.value) {
+        router.push(tourQuestionsRoute(created.id, seriesId.value));
+      } else {
+        router.push('/tours');
+      }
     } else if (tourId.value) {
       await adminApi(`/tours/${tourId.value}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
+      router.push(backRoute.value);
     }
-    router.push('/tours');
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Ошибка сохранения';
   } finally {
@@ -143,11 +159,12 @@ async function save() {
 }
 
 const breadcrumbs = computed(() => {
+  const base = buildTourContextCrumbs(seriesId.value, seriesMeta.value);
   if (isNew.value) {
-    return [crumbToursList(), { label: 'Новый тур' }];
+    return [...base, { label: 'Новый тур' }];
   }
   const title = form.value.title.trim() || (loading.value ? '…' : 'Редактировать тур');
-  return [crumbToursList(), { label: title }];
+  return [...base, { label: title }];
 });
 </script>
 
@@ -209,7 +226,7 @@ const breadcrumbs = computed(() => {
           <AdminIcon :name="isNew ? 'plus-icon' : 'check-icon'" />
           {{ saving ? 'Сохранение…' : isNew ? 'Создать' : 'Сохранить' }}
         </button>
-        <RouterLink to="/tours" class="btn btn-secondary">
+        <RouterLink :to="backRoute" class="btn btn-secondary">
           <AdminIcon name="close-icon" />
           Отмена
         </RouterLink>

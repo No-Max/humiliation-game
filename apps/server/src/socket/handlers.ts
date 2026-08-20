@@ -6,7 +6,7 @@ import type {
 } from '@humiliation-game/shared';
 import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
-import { mapSeriesWithTours } from '../lib/seriesContent.js';
+import { loadSeriesWithTours } from '../lib/seriesContent.js';
 import { GameEngine } from '../game/engine.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -42,20 +42,6 @@ export function setupSocketHandlers(io: GameServer) {
           where: { code: payload.roomCode },
           include: {
             teams: { orderBy: { sortOrder: 'asc' } },
-            series: {
-              include: {
-                seriesTours: {
-                  orderBy: { sortOrder: 'asc' },
-                  include: {
-                    tour: {
-                      include: {
-                        questions: { orderBy: { sortOrder: 'asc' } },
-                      },
-                    },
-                  },
-                },
-              },
-            },
           },
         });
 
@@ -70,7 +56,11 @@ export function setupSocketHandlers(io: GameServer) {
 
         let engine = rooms.get(roomCode);
         if (!engine) {
-          const seriesWithTours = mapSeriesWithTours(room.series);
+          const seriesWithTours = await loadSeriesWithTours({ id: room.seriesId });
+          if (!seriesWithTours) {
+            callback({ ok: false, error: 'Series not found' });
+            return;
+          }
           engine = new GameEngine(roomCode, seriesWithTours, room.teams);
           rooms.set(roomCode, engine);
           bindEngine(io, roomCode, engine);

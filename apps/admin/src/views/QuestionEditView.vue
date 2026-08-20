@@ -127,7 +127,13 @@ async function load() {
   hydrating.value = true;
   loadError.value = '';
   try {
-    const data = await adminApi<Tour>(`/tours/${tourId.value}`);
+    if (!seriesId.value) {
+      loadError.value = 'Задания редактируются только в контексте выпуска';
+      return;
+    }
+    const data = await adminApi<Tour>(
+      `/tours/${tourId.value}?seriesId=${encodeURIComponent(seriesId.value)}`,
+    );
     tour.value = data;
     const foundTour = data;
 
@@ -300,6 +306,10 @@ function goBack() {
 
 async function save() {
   if (!tour.value || !validate()) return;
+  if (!seriesId.value) {
+    error.value = 'Задания можно сохранять только внутри выпуска';
+    return;
+  }
 
   saving.value = true;
   error.value = '';
@@ -320,6 +330,7 @@ async function save() {
         method: 'POST',
         body: JSON.stringify({
           ...payload,
+          seriesId: seriesId.value,
           points: payload.points ?? undefined,
           timeLimitSec: payload.timeLimitSec ?? undefined,
         }),

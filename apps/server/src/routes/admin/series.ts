@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../../lib/prisma.js';
-import { loadSeriesWithTours, cloneTourForSeries } from '../../lib/seriesContent.js';
+import { loadSeriesWithTours } from '../../lib/seriesContent.js';
 import { requireAdmin } from '../../middleware/auth.js';
 
 export const adminSeriesRouter = Router();
@@ -82,8 +82,6 @@ adminSeriesRouter.post('/:seriesId/tours', async (req, res) => {
     return;
   }
 
-  const tourForSeries = await cloneTourForSeries(tour);
-
   const existingCount = await prisma.seriesTour.count({
     where: { seriesId: req.params.seriesId },
   });
@@ -92,7 +90,7 @@ adminSeriesRouter.post('/:seriesId/tours', async (req, res) => {
     await prisma.seriesTour.create({
       data: {
         seriesId: req.params.seriesId,
-        tourId: tourForSeries.id,
+        tourId,
         sortOrder: existingCount,
       },
     });

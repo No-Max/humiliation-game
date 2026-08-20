@@ -73,16 +73,3 @@ export async function loadPublishedSeriesWithTours(
   if (!series) return null;
   return mapSeriesWithTours(series);
 }
-
-export async function cloneTourForSeries(source: Tour): Promise<Tour> {
-  return prisma.tour.create({
-    data: {
-      title: source.title,
-      rules: source.rules,
-      mediaUrls: source.mediaUrls,
-      defaultPoints: source.defaultPoints,
-      defaultTimeLimitSec: source.defaultTimeLimitSec,
-      limitQuestionsToTeamCount: source.limitQuestionsToTeamCount,
-    },
-  });
-}

@@ -3,9 +3,11 @@ import { onMounted, ref, watch } from 'vue';
 import AdminIcon from '../components/AdminIcon.vue';
 import MediaFileCard from '../components/MediaFileCard.vue';
 import MediaPagination from '../components/MediaPagination.vue';
+import MediaSearchInput from '../components/MediaSearchInput.vue';
 import { adminApi, adminUpload, adminUploadAnswerMedia } from '../lib/api';
 import {
   mediaListQuery,
+  MEDIA_PAGE_SIZE,
   type MediaKind,
   type MediaLibraryItem,
   type MediaLibraryPage,
@@ -16,6 +18,7 @@ type Filter = MediaKind | 'all';
 
 const items = ref<MediaLibraryItem[]>([]);
 const filter = ref<Filter>('all');
+const search = ref('');
 const page = ref(1);
 const totalPages = ref(1);
 const total = ref(0);
@@ -37,11 +40,23 @@ watch(filter, () => {
   void load();
 });
 
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+watch(search, () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    page.value = 1;
+    void load(1);
+  }, 300);
+});
+
 async function load(targetPage = page.value) {
   loading.value = true;
   error.value = '';
   try {
-    const data = await adminApi<MediaLibraryPage>(mediaListQuery(targetPage, filter.value));
+    const data = await adminApi<MediaLibraryPage>(
+      mediaListQuery(targetPage, filter.value, MEDIA_PAGE_SIZE, search.value),
+    );
     items.value = data.items;
     page.value = data.page;
     totalPages.value = data.totalPages;
@@ -158,24 +173,29 @@ function goNextPage() {
       Все загруженные файлы сохраняются здесь. Их можно переиспользовать в заданиях и турах.
     </p>
 
-    <div class="media-filters">
-      <button
-        v-for="option in filters"
-        :key="option.value"
-        class="btn btn-secondary btn-sm"
-        :class="{ 'filter-active': filter === option.value }"
-        type="button"
-        @click="filter = option.value"
-      >
-        {{ option.label }}
-      </button>
+    <div class="media-toolbar">
+      <div class="media-filters">
+        <button
+          v-for="option in filters"
+          :key="option.value"
+          class="btn btn-secondary btn-sm"
+          :class="{ 'filter-active': filter === option.value }"
+          type="button"
+          @click="filter = option.value"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+      <MediaSearchInput v-model="search" />
     </div>
 
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="loading" class="field-hint">Загрузка…</p>
 
     <div v-else-if="!items.length" class="card">
-      <p style="margin: 0; color: #6b7280">Файлов пока нет. Загрузите первый.</p>
+      <p style="margin: 0; color: #6b7280">
+        {{ search.trim() ? `По запросу «${search.trim()}» ничего не найдено.` : 'Файлов пока нет. Загрузите первый.' }}
+      </p>
     </div>
 
     <template v-else>
@@ -226,11 +246,19 @@ function goNextPage() {
   margin-top: 0;
 }
 
+.media-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
 .media-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1rem 0;
 }
 
 .filter-active {

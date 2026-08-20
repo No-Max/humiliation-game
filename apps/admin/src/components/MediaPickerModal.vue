@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import AdminModal from './AdminModal.vue';
 import MediaFileCard from './MediaFileCard.vue';
 import MediaPagination from './MediaPagination.vue';
+import MediaSearchInput from './MediaSearchInput.vue';
 import { adminApi, adminUpload, adminUploadAnswerMedia } from '../lib/api';
 import {
   mediaListQuery,
@@ -33,6 +34,7 @@ const emit = defineEmits<{
 }>();
 
 const items = ref<MediaLibraryItem[]>([]);
+const search = ref('');
 const page = ref(1);
 const totalPages = ref(1);
 const total = ref(0);
@@ -48,18 +50,29 @@ watch(
     if (open) {
       selectedIds.value = new Set();
       error.value = '';
+      search.value = '';
       page.value = 1;
       void load(1);
     }
   },
 );
 
+let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+watch(search, () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    page.value = 1;
+    void load(1);
+  }, 300);
+});
+
 async function load(targetPage = page.value) {
   loading.value = true;
   error.value = '';
   try {
     const data = await adminApi<MediaLibraryPage>(
-      mediaListQuery(targetPage, props.filter, MEDIA_PICKER_PAGE_SIZE),
+      mediaListQuery(targetPage, props.filter, MEDIA_PICKER_PAGE_SIZE, search.value),
     );
     items.value = data.items;
     page.value = data.page;
@@ -165,11 +178,15 @@ const acceptAttr = computed(() => {
       Выберите файлы из галереи или загрузите новые — они сохранятся для повторного использования.
     </p>
 
+    <MediaSearchInput v-model="search" bottom-gap />
+
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="loading" class="field-hint">Загрузка…</p>
 
     <div v-else-if="!items.length" class="picker-empty">
-      <p>В галерее пока нет подходящих файлов.</p>
+      <p>
+        {{ search.trim() ? `По запросу «${search.trim()}» ничего не найдено.` : 'В галерее пока нет подходящих файлов.' }}
+      </p>
     </div>
 
     <template v-else>

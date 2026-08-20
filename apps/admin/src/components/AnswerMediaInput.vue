@@ -148,6 +148,22 @@ function onGallerySelect(selected: MediaLibraryItem[]) {
           alt=""
           class="preview-img"
         />
+        <audio
+          v-else-if="item.type === 'AUDIO'"
+          :src="item.url"
+          controls
+          preload="metadata"
+          class="preview-audio"
+          @click.stop
+        />
+        <video
+          v-else-if="item.type === 'VIDEO'"
+          :src="item.url"
+          controls
+          preload="metadata"
+          class="preview-video"
+          @click.stop
+        />
         <div v-else class="preview-file">
           <span class="preview-type">{{ typeLabel(item.type) }}</span>
           <span class="preview-url">{{ item.url.split('/').pop() }}</span>
@@ -265,6 +281,22 @@ function onGallerySelect(selected: MediaLibraryItem[]) {
   object-fit: cover;
   border-radius: 4px;
   background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+.preview-audio {
+  width: min(100%, 240px);
+  flex: 1;
+  min-width: 0;
+}
+
+.preview-video {
+  display: block;
+  width: min(100%, 240px);
+  height: 72px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #111827;
   flex-shrink: 0;
 }
 

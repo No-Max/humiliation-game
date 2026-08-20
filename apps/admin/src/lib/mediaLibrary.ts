@@ -62,11 +62,18 @@ export function sortMediaNewestFirst(items: MediaLibraryItem[]): MediaLibraryIte
   });
 }
 
-export function mediaListQuery(page: number, kind: MediaKind | 'all', limit = MEDIA_PAGE_SIZE): string {
+export function mediaListQuery(
+  page: number,
+  kind: MediaKind | 'all',
+  limit = MEDIA_PAGE_SIZE,
+  search = '',
+): string {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
     kind,
   });
+  const query = search.trim();
+  if (query) params.set('search', query);
   return `/media?${params.toString()}`;
 }

@@ -112,8 +112,9 @@ adminMediaRouter.get('/', async (req, res) => {
     Math.max(1, Number.parseInt(String(req.query.limit ?? '20'), 10) || 20),
   );
   const kind = String(req.query.kind ?? 'all');
+  const search = String(req.query.search ?? '').trim();
 
-  const where =
+  const kindWhere =
     kind === 'image'
       ? { mimeType: { startsWith: 'image/' } }
       : kind === 'audio'
@@ -121,6 +122,13 @@ adminMediaRouter.get('/', async (req, res) => {
         : kind === 'video'
           ? { mimeType: { startsWith: 'video/' } }
           : {};
+
+  const where = {
+    ...kindWhere,
+    ...(search
+      ? { filename: { contains: search, mode: 'insensitive' as const } }
+      : {}),
+  };
 
   const [total, files] = await Promise.all([
     prisma.mediaFile.count({ where }),

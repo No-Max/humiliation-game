@@ -99,6 +99,22 @@ async function copyUrl() {
         :alt="item.filename"
         class="media-card-image"
       />
+      <audio
+        v-else-if="kind === 'audio'"
+        :src="item.url"
+        controls
+        preload="metadata"
+        class="media-card-audio"
+        @click.stop
+      />
+      <video
+        v-else-if="kind === 'video'"
+        :src="item.url"
+        controls
+        preload="metadata"
+        class="media-card-video"
+        @click.stop
+      />
       <div v-else class="media-card-placeholder">
         <span class="media-card-kind">{{ mediaKindLabel(kind!) }}</span>
         <span class="media-card-ext">{{ item.url.split('.').pop() }}</span>
@@ -224,6 +240,22 @@ async function copyUrl() {
   object-fit: cover;
   display: block;
   transition: opacity 0.15s ease;
+}
+
+.media-card-audio {
+  width: 100%;
+  height: 100%;
+  display: block;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.media-card-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: #111827;
 }
 
 .media-card-placeholder {

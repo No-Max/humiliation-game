@@ -40,7 +40,10 @@ export async function adminApi<T>(path: string, options?: RequestInit): Promise<
   return res.json();
 }
 
-export async function adminUpload(file: File): Promise<{
+async function adminUploadTo(
+  path: string,
+  file: File,
+): Promise<{
   id: string;
   url: string;
   filename: string;
@@ -50,7 +53,7 @@ export async function adminUpload(file: File): Promise<{
   const body = new FormData();
   body.append('file', file);
 
-  const res = await fetch('/api/admin/media/upload', {
+  const res = await fetch(path, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body,
@@ -65,4 +68,12 @@ export async function adminUpload(file: File): Promise<{
   }
 
   return res.json();
+}
+
+export async function adminUpload(file: File) {
+  return adminUploadTo('/api/admin/media/upload', file);
+}
+
+export async function adminUploadAnswerMedia(file: File) {
+  return adminUploadTo('/api/admin/media/upload/answer-media', file);
 }

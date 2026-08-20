@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { adminUpload } from '../lib/api';
+import { adminUploadAnswerMedia } from '../lib/api';
 import { filesFromClipboard, focusPasteBlock } from '../lib/useClipboardFiles';
+import {
+  formatMaxAnswerMediaSize,
+  isAnswerMediaTooLarge,
+} from '../lib/uploadLimits';
 import AdminIcon from './AdminIcon.vue';
 
 type AnswerMediaType = 'IMAGE' | 'AUDIO' | 'VIDEO';
@@ -44,7 +48,10 @@ async function uploadFiles(files: File[]) {
       if (!kind) {
         throw new Error('Можно загружать только изображения, аудио или видео');
       }
-      const result = await adminUpload(file);
+      if (isAnswerMediaTooLarge(file)) {
+        throw new Error(`Файл «${file.name}» слишком большой. Максимум ${formatMaxAnswerMediaSize()}`);
+      }
+      const result = await adminUploadAnswerMedia(file);
       uploaded.push({
         url: result.url,
         type: mimeToType(result.mimeType) ?? kind,
@@ -105,6 +112,7 @@ function openPicker() {
     <p class="field-hint media-hint">
       Необязательно. Несколько картинок, аудио или видео — на экране правильного ответа:
       и когда кто-то ответил верно, и когда никто не угадал.
+      Максимальный размер одного файла — {{ formatMaxAnswerMediaSize() }}.
       Кликните по блоку и вставьте картинку из буфера (Ctrl/⌘+V).
     </p>
 

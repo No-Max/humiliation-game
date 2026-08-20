@@ -42,6 +42,12 @@ else
   pm2 save
   pm2 startup systemd -u root --hp /root >/dev/null || true
 fi
+ENV_FILE=/opt/humiliation-game/apps/server/.env
+if [ -f "$ENV_FILE" ] && ! grep -q "^MAX_ANSWER_MEDIA_UPLOAD_SIZE=" "$ENV_FILE"; then
+  echo "MAX_ANSWER_MEDIA_UPLOAD_SIZE=5242880" >> "$ENV_FILE"
+fi
+install -m 644 /opt/humiliation-game/deploy/nginx-humiliation.conf /etc/nginx/sites-available/humiliation-game
+nginx -t
 systemctl reload nginx
 '
 

@@ -43,6 +43,7 @@ const tour = ref<TourDetail | null>(null);
 const loading = ref(true);
 const loadError = ref('');
 const deletingId = ref<string | null>(null);
+const reordering = ref(false);
 const error = ref('');
 
 const tourId = () => String(route.params.tourId);
@@ -108,6 +109,29 @@ async function removeQuestion(question: Question) {
   }
 }
 
+async function moveQuestion(question: Question, direction: -1 | 1) {
+  if (!tour.value) return;
+  const ids = tour.value.questions.map((q) => q.id);
+  const index = ids.indexOf(question.id);
+  const target = index + direction;
+  if (target < 0 || target >= ids.length) return;
+
+  [ids[index], ids[target]] = [ids[target], ids[index]];
+
+  reordering.value = true;
+  error.value = '';
+  try {
+    tour.value = await adminApi(`/tours/${tour.value.id}/questions/order`, {
+      method: 'PUT',
+      body: JSON.stringify({ questionIds: ids }),
+    });
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось изменить порядок';
+  } finally {
+    reordering.value = false;
+  }
+}
+
 function formatTime(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
@@ -140,7 +164,7 @@ function formatTime(sec: number) {
 
       <div class="card">
         <ul v-if="tour.questions.length" class="question-list">
-          <li v-for="q in tour.questions" :key="q.id" class="question-item">
+          <li v-for="(q, index) in tour.questions" :key="q.id" class="question-item">
             <div class="question-content">
               <div>{{ stripHtml(q.prompt ?? '') }}</div>
               <div class="question-meta">
@@ -155,14 +179,37 @@ function formatTime(sec: number) {
               </div>
             </div>
             <div class="question-actions">
-              <button class="btn btn-secondary btn-sm" type="button" @click="openEditQuestion(q)">
+              <button
+                class="btn btn-secondary btn-sm btn-icon"
+                type="button"
+                aria-label="Поднять выше"
+                :disabled="index === 0 || reordering || deletingId !== null"
+                @click="moveQuestion(q, -1)"
+              >
+                <AdminIcon name="arrow-up-icon" />
+              </button>
+              <button
+                class="btn btn-secondary btn-sm btn-icon"
+                type="button"
+                aria-label="Опустить ниже"
+                :disabled="index === tour.questions.length - 1 || reordering || deletingId !== null"
+                @click="moveQuestion(q, 1)"
+              >
+                <AdminIcon name="arrow-down-icon" />
+              </button>
+              <button
+                class="btn btn-secondary btn-sm"
+                type="button"
+                :disabled="reordering || deletingId !== null"
+                @click="openEditQuestion(q)"
+              >
                 <AdminIcon name="pencil-icon" />
                 Изменить
               </button>
               <button
                 class="btn btn-danger btn-sm"
                 type="button"
-                :disabled="deletingId === q.id"
+                :disabled="deletingId === q.id || reordering"
                 @click="removeQuestion(q)"
               >
                 <AdminIcon name="trash-icon" />

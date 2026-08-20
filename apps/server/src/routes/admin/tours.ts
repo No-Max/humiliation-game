@@ -74,10 +74,14 @@ adminToursRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
 
 adminToursRouter.post('/:tourId/questions', async (req, res) => {
   const data = req.body;
+  const maxSort = await prisma.question.aggregate({
+    where: { tourId: req.params.tourId },
+    _max: { sortOrder: true },
+  });
   const question = await prisma.question.create({
     data: {
       tourId: req.params.tourId,
-      sortOrder: data.sortOrder ?? 0,
+      sortOrder: data.sortOrder ?? (maxSort._max.sortOrder ?? -1) + 1,
       contentType: data.contentType ?? 'TEXT',
       prompt: data.prompt,
       mediaUrls: data.mediaUrls ?? [],
@@ -92,6 +96,53 @@ adminToursRouter.post('/:tourId/questions', async (req, res) => {
     },
   });
   res.status(201).json(question);
+});
+
+adminToursRouter.put('/:tourId/questions/order', async (req, res) => {
+  const { questionIds } = req.body as { questionIds?: string[] };
+  if (!Array.isArray(questionIds)) {
+    res.status(400).json({ error: 'questionIds array required' });
+    return;
+  }
+
+  const tour = await prisma.tour.findUnique({
+    where: { id: req.params.tourId },
+    include: { questions: { select: { id: true } } },
+  });
+  if (!tour) {
+    res.status(404).json({ error: 'Tour not found' });
+    return;
+  }
+
+  const tourQuestionIds = new Set(tour.questions.map((q) => q.id));
+  if (
+    questionIds.length !== tour.questions.length
+    || !questionIds.every((id) => tourQuestionIds.has(id))
+  ) {
+    res.status(400).json({ error: 'questionIds must list all tour questions' });
+    return;
+  }
+
+  await prisma.$transaction(
+    questionIds.map((id, index) =>
+      prisma.question.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+
+  const updated = await prisma.tour.findUnique({
+    where: { id: req.params.tourId },
+    include: {
+      questions: { orderBy: { sortOrder: 'asc' } },
+      seriesTours: {
+        orderBy: { sortOrder: 'asc' },
+        include: { series: { select: { id: true, title: true, number: true } } },
+      },
+    },
+  });
+  res.json(updated);
 });
 
 adminToursRouter.put('/questions/:questionId', async (req, res) => {

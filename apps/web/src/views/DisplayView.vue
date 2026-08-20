@@ -132,6 +132,7 @@ onUnmounted(() => cleanup?.());
         </div>
         <AnswerRevealMedia
           v-if="state.phase === 'CORRECT' || state.phase === 'REVEAL'"
+          large
           :items="state.answerMedia"
         />
       </div>

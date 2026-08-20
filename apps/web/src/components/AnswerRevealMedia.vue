@@ -1,87 +1,82 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
-import type { AnswerMediaItem, AnswerMediaType } from '@humiliation-game/shared';
+import { computed } from 'vue';
+import type { AnswerMediaItem } from '@humiliation-game/shared';
+import MediaImageRow from './MediaImageRow.vue';
 
 const props = defineProps<{
   items?: AnswerMediaItem[];
+  large?: boolean;
 }>();
 
-const playingIndex = ref<number | null>(null);
-const audioRefs = ref<Record<number, HTMLAudioElement | null>>({});
-const videoRefs = ref<Record<number, HTMLVideoElement | null>>({});
-
-watch(
-  () => props.items,
-  () => {
-    playingIndex.value = null;
-  },
-  { deep: true },
-);
-
-function setAudioRef(index: number, el: unknown) {
-  audioRefs.value[index] = el instanceof HTMLAudioElement ? el : null;
+interface MediaEntry {
+  item: AnswerMediaItem;
+  index: number;
 }
 
-function setVideoRef(index: number, el: unknown) {
-  videoRefs.value[index] = el instanceof HTMLVideoElement ? el : null;
+interface MediaGroup {
+  type: AnswerMediaItem['type'];
+  entries: MediaEntry[];
 }
 
-async function startPlayback(index: number, type: AnswerMediaType) {
-  playingIndex.value = index;
-  await nextTick();
-  const el = type === 'AUDIO' ? audioRefs.value[index] : videoRefs.value[index];
-  try {
-    await el?.play();
-  } catch {
-    // Autoplay may still be blocked; controls remain available.
+const groups = computed<MediaGroup[]>(() => {
+  const result: MediaGroup[] = [];
+  for (let index = 0; index < (props.items?.length ?? 0); index++) {
+    const item = props.items![index];
+    const last = result[result.length - 1];
+    if (last?.type === item.type) {
+      last.entries.push({ item, index });
+    } else {
+      result.push({ type: item.type, entries: [{ item, index }] });
+    }
   }
-}
+  return result;
+});
 
-function playLabel(type: AnswerMediaType) {
-  return type === 'AUDIO' ? 'Слушать' : 'Смотреть';
+function imageUrls(group: MediaGroup): string[] {
+  return group.entries.map((entry) => entry.item.url);
 }
 </script>
 
 <template>
   <div v-if="items?.length" class="answer-reveal-media">
-    <div
-      v-for="(item, index) in items"
-      :key="`${item.url}-${index}`"
-      class="answer-reveal-item"
-    >
-      <img
-        v-if="item.type === 'IMAGE'"
-        :src="item.url"
-        alt=""
-        class="answer-image"
+    <template v-for="(group, groupIndex) in groups" :key="`${group.type}-${groupIndex}`">
+      <MediaImageRow
+        v-if="group.type === 'IMAGE'"
+        :media-urls="imageUrls(group)"
+        :large="large"
       />
 
-      <template v-else-if="item.type === 'AUDIO' || item.type === 'VIDEO'">
-        <button
-          v-if="playingIndex !== index"
-          class="btn btn-secondary"
-          type="button"
-          @click="startPlayback(index, item.type)"
+      <div
+        v-else
+        class="answer-reveal-group"
+        :class="[
+          `answer-reveal-group--${group.type.toLowerCase()}`,
+          { 'answer-reveal-group--multi': group.entries.length > 1 },
+        ]"
+      >
+        <div
+          v-for="{ item, index } in group.entries"
+          :key="`${item.url}-${index}`"
+          class="answer-reveal-item"
         >
-          {{ playLabel(item.type) }}
-        </button>
-        <audio
-          v-else-if="item.type === 'AUDIO'"
-          :ref="(el) => setAudioRef(index, el)"
-          class="answer-audio"
-          :src="item.url"
-          controls
-        />
-        <video
-          v-else
-          :ref="(el) => setVideoRef(index, el)"
-          class="answer-video"
-          :src="item.url"
-          controls
-          playsinline
-        />
-      </template>
-    </div>
+          <audio
+            v-if="item.type === 'AUDIO'"
+            class="answer-audio"
+            :src="item.url"
+            controls
+            preload="metadata"
+          />
+          <video
+            v-else
+            class="answer-video"
+            :src="item.url"
+            controls
+            preload="metadata"
+            playsinline
+          />
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -92,40 +87,42 @@ function playLabel(type: AnswerMediaType) {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+}
+
+.answer-reveal-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0.75rem;
+  width: 100%;
+  align-self: stretch;
 }
 
 .answer-reveal-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.answer-image {
-  display: block;
+  flex: 0 1 min(100%, 420px);
+  width: min(100%, 420px);
+  min-width: min(100%, 300px);
   max-width: 100%;
-  max-height: 280px;
-  width: auto;
-  height: auto;
-  margin: 0 auto;
-  object-fit: contain;
-  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.answer-audio {
-  display: block;
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-}
-
+.answer-audio,
 .answer-video {
   display: block;
   width: 100%;
-  max-width: 560px;
+  margin: 0;
+}
+
+.answer-video {
   max-height: 360px;
-  margin: 0 auto;
+  object-fit: contain;
   border-radius: 8px;
-  background: #111;
+  background: #111827;
+}
+
+.answer-reveal-group--multi .answer-video {
+  max-height: 220px;
 }
 </style>

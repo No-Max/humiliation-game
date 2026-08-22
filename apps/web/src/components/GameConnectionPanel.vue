@@ -44,6 +44,11 @@ function onLinkCopied(label: string) {
   connectionMessage.value = `${label} скопирована`;
 }
 
+async function copyRoomCode() {
+  await navigator.clipboard.writeText(props.roomCode);
+  onLinkCopied('Код комнаты');
+}
+
 function addTeam() {
   showAddTeamLink.value = true;
 }
@@ -105,6 +110,18 @@ defineExpose({ reset });
       <strong>📺 Экран</strong>
       <p class="link-desc">
         TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
+      </p>
+      <div v-if="roomCode" class="room-code-row">
+        <div>
+          <span class="room-code-label">Код комнаты</span>
+          <span class="room-code-value">{{ roomCode }}</span>
+        </div>
+        <button type="button" class="btn btn-secondary room-code-copy" @click="copyRoomCode">
+          Копировать
+        </button>
+      </div>
+      <p v-if="roomCode" class="link-desc room-code-hint">
+        Или введите код на экране через «Подключиться к игре» в шапке сайта.
       </p>
       <LinkCopyField :url="displayUrl" label="Ссылка экрана" @copied="onLinkCopied" />
     </div>
@@ -245,6 +262,40 @@ defineExpose({ reset });
 </template>
 
 <style scoped>
+.room-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.room-code-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.room-code-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.room-code-copy {
+  flex-shrink: 0;
+}
+
+.room-code-hint {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
 .connection-intro {
   font-size: 0.875rem;
   color: #6b7280;

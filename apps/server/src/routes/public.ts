@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { nanoid } from 'nanoid';
 import { prisma } from '../lib/prisma.js';
+import { generateUniqueRoomCode } from '../lib/roomCode.js';
 
 export const publicRouter = Router();
 
@@ -119,7 +119,7 @@ publicRouter.post('/rooms', async (req, res) => {
     return;
   }
 
-  const code = nanoid(8);
+  const code = await generateUniqueRoomCode();
 
   const room = await prisma.$transaction(async (tx) => {
     const createdRoom = await tx.gameRoom.create({

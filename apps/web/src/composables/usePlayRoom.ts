@@ -49,9 +49,6 @@ export function usePlayRoom() {
   );
   const myTeam = computed(() => state.value?.teams.find((t) => t.id === teamId.value));
   const isChoiceQuestion = computed(() => state.value?.answerType === 'CHOICE');
-  const showTourResults = computed(
-    () => state.value?.phase === 'TOUR_INTRO' && (state.value.currentTourIndex ?? 0) > 0,
-  );
   const tourResultsTeams = computed(() =>
     state.value ? teamsSortedByScore(state.value.teams) : [],
   );
@@ -154,6 +151,12 @@ export function usePlayRoom() {
 
   function startTour() {
     connectSocket().emit('startTour', (result) => {
+      if (!result.ok) message.value = result.error ?? 'Ошибка';
+    });
+  }
+
+  function continueToTourIntro() {
+    connectSocket().emit('continueToTourIntro', (result) => {
       if (!result.ok) message.value = result.error ?? 'Ошибка';
     });
   }
@@ -269,13 +272,13 @@ export function usePlayRoom() {
     isMyTurn,
     myTeam,
     isChoiceQuestion,
-    showTourResults,
     tourResultsTeams,
     canSubmit,
     isActiveQuestion,
     canAdvanceQuestion,
     offlineActiveTeam,
     startTour,
+    continueToTourIntro,
     submitChoice,
     submit,
     pass,

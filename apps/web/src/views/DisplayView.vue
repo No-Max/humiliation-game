@@ -18,9 +18,6 @@ import PlayScoreboard from '../components/play/PlayScoreboard.vue';
 
 const route = useRoute();
 const state = ref<RoomState | null>(null);
-const showTourResults = computed(
-  () => state.value?.phase === 'TOUR_INTRO' && (state.value.currentTourIndex ?? 0) > 0,
-);
 const tourResultsTeams = computed(() =>
   state.value ? teamsSortedByScore(state.value.teams) : [],
 );
@@ -71,45 +68,31 @@ onUnmounted(() => cleanup?.());
       @timer-expired="syncExpiredTurn"
     />
 
-    <div v-if="state?.phase === 'TOUR_INTRO'" class="card">
-      <template v-if="showTourResults">
-        <div class="banner correct tour-results">
-          <p class="tour-results-title">Итоги тура</p>
-          <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
-            {{ team.name }} — {{ team.score }}
-          </p>
-        </div>
-        <p>Следующий тур: {{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</p>
-        <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-          {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
+    <div v-if="state?.phase === 'TOUR_RESULTS'" class="card">
+      <div class="banner correct tour-results">
+        <p class="tour-results-title">Итоги тура</p>
+        <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
+          {{ team.name }} — {{ team.score }}
         </p>
-        <template v-if="state.mediaUrls?.length">
-          <h3 class="tour-intro-subtitle">Пример задания</h3>
-          <QuestionContent large :media-urls="state.mediaUrls" />
-        </template>
-        <div
-          v-if="state.tourRules"
-          class="rich-text-preview tour-rules"
-          v-html="state.tourRules"
-        />
-        <p class="tour-hint text-muted">Нажмите «Начать» на телефоне</p>
+      </div>
+      <p class="tour-hint text-muted">Нажмите «Далее» на телефоне</p>
+    </div>
+
+    <div v-else-if="state?.phase === 'TOUR_INTRO'" class="card">
+      <h2>{{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</h2>
+      <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
+        {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
+      </p>
+      <template v-if="state.mediaUrls?.length">
+        <h3 class="tour-intro-subtitle">Пример задания</h3>
+        <QuestionContent large :media-urls="state.mediaUrls" />
       </template>
-      <template v-else>
-        <h2>{{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</h2>
-        <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
-          {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
-        </p>
-        <template v-if="state.mediaUrls?.length">
-          <h3 class="tour-intro-subtitle">Пример задания</h3>
-          <QuestionContent large :media-urls="state.mediaUrls" />
-        </template>
-        <div
-          v-if="state.tourRules"
-          class="rich-text-preview tour-rules"
-          v-html="state.tourRules"
-        />
-        <p class="tour-hint text-muted">Нажмите «Начать» на телефоне</p>
-      </template>
+      <div
+        v-if="state.tourRules"
+        class="rich-text-preview tour-rules"
+        v-html="state.tourRules"
+      />
+      <p class="tour-hint text-muted">Нажмите «Начать» на телефоне</p>
     </div>
 
     <div

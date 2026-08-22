@@ -11,6 +11,7 @@ import PlayQuestionCard from '../components/play/PlayQuestionCard.vue';
 import PlayRoomStatus from '../components/play/PlayRoomStatus.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
 import PlayTourIntroCard from '../components/play/PlayTourIntroCard.vue';
+import PlayTourResultsCard from '../components/play/PlayTourResultsCard.vue';
 import PlayViewHeader from '../components/play/PlayViewHeader.vue';
 import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 
@@ -30,13 +31,13 @@ const {
   isMyTurn,
   myTeam,
   isChoiceQuestion,
-  showTourResults,
   tourResultsTeams,
   canSubmit,
   isActiveQuestion,
   canAdvanceQuestion,
   offlineActiveTeam,
   startTour,
+  continueToTourIntro,
   submitChoice,
   submit,
   pass,
@@ -141,11 +142,15 @@ const headerTitle = computed(() =>
       @team-renamed="onTeamRenamed"
     />
 
+    <PlayTourResultsCard
+      v-if="state?.phase === 'TOUR_RESULTS' && !isPaused"
+      :teams="tourResultsTeams"
+      @continue-to-tour-intro="continueToTourIntro"
+    />
+
     <PlayTourIntroCard
-      v-if="state?.phase === 'TOUR_INTRO' && !isPaused"
+      v-else-if="state?.phase === 'TOUR_INTRO' && !isPaused"
       :state="state"
-      :show-tour-results="showTourResults"
-      :tour-results-teams="tourResultsTeams"
       @start-tour="startTour"
     />
 

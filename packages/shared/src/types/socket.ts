@@ -9,6 +9,7 @@ export interface ClientToServerEvents {
   joinRoom: (payload: JoinRoomPayload, callback: (result: JoinRoomResult) => void) => void;
   startGame: (callback: (result: ActionResult) => void) => void;
   startTour: (callback: (result: ActionResult) => void) => void;
+  continueToTourIntro: (callback: (result: ActionResult) => void) => void;
   submitAnswer: (answer: string, callback: (result: ActionResult) => void) => void;
   pass: (callback: (result: ActionResult) => void) => void;
   nextQuestion: (callback: (result: ActionResult) => void) => void;
@@ -55,6 +56,7 @@ export const SOCKET_EVENTS = {
   JOIN_ROOM: 'joinRoom',
   START_GAME: 'startGame',
   START_TOUR: 'startTour',
+  CONTINUE_TO_TOUR_INTRO: 'continueToTourIntro',
   SUBMIT_ANSWER: 'submitAnswer',
   PASS: 'pass',
   NEXT_QUESTION: 'nextQuestion',

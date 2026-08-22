@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type { RoomState, TeamState } from '@humiliation-game/shared';
+import type { RoomState } from '@humiliation-game/shared';
 import { formatTourLabel, formatTourQuestionMeta } from '@humiliation-game/shared';
 import QuestionContent from '../QuestionContent.vue';
 import Button from '../Button.vue';
 
 defineProps<{
   state: RoomState;
-  showTourResults: boolean;
-  tourResultsTeams: TeamState[];
 }>();
 
 defineEmits<{
@@ -23,12 +21,6 @@ defineEmits<{
     <p v-if="state.tourQuestionCount != null" class="tour-intro-meta">
       {{ formatTourQuestionMeta(state.tourQuestionCount, state.limitQuestionsToTeamCount) }}
     </p>
-    <div v-if="showTourResults" class="banner correct tour-results">
-      <p class="tour-results-title">Итоги тура</p>
-      <p v-for="team in tourResultsTeams" :key="team.id" class="tour-results-row">
-        {{ team.name }} — {{ team.score }}
-      </p>
-    </div>
     <template v-if="state.mediaUrls?.length">
       <h3 class="tour-intro-subtitle">Пример задания</h3>
       <QuestionContent :media-urls="state.mediaUrls" />

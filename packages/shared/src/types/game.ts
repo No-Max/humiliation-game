@@ -8,6 +8,7 @@ export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 export type ClientRole = 'team' | 'display';
 
 export type QuestionPhase =
+  | 'TOUR_RESULTS'
   | 'TOUR_INTRO'
   | 'QUESTION'
   | 'FIRST_ROUND'
@@ -99,10 +100,15 @@ export interface JoinRoomRequest {
 export function shouldShowTeamScores(
   state: Pick<RoomState, 'phase' | 'currentTourIndex'>,
 ): boolean {
-  return (
-    state.phase === 'FINISHED'
-    || (state.phase === 'TOUR_INTRO' && state.currentTourIndex > 0)
-  );
+  return state.phase === 'FINISHED' || state.phase === 'TOUR_RESULTS';
+}
+
+/** Индекс только что завершённого тура (на экране TOUR_RESULTS). */
+export function completedTourIndex(
+  state: Pick<RoomState, 'phase' | 'currentTourIndex'>,
+): number | null {
+  if (state.phase !== 'TOUR_RESULTS' || state.currentTourIndex <= 0) return null;
+  return state.currentTourIndex - 1;
 }
 
 export function teamsSortedByScore(teams: TeamState[]): TeamState[] {
@@ -165,7 +171,11 @@ export function formatTourLabel(tourIndex: number, tourTitle?: string): string {
 export function playScreenTitle(
   state: Pick<RoomState, 'seriesTitle' | 'tourTitle' | 'currentTourIndex' | 'phase' | 'status'>,
 ): string {
-  if (state.tourTitle && state.phase !== 'FINISHED' && state.status !== 'WAITING') {
+  const completed = completedTourIndex(state);
+  if (completed != null) {
+    return `Итоги: ${formatTourLabel(completed, state.tourTitle)}`;
+  }
+  if (state.tourTitle && state.phase !== 'FINISHED' && state.status !== 'WAITING' && state.phase === 'TOUR_INTRO') {
     return formatTourLabel(state.currentTourIndex, state.tourTitle);
   }
   return state.seriesTitle ?? 'Игра';

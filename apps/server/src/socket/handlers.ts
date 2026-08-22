@@ -166,6 +166,19 @@ export function setupSocketHandlers(io: GameServer) {
       callback(result);
     });
 
+    socket.on('continueToTourIntro', (callback) => {
+      const engine = roomCode ? rooms.get(roomCode) : undefined;
+      if (!engine) {
+        callback({ ok: false, error: 'Room not found' });
+        return;
+      }
+      const result = engine.continueToTourIntro();
+      if (result.ok && roomCode) {
+        io.to(roomCode).emit('roomState', engine.getPublicState());
+      }
+      callback(result);
+    });
+
     socket.on('submitAnswer', (answer, callback) => {
       const engine = roomCode ? rooms.get(roomCode) : undefined;
       if (!engine || !teamId) {

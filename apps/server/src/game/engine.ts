@@ -183,8 +183,13 @@ export class GameEngine {
         : 'PLAYING';
 
     const timerActive = this.shouldRunTimer();
-    const tourStarted = this.state.phase !== 'TOUR_INTRO';
+    const tourStarted =
+      this.state.phase !== 'TOUR_INTRO' && this.state.phase !== 'TOUR_RESULTS';
     const answerMedia = showAnswer ? parseAnswerMedia(question?.answerMedia) : [];
+    const completedTour =
+      this.state.phase === 'TOUR_RESULTS' && this.state.currentTourIndex > 0
+        ? this.series.tours[this.state.currentTourIndex - 1]
+        : undefined;
 
     return {
       roomCode: this.roomCode,
@@ -204,7 +209,10 @@ export class GameEngine {
       hints: tourStarted ? this.getRevealedHints(question) : undefined,
       hintsTotal: tourStarted && question ? this.getQuestionHints(question).length : undefined,
       displayCount: this.displayCount,
-      tourTitle: tour?.title,
+      tourTitle:
+        this.state.phase === 'TOUR_RESULTS'
+          ? completedTour?.title
+          : tour?.title,
       tourQuestionCount:
         this.state.phase === 'TOUR_INTRO' && tour
           ? this.getEffectiveQuestionCount(tour)
@@ -225,10 +233,10 @@ export class GameEngine {
         : undefined,
       mediaUrls: tourStarted && question?.mediaUrls?.length
         ? question.mediaUrls
-        : !tourStarted && tour?.mediaUrls?.length
+        : this.state.phase === 'TOUR_INTRO' && tour?.mediaUrls?.length
           ? tour.mediaUrls
           : undefined,
-      tourRules: !tourStarted ? tour?.rules ?? undefined : undefined,
+      tourRules: this.state.phase === 'TOUR_INTRO' ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       answerMedia: answerMedia.length ? answerMedia : undefined,
       scoringTeamName:
@@ -270,6 +278,16 @@ export class GameEngine {
     this.resetQuestionState();
     this.state.phase = 'QUESTION';
     this.refreshTurnTimer();
+    return { ok: true };
+  }
+
+  continueToTourIntro(): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (this.state.phase !== 'TOUR_RESULTS') {
+      return { ok: false, error: 'Not in tour results phase' };
+    }
+    this.state.phase = 'TOUR_INTRO';
     return { ok: true };
   }
 
@@ -358,7 +376,7 @@ export class GameEngine {
       this.state.currentQuestionIndex = 0;
       this.state.currentTeamIndex =
         (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
-      this.state.phase = 'TOUR_INTRO';
+      this.state.phase = 'TOUR_RESULTS';
       return { ok: true };
     }
 
@@ -600,6 +618,7 @@ export class GameEngine {
     if (this.paused) return undefined;
 
     if (
+      this.state.phase === 'TOUR_RESULTS' ||
       this.state.phase === 'TOUR_INTRO' ||
       this.state.phase === 'FINISHED' ||
       this.state.phase === 'CORRECT' ||

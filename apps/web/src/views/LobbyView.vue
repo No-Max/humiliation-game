@@ -7,6 +7,7 @@ import { syncFromRoomState } from '../lib/gameStorage';
 import { getPreferredTeamName } from '../lib/teamPreferences';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import Button from '../components/Button.vue';
+import Input from '../components/Input.vue';
 import GameConnectionPanel from '../components/GameConnectionPanel.vue';
 
 const route = useRoute();
@@ -122,9 +123,8 @@ function startGame() {
 
       <template v-else-if="!roomCreated">
         <label>Название вашей команды</label>
-        <input
+        <Input
           v-model="teamName"
-          class="input"
           placeholder="Например: Знатоки"
           @keyup.enter="createRoom"
         />

@@ -5,6 +5,7 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
 import Button from './Button.vue';
+import Input from './Input.vue';
 import {
   getDisplayUrl,
   getJoinUrl,
@@ -139,8 +140,12 @@ defineExpose({ reset });
           <template v-if="slot.teamId === teamId">
             <div v-if="renamingTeam" class="rename-team-form">
               <label :for="`rename-team-input-${slot.teamId}`">Новое название</label>
-              <input :id="`rename-team-input-${slot.teamId}`" v-model="renameDraft" class="input"
-                placeholder="Название команды" @keyup.enter="saveRenameTeam" />
+              <Input
+                :id="`rename-team-input-${slot.teamId}`"
+                v-model="renameDraft"
+                placeholder="Название команды"
+                @keyup.enter="saveRenameTeam"
+              />
               <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
               <div class="rename-team-actions">
                 <Button :disabled="renameLoading" @click="saveRenameTeam">
@@ -167,8 +172,12 @@ defineExpose({ reset });
       <div v-else-if="mySlotUrl" class="team-slot-row">
         <div v-if="renamingTeam" class="rename-team-form">
           <label for="rename-team-input">Новое название</label>
-          <input id="rename-team-input" v-model="renameDraft" class="input" placeholder="Название команды"
-            @keyup.enter="saveRenameTeam" />
+          <Input
+            id="rename-team-input"
+            v-model="renameDraft"
+            placeholder="Название команды"
+            @keyup.enter="saveRenameTeam"
+          />
           <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
           <div class="rename-team-actions">
             <Button :disabled="renameLoading" @click="saveRenameTeam">

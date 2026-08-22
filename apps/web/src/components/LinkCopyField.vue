@@ -2,6 +2,7 @@
 import QRCode from 'qrcode';
 import { ref } from 'vue';
 import Button from './Button.vue';
+import Input from './Input.vue';
 import ModalShell from './ModalShell.vue';
 
 const props = defineProps<{
@@ -50,12 +51,12 @@ function selectAll(event: FocusEvent) {
 <template>
   <div class="link-copy-row">
     <div class="link-copy-field">
-      <input
-        class="link-copy-input"
-        :class="{ highlight }"
+      <Input
+        variant="copy"
+        :highlight="highlight"
         type="text"
         readonly
-        :value="url"
+        :model-value="url"
         @focus="selectAll"
       />
       <div class="link-copy-btn-wrap">
@@ -106,28 +107,6 @@ function selectAll(event: FocusEvent) {
   width: calc(100% - 46px);
   min-width: 0;
   font-size: 14px;
-}
-
-.link-copy-input {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 14px;
-  font-family: inherit;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 8px 40px 8px 12px;
-  color: #374151;
-  outline: none;
-}
-
-.link-copy-input:focus {
-  border-color: #a5b4fc;
-  box-shadow: 0 0 0 2px rgb(79 70 229 / 15%);
-}
-
-.link-copy-input.highlight {
-  color: #4f46e5;
 }
 
 .link-copy-btn-wrap {

@@ -4,6 +4,7 @@ import QuestionChoices from '../QuestionChoices.vue';
 import QuestionContent from '../QuestionContent.vue';
 import QuestionHints from '../QuestionHints.vue';
 import Button from '../Button.vue';
+import Input from '../Input.vue';
 
 defineProps<{
   state: RoomState;
@@ -41,9 +42,8 @@ defineEmits<{
       </template>
 
       <template v-else>
-        <input
+        <Input
           v-model="answer"
-          class="input"
           placeholder="Ваш ответ"
           @keyup.enter="$emit('submit')"
         />

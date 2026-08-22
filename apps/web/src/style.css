@@ -35,19 +35,6 @@ a.router-link-active {
   min-width: 0;
 }
 
-.card .input {
-  margin-bottom: 0;
-}
-
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-
 .banner {
   padding: 8px;
   border-radius: 8px;

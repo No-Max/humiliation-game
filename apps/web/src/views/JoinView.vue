@@ -6,6 +6,7 @@ import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import { getPreferredTeamName } from '../lib/teamPreferences';
 import Button from '../components/Button.vue';
+import Input from '../components/Input.vue';
 
 interface RoomTeam {
   id: string;
@@ -116,7 +117,7 @@ function reconnectAs(team: RoomTeam) {
         В комнате уже {{ MAX_ROOM_TEAMS }} команды — новую добавить нельзя.
       </p>
       <template v-else>
-        <input v-model="teamName" class="input" placeholder="Название новой команды" />
+        <Input v-model="teamName" placeholder="Название новой команды" />
         <p class="join-note text-muted-sm">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>

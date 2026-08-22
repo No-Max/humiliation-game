@@ -87,13 +87,15 @@ function dismiss(session: SavedGameSession) {
 }
 
 .unfinished-item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: block;
   padding: 12px 0;
   border-top: 1px solid #e5e7eb;
+}
+
+.unfinished-item::after {
+  content: '';
+  display: table;
+  clear: both;
 }
 
 .unfinished-item:first-of-type {
@@ -102,7 +104,20 @@ function dismiss(session: SavedGameSession) {
 }
 
 .unfinished-actions {
-  display: flex;
-  gap: 8px;
+  float: right;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 0;
+}
+
+.unfinished-actions > * {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-left: 8px;
+}
+
+.unfinished-actions > *:first-child {
+  margin-left: 0;
 }
 </style>

@@ -263,15 +263,25 @@ defineExpose({ reset });
 
 <style scoped>
 .room-code-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  display: block;
   margin-bottom: 8px;
 }
 
-.room-code-row > * + * {
-  margin-left: 12px;
+.room-code-row::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.room-code-row > div:first-child {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.room-code-copy {
+  float: right;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .room-code-label {
@@ -288,10 +298,6 @@ defineExpose({ reset });
   letter-spacing: 0.2em;
   font-variant-numeric: tabular-nums;
   color: #1a1a2e;
-}
-
-.room-code-copy {
-  flex-shrink: 0;
 }
 
 .room-code-hint {
@@ -325,28 +331,39 @@ defineExpose({ reset });
 }
 
 .rename-team-actions {
-  display: flex;
+  display: block;
   margin-top: 12px;
+  font-size: 0;
 }
 
-.rename-team-actions > * + * {
-  margin-left: 8px;
+.rename-team-actions > * {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.team-name-row {
+  display: block;
+  font-size: 0;
+  margin: 0 0 5.6px;
+}
+
+.team-name-row > * {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-left: 6px;
+}
+
+.team-name-row > *:first-child {
+  margin-left: 0;
 }
 
 .rename-team-error {
   color: #dc2626;
   font-size: 14px;
   margin: 8px 0 0;
-}
-
-.team-name-row {
-  display: flex;
-  align-items: center;
-  margin: 0 0 5.6px;
-}
-
-.team-name-row > * + * {
-  margin-left: 6px;
 }
 
 .team-name {
@@ -361,9 +378,10 @@ defineExpose({ reset });
 }
 
 .team-rename-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 32px;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -372,7 +390,6 @@ defineExpose({ reset });
   background: transparent;
   color: #6b7280;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .team-rename-btn:hover {

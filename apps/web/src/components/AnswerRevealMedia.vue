@@ -94,21 +94,22 @@ function imageUrls(group: MediaGroup): string[] {
 }
 
 .answer-reveal-group {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: stretch;
+  display: block;
+  text-align: center;
+  font-size: 0;
   width: 100%;
   margin: -6px;
 }
 
 .answer-reveal-item {
-  flex: 1 1 300px;
-  width: 100%;
-  max-width: 420px;
+  display: inline-block;
+  vertical-align: top;
+  width: 300px;
+  max-width: calc(50% - 12px);
   min-width: 0;
   margin: 6px;
   box-sizing: border-box;
+  font-size: 16px;
 }
 
 .answer-audio,

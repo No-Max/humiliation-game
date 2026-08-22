@@ -30,9 +30,10 @@ defineEmits<{
 
 <style scoped>
 .connection-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 40px;
   width: 40px;
   height: 40px;
   padding: 0;

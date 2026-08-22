@@ -52,14 +52,19 @@ const emit = defineEmits<{
 
 <style scoped>
 .team-score-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+  text-align: center;
+  font-size: 0;
 }
 
-.team-score-name-row > * + * {
+.team-score-name-row > * {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
   margin-left: 8px;
+}
+
+.team-score-name-row > *:first-child {
+  margin-left: 0;
 }
 
 .team-score-name-row :deep(.answer-timer) {

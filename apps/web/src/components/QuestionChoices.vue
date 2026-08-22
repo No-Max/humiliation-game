@@ -37,22 +37,25 @@ const emit = defineEmits<{
   list-style: none;
   padding: 0;
   margin: -8px;
-  display: flex;
-  flex-wrap: wrap;
+  display: block;
+  text-align: center;
+  font-size: 0;
 }
 
 .question-choices > li {
+  display: inline-block;
+  vertical-align: top;
   width: 50%;
   padding: 8px;
   box-sizing: border-box;
+  font-size: 16px;
 }
 
 .choice-btn,
 .choice-readonly {
   width: 100%;
   min-width: 0;
-  display: flex;
-  align-items: center;
+  display: block;
   text-align: left;
   padding: 12px 16px;
   border-radius: 10px;
@@ -63,7 +66,10 @@ const emit = defineEmits<{
 
 .choice-btn > span:last-child,
 .choice-readonly > span:last-child {
+  display: inline-block;
+  vertical-align: middle;
   min-width: 0;
+  width: calc(100% - 40px);
   word-break: break-word;
   margin-left: 12px;
 }
@@ -98,12 +104,12 @@ const emit = defineEmits<{
 }
 
 .choice-label {
-  flex-shrink: 0;
   width: 28px;
   height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 28px;
   border-radius: 999px;
   background: #e5e7eb;
   font-weight: 700;

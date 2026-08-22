@@ -16,7 +16,7 @@ defineEmits<{
 
 <template>
   <div class="page-actions">
-    <h1 class="page-title" style="margin: 0; flex: 1">{{ seriesTitle }}</h1>
+    <h1 class="page-title" style="margin: 0">{{ seriesTitle }}</h1>
     <template v-if="linksActive && joined">
       <button
         v-if="!isPaused"
@@ -54,9 +54,10 @@ defineEmits<{
 
 <style scoped>
 .connection-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 40px;
   width: 40px;
   height: 40px;
   padding: 0;

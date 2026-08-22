@@ -347,22 +347,23 @@ a.router-link-active {
 
 .hints-list {
   display: block;
-  margin: 0;
-}
-
-.hints-list > * + * {
-  margin-top: 16px;
+  margin: 16px 0 0;
+  padding: 0;
 }
 
 .hints-caption {
   font-size: 0.8125rem;
   color: #92400e;
   font-weight: 600;
-  margin: 0;
+  margin: 0 0 16px;
 }
 
 .hints-list .hint {
-  margin: 0;
+  margin: 16px 0 0;
+}
+
+.hints-list .hint:first-of-type {
+  margin-top: 0;
 }
 
 .hint-latest {

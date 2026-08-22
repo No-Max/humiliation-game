@@ -121,7 +121,7 @@ onUnmounted(() => cleanup?.());
         <QuestionContent
           large
           :prompt="state.questionPrompt"
-          :media-urls="state.mediaUrls"
+          :media-urls="isActiveQuestion ? state.mediaUrls : undefined"
         />
         <QuestionChoices
           v-if="state.answerType === 'CHOICE' && state.choices?.length"

@@ -6,14 +6,14 @@ import Button from '../components/Button.vue';
   <div>
     <h1 class="page-title">Добро пожаловать!</h1>
     <div class="card">
-      <p style="margin-bottom: 16px">
+      <p class="intro-text">
         Собирайтесь с друзьями, запускайте нашу игру, улыбайтесь и получайте удовольствие от ваших знаний.
       </p>
       <Button to="/series">Выбрать выпуск</Button>
     </div>
 
     <div class="card">
-      <h2 style="margin-bottom: 16px">Как начать играть</h2>
+      <h2 class="section-heading">Как начать играть</h2>
       <div class="steps">
         <div class="step">
           <span class="step-num">1</span>
@@ -42,6 +42,14 @@ import Button from '../components/Button.vue';
 </template>
 
 <style scoped>
+.intro-text {
+  margin-bottom: 16px;
+}
+
+.section-heading {
+  margin-bottom: 16px;
+}
+
 .steps {
   display: block;
 }

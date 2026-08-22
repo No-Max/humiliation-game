@@ -18,7 +18,7 @@ defineEmits<{
 
 <template>
   <div class="page-actions">
-    <h1 class="page-title" style="margin: 0">{{ seriesTitle }}</h1>
+    <h1 class="page-title page-title--compact">{{ seriesTitle }}</h1>
     <template v-if="linksActive && joined">
       <Button v-if="!isPaused" variant="secondary" @click="$emit('pause')">
         Пауза
@@ -40,6 +40,10 @@ defineEmits<{
 </template>
 
 <style scoped>
+.page-actions .page-title--compact {
+  margin: 0;
+}
+
 .page-actions {
   display: block;
   margin-bottom: 8px;

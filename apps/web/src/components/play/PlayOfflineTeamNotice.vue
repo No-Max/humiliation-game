@@ -12,15 +12,15 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card offline-notice" style="margin-top: 16px">
+  <div class="card offline-notice">
     <strong>{{ team.name }}</strong> offline —
     откройте ссылку командного слота на другом телефоне.
     <Button
       variant="secondary"
       icon
       icon-size="lg"
+      class="connection-btn"
       aria-label="Подключение"
-      style="margin-top: 12px"
       @click="$emit('openConnection')"
     >
       <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
@@ -35,7 +35,11 @@ defineEmits<{
   background: #fef3c7;
   padding: 16px;
   border-radius: 8px;
-  margin: 0;
+  margin: 16px 0 0;
+}
+
+.connection-btn {
+  margin-top: 12px;
 }
 
 .connection-settings-icon {

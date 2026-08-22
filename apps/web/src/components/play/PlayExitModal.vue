@@ -16,7 +16,7 @@ defineEmits<{
         ×
       </Button>
     </template>
-    <p style="margin-bottom: 16px">
+    <p class="exit-message">
       Игра будет поставлена на паузу. Вернитесь по ссылке командного слота, когда будете готовы.
     </p>
     <div class="modal-actions">
@@ -27,6 +27,10 @@ defineEmits<{
 </template>
 
 <style scoped>
+.exit-message {
+  margin-bottom: 16px;
+}
+
 .modal-actions {
   display: block;
   font-size: 0;

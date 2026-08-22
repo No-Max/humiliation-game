@@ -6,12 +6,12 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
   <div>
     <h1 class="page-title">Правила игры</h1>
     <div class="card">
-      <h2 style="margin-bottom: 12px">Описание</h2>
+      <h2 class="section-heading">Описание</h2>
       <p>Несколько команд отвечают на вопросы по очереди и зарабатывают баллы, команда набравшая большее кол-во баллов - побеждает. При неверном ответе у комады соперников есть возможность перехватить вопрос и зарабоать дополнительные баллы.</p>
     </div>
     <div class="card">
-      <h2 style="margin-bottom: 12px">Основные правила</h2>
-      <ul style="padding-left: 20px; display: grid; gap: 8px">
+      <h2 class="section-heading">Основные правила</h2>
+      <ul class="list-grid">
         <li>Делитесь на команды — один телефон на команду, в одной игре до {{ MAX_ROOM_TEAMS }} команд</li>
         <li>Отвечаете по очереди, стоимость вопроса зависит от тура (2 или 3 балла)</li>
         <li>При неверном ответе другая команда может перехватить вопрос, но кол-во баллов будет уменьшено на 1</li>
@@ -21,8 +21,8 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
       </ul>
     </div>
     <div class="card">
-      <h2 style="margin-bottom: 12px">Советы</h2>
-      <ul style="padding-left: 20px; display: grid; gap: 8px">
+      <h2 class="section-heading">Советы</h2>
+      <ul class="list-grid">
         <li>Следите за очередностью и таймером</li>
         <li>Не торопитесь — случайный ответ может помочь сопернику</li>
         <li>Откройте экран на TV, чтобы все видели задание</li>
@@ -30,3 +30,9 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
     </div>
   </div>
 </template>
+
+<style scoped>
+.section-heading {
+  margin-bottom: 12px;
+}
+</style>

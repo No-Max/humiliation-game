@@ -92,7 +92,7 @@ onUnmounted(() => cleanup?.());
           class="rich-text-preview tour-rules"
           v-html="state.tourRules"
         />
-        <p style="color: #6b7280">Нажмите «Начать» на телефоне</p>
+        <p class="tour-hint text-muted">Нажмите «Начать» на телефоне</p>
       </template>
       <template v-else>
         <h2>{{ formatTourLabel(state.currentTourIndex, state.tourTitle) }}</h2>
@@ -108,7 +108,7 @@ onUnmounted(() => cleanup?.());
           class="rich-text-preview tour-rules"
           v-html="state.tourRules"
         />
-        <p>Нажмите «Начать» на телефоне</p>
+        <p class="tour-hint text-muted">Нажмите «Начать» на телефоне</p>
       </template>
     </div>
 
@@ -228,6 +228,10 @@ onUnmounted(() => cleanup?.());
 .tour-rules {
   margin: 0;
   text-align: left;
+}
+
+.tour-hint {
+  margin: 0;
 }
 
 .pause-overlay {

@@ -84,3 +84,22 @@ a.router-link-active {
   margin: 0 0 16px;
   padding-left: 20px;
 }
+
+.text-muted {
+  color: #6b7280;
+}
+
+.text-muted-sm {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.text-error {
+  color: #dc2626;
+}
+
+.list-grid {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+}

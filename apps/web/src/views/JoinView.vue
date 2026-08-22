@@ -104,10 +104,10 @@ function reconnectAs(team: RoomTeam) {
 <template>
   <div>
     <h1 class="page-title">Новая команда</h1>
-    <p style="margin-bottom: 16px">Код комнаты: <strong>{{ route.params.code }}</strong></p>
+    <p class="room-code">Код комнаты: <strong>{{ route.params.code }}</strong></p>
 
-    <div class="card" style="margin-bottom: 16px">
-      <p style="color: #6b7280; margin-bottom: 12px">
+    <div class="card join-card">
+      <p class="join-hint text-muted">
         Эта страница — только для команды, которая ещё не в игре.
         Если телефон выключился — откройте <strong>ссылку командного слота</strong>,
         которую сохранили в начале игры.
@@ -117,7 +117,7 @@ function reconnectAs(team: RoomTeam) {
       </p>
       <template v-else>
         <input v-model="teamName" class="input" placeholder="Название новой команды" />
-        <p style="color: #6b7280; font-size: 14px; margin-bottom: 12px">
+        <p class="join-note text-muted-sm">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>
         <Button :disabled="loading" @click="joinNew">
@@ -127,11 +127,11 @@ function reconnectAs(team: RoomTeam) {
     </div>
 
     <div v-if="existingTeams.length" class="card">
-      <h3 style="margin-bottom: 8px">Уже в игре</h3>
-      <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px">
+      <h3 class="existing-teams-title">Уже в игре</h3>
+      <p class="existing-teams-hint text-muted-sm">
         Занять слот существующей команды (если потеряли ссылку):
       </p>
-      <div style="display: grid; gap: 8px">
+      <div class="team-list">
         <Button
           v-for="team in existingTeams"
           :key="team.id"
@@ -144,11 +144,44 @@ function reconnectAs(team: RoomTeam) {
       </div>
     </div>
 
-    <p v-if="error" style="color: #dc2626; margin-top: 16px">{{ error }}</p>
+    <p v-if="error" class="join-error text-error">{{ error }}</p>
   </div>
 </template>
 
 <style scoped>
+.room-code {
+  margin-bottom: 16px;
+}
+
+.join-card {
+  margin-bottom: 16px;
+}
+
+.join-hint {
+  margin-bottom: 12px;
+}
+
+.join-note {
+  margin-bottom: 12px;
+}
+
+.existing-teams-title {
+  margin-bottom: 8px;
+}
+
+.existing-teams-hint {
+  margin-bottom: 12px;
+}
+
+.team-list {
+  display: grid;
+  gap: 8px;
+}
+
+.join-error {
+  margin-top: 16px;
+}
+
 .teams-limit-notice {
   margin: 0;
   color: #92400e;

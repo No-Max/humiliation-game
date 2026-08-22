@@ -51,7 +51,7 @@ onMounted(async () => {
           {{ formatTourQuestionMeta(tour._count.questions, tour.limitQuestionsToTeamCount) }}
         </li>
       </ul>
-      <p v-else style="color: #6b7280; font-size: 14px; margin: 8px 0">Туры не добавлены</p>
+      <p v-else class="empty-tours text-muted-sm">Туры не добавлены</p>
       <Button :to="`/lobby/${item.id}`">Играть</Button>
     </div>
   </div>
@@ -70,5 +70,9 @@ onMounted(async () => {
   font-size: 14px;
   display: grid;
   gap: 4px;
+}
+
+.empty-tours {
+  margin: 8px 0;
 }
 </style>

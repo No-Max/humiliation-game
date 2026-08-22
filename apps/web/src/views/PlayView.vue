@@ -182,7 +182,7 @@ const headerTitle = computed(() =>
       @confirm="confirmExit"
     />
 
-    <p v-if="message" style="color: #dc2626; margin-top: 16px">
+    <p v-if="message" class="play-message text-error">
       {{ message }}
     </p>
   </div>
@@ -201,5 +201,9 @@ const headerTitle = computed(() =>
 
 .question-stack > :deep(.card) {
   margin-bottom: 0;
+}
+
+.play-message {
+  margin-top: 16px;
 }
 </style>

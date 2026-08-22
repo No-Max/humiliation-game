@@ -63,15 +63,15 @@ function dismiss(session: SavedGameSession) {
 
 <template>
   <div v-if="!loading && sessions.length && !isHiddenRoute()" class="card unfinished-games">
-    <h2 style="margin-bottom: 8px">Незавершённые игры</h2>
-    <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px">
+    <h2 class="unfinished-title">Незавершённые игры</h2>
+    <p class="unfinished-intro text-muted-sm">
       У вас есть сохранённые игры — продолжите с того места, где остановились
     </p>
     <div v-for="session in sessions" :key="session.roomCode" class="unfinished-item">
-      <div>
+      <div class="unfinished-item-content">
         <strong>{{ session.seriesTitle }}</strong>
-        <span style="color: #6b7280; font-size: 14px">
-          · {{ session.teamName }} · {{ statusLabel(session.status) }}
+        <span class="unfinished-meta text-muted-sm">
+          {{ session.teamName }} · {{ statusLabel(session.status) }}
         </span>
       </div>
       <div class="unfinished-actions">
@@ -87,10 +87,29 @@ function dismiss(session: SavedGameSession) {
   border-left: 4px solid #4f46e5;
 }
 
+.unfinished-title {
+  margin-bottom: 8px;
+}
+
+.unfinished-intro {
+  margin-bottom: 16px;
+}
+
+.unfinished-meta {
+  display: inline;
+}
+
 .unfinished-item {
-  display: block;
+  display: inline-block;
   padding: 12px 0;
   border-top: 1px solid #e5e7eb;
+  width: 100%;
+}
+
+.unfinished-item-content {
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(100% - 250px);
 }
 
 .unfinished-item::after {
@@ -111,14 +130,14 @@ function dismiss(session: SavedGameSession) {
   font-size: 0;
 }
 
-.unfinished-actions > * {
+.unfinished-actions>* {
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
   margin-left: 8px;
 }
 
-.unfinished-actions > *:first-child {
+.unfinished-actions>*:first-child {
   margin-left: 0;
 }
 </style>

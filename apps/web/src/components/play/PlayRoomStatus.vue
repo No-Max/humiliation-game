@@ -42,3 +42,15 @@ defineEmits<{
     <Button @click="$emit('reconnect')">Подключиться снова</Button>
   </div>
 </template>
+
+<style scoped>
+.pause-banner {
+  background: #fef3c7;
+  color: #92400e;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+</style>

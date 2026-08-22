@@ -155,3 +155,114 @@ onUnmounted(() => cleanup?.());
     </div>
   </div>
 </template>
+
+<style scoped>
+.display-screen {
+  max-width: none;
+  width: 100%;
+  min-width: 0;
+  padding: 32px 0;
+  box-sizing: border-box;
+}
+
+.display-screen > * + * {
+  margin-top: 24px;
+}
+
+.display-screen h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.question-stack {
+  display: block;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.question-stack > * + * {
+  margin-top: 16px;
+}
+
+.question-stack > :deep(.card) {
+  margin-bottom: 0;
+}
+
+.tour-results {
+  margin: 0;
+  display: block;
+}
+
+.tour-results > * + * {
+  margin-top: 16px;
+}
+
+.tour-results-title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.tour-results-row {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tour-intro-meta {
+  color: #6b7280;
+  font-size: 15px;
+  margin: 0;
+  text-align: center;
+}
+
+.tour-intro-subtitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.tour-rules {
+  margin: 0;
+  text-align: left;
+}
+
+.pause-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 55%);
+  z-index: 900;
+  pointer-events: none;
+  text-align: center;
+  font-size: 0;
+  white-space: nowrap;
+}
+
+.pause-overlay::before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.pause-overlay span {
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 40px;
+  font-weight: 700;
+  padding: 24px 48px;
+  border-radius: 12px;
+}
+
+@media (max-width: 1023px) {
+  .display-screen h1 {
+    font-size: 32px;
+  }
+}
+</style>

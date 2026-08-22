@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../lib/api';
 import Button from './Button.vue';
+import ModalShell from './ModalShell.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -59,42 +60,40 @@ async function connect() {
 </script>
 
 <template>
-  <div v-if="open" class="modal-overlay" @click.self="close">
-    <div class="modal" role="dialog" aria-labelledby="connect-game-title">
-      <div class="modal-header">
-        <h2 id="connect-game-title">Подключиться к игре</h2>
-        <Button variant="close" aria-label="Закрыть" @click="close">
-          ×
-        </Button>
-      </div>
-      <div class="modal-body connect-game-modal">
-        <p class="connect-game-hint">
-          Введите 6-значный код комнаты, чтобы открыть игру на этом экране.
-        </p>
-        <label class="connect-game-label" for="room-code-input">Код комнаты</label>
-        <input
-          id="room-code-input"
-          class="input connect-game-code"
-          type="text"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          maxlength="6"
-          placeholder="000000"
-          :value="code"
-          @input="onCodeInput"
-        />
-        <p v-if="error" class="connect-game-error">{{ error }}</p>
-        <Button
-          block
-          class="connect-game-submit"
-          :disabled="!canSubmit"
-          @click="connect"
-        >
-          {{ loading ? 'Подключение…' : 'Подключиться' }}
-        </Button>
-      </div>
+  <ModalShell v-if="open" title-id="connect-game-title" @close="close">
+    <template #header>
+      <h2 id="connect-game-title">Подключиться к игре</h2>
+      <Button variant="close" aria-label="Закрыть" @click="close">
+        ×
+      </Button>
+    </template>
+    <div class="connect-game-modal">
+      <p class="connect-game-hint">
+        Введите 6-значный код комнаты, чтобы открыть игру на этом экране.
+      </p>
+      <label class="connect-game-label" for="room-code-input">Код комнаты</label>
+      <input
+        id="room-code-input"
+        class="input connect-game-code"
+        type="text"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        placeholder="000000"
+        :value="code"
+        @input="onCodeInput"
+      />
+      <p v-if="error" class="connect-game-error">{{ error }}</p>
+      <Button
+        block
+        class="connect-game-submit"
+        :disabled="!canSubmit"
+        @click="connect"
+      >
+        {{ loading ? 'Подключение…' : 'Подключиться' }}
+      </Button>
     </div>
-  </div>
+  </ModalShell>
 </template>
 
 <style scoped>

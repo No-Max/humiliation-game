@@ -51,6 +51,44 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+.scoreboard {
+  display: block;
+  text-align: center;
+  font-size: 0;
+  margin: -8px -8px 16px;
+  min-width: 0;
+}
+
+.team-score {
+  display: inline-block;
+  vertical-align: top;
+  width: 160px;
+  min-width: 160px;
+  max-width: calc(50% - 16px);
+  margin: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  text-align: center;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.team-score > * + * {
+  margin-top: 6px;
+}
+
+.team-score.active {
+  outline: 3px solid #4f46e5;
+}
+
+@media (max-width: 1023px) {
+  .team-score {
+    width: 120px;
+    min-width: 120px;
+  }
+}
+
 .team-score-name-row {
   text-align: center;
   font-size: 0;

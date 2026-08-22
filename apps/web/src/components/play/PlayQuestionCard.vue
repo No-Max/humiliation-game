@@ -59,3 +59,22 @@ defineEmits<{
     </template>
   </div>
 </template>
+
+<style scoped>
+.card-actions {
+  display: block;
+  font-size: 0;
+}
+
+.card-actions > :deep(*) {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 16px;
+  margin-bottom: 8px;
+}
+
+.card-actions > :deep(*:last-child) {
+  margin-right: 0;
+}
+</style>

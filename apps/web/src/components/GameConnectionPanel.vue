@@ -262,6 +262,40 @@ defineExpose({ reset });
 </template>
 
 <style scoped>
+.link-block {
+  margin-bottom: 20px;
+}
+
+.link-block:last-child {
+  margin-bottom: 0;
+}
+
+.link-block strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.link-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.team-slot-row {
+  margin-top: 12px;
+}
+
+.team-slot-row:first-of-type {
+  margin-top: 0;
+}
+
+.team-slot-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5.6px;
+}
+
 .room-code-row {
   display: block;
   margin-bottom: 8px;

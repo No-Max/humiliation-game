@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, useAttrs } from "vue";
+import { RouterLink } from "vue-router";
 
-type Variant = 'primary' | 'secondary' | 'close' | 'ghost' | 'choice';
+type Variant = "primary" | "secondary" | "close" | "ghost" | "choice";
 
 const props = withDefaults(
   defineProps<{
     variant?: Variant;
     to?: string | Record<string, unknown>;
     href?: string;
-    type?: 'button' | 'submit' | 'reset';
+    type?: "button" | "submit" | "reset";
     disabled?: boolean;
     selected?: boolean;
     block?: boolean;
     icon?: boolean;
-    iconSize?: 'sm' | 'md' | 'lg';
+    iconSize?: "sm" | "md" | "lg";
     large?: boolean;
   }>(),
   {
-    variant: 'primary',
-    type: 'button',
-    iconSize: 'sm',
-  },
+    variant: "primary",
+    type: "button",
+    iconSize: "sm",
+  }
 );
 
 defineOptions({ inheritAttrs: false });
@@ -30,34 +30,34 @@ const attrs = useAttrs();
 
 const component = computed(() => {
   if (props.to) return RouterLink;
-  if (props.href) return 'a';
-  return 'button';
+  if (props.href) return "a";
+  return "button";
 });
 
 const buttonClass = computed(() => {
   const classes: (string | Record<string, boolean>)[] = [`btn--${props.variant}`];
 
   if (props.icon) {
-    classes.push('btn--icon', `btn--icon-${props.iconSize}`);
+    classes.push("btn--icon", `btn--icon-${props.iconSize}`);
   }
 
   if (props.selected) {
-    classes.push('btn--selected');
+    classes.push("btn--selected");
   }
 
   if (props.block) {
-    classes.push('btn--block');
+    classes.push("btn--block");
   }
 
   if (props.large) {
-    classes.push('btn--large');
+    classes.push("btn--large");
   }
 
-  if (typeof attrs.class === 'string') {
+  if (typeof attrs.class === "string") {
     classes.push(attrs.class);
   } else if (Array.isArray(attrs.class)) {
     classes.push(...attrs.class);
-  } else if (attrs.class && typeof attrs.class === 'object') {
+  } else if (attrs.class && typeof attrs.class === "object") {
     classes.push(attrs.class);
   }
 

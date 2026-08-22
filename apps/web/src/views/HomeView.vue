@@ -40,3 +40,37 @@ import Button from '../components/Button.vue';
     </div>
   </div>
 </template>
+
+<style scoped>
+.steps {
+  display: block;
+}
+
+.steps > * + * {
+  margin-top: 16px;
+}
+
+.step {
+  display: block;
+}
+
+.step-num {
+  display: inline-block;
+  vertical-align: top;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+  text-align: center;
+  line-height: 32px;
+  font-weight: 700;
+}
+
+.step > :not(.step-num) {
+  display: inline-block;
+  vertical-align: top;
+  width: calc(100% - 48px);
+  margin-left: 16px;
+}
+</style>

@@ -12,7 +12,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card hint" style="margin-top: 16px">
+  <div class="card offline-notice" style="margin-top: 16px">
     <strong>{{ team.name }}</strong> offline —
     откройте ссылку командного слота на другом телефоне.
     <Button
@@ -31,6 +31,13 @@ defineEmits<{
 </template>
 
 <style scoped>
+.offline-notice {
+  background: #fef3c7;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 0;
+}
+
 .connection-settings-icon {
   width: 20px;
   height: 20px;

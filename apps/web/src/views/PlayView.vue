@@ -187,3 +187,19 @@ const headerTitle = computed(() =>
     </p>
   </div>
 </template>
+
+<style scoped>
+.question-stack {
+  display: block;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.question-stack > * + * {
+  margin-top: 16px;
+}
+
+.question-stack > :deep(.card) {
+  margin-bottom: 0;
+}
+</style>

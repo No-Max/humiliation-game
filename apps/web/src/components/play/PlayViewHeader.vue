@@ -53,6 +53,28 @@ defineEmits<{
 </template>
 
 <style scoped>
+.page-actions {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 0;
+}
+
+.page-actions > * {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-left: 8px;
+  margin-bottom: 8px;
+}
+
+.page-actions > :first-child {
+  margin-left: 0;
+}
+
+.page-actions .page-title {
+  max-width: calc(100% - 280px);
+}
+
 .connection-settings-icon {
   width: 20px;
   height: 20px;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { computed, useAttrs, useSlots } from "vue";
 import { RouterLink } from "vue-router";
 
 type Variant = "primary" | "secondary" | "close" | "ghost" | "choice";
@@ -13,21 +13,22 @@ const props = withDefaults(
     disabled?: boolean;
     selected?: boolean;
     block?: boolean;
-    icon?: boolean;
-    iconSize?: "sm" | "md" | "lg";
+    icon?: string;
     large?: boolean;
     compact?: boolean;
   }>(),
   {
     variant: "primary",
     type: "button",
-    iconSize: "sm",
   }
 );
 
 defineOptions({ inheritAttrs: false });
 
 const attrs = useAttrs();
+const slots = useSlots();
+
+const hasDefaultSlot = computed(() => Boolean(slots.default?.()));
 
 const component = computed(() => {
   if (props.to) return RouterLink;
@@ -39,7 +40,7 @@ const buttonClass = computed(() => {
   const classes: (string | Record<string, boolean>)[] = [`btn--${props.variant}`];
 
   if (props.icon) {
-    classes.push("btn--icon", `btn--icon-${props.iconSize}`);
+    classes.push("btn--icon");
   }
 
   if (props.selected) {
@@ -58,6 +59,10 @@ const buttonClass = computed(() => {
     classes.push("btn--compact");
   }
 
+  if (hasDefaultSlot.value) {
+    classes.push("btn--text");
+  }
+
   if (typeof attrs.class === "string") {
     classes.push(attrs.class);
   } else if (Array.isArray(attrs.class)) {
@@ -73,12 +78,23 @@ const passthroughAttrs = computed(() => {
   const { class: _class, ...rest } = attrs;
   return rest;
 });
+
+const iconHref = computed(() => {
+  if (!props.icon) return "";
+  const id = props.icon.endsWith("-icon") ? props.icon : `${props.icon}-icon`;
+  return `/icons.svg#${id}`;
+});
 </script>
 
 <template>
   <component :is="component" class="btn" :class="buttonClass" :type="component === 'button' ? type : undefined" :to="to"
     :href="href" :disabled="disabled" v-bind="passthroughAttrs">
-    <slot />
+    <svg v-if="icon" class="btn__icon" role="presentation" aria-hidden="true">
+      <use :href="iconHref"></use>
+    </svg>
+    <span v-if="hasDefaultSlot" class="btn__text">
+      <slot />
+    </span>
   </component>
 </template>
 
@@ -99,6 +115,9 @@ const passthroughAttrs = computed(() => {
   cursor: pointer;
   text-decoration: none;
   box-sizing: border-box;
+  height: 44px;
+  line-height: 0;
+  white-space: nowrap;
 }
 
 .btn:disabled {
@@ -131,8 +150,20 @@ const passthroughAttrs = computed(() => {
   color: #4f46e5;
 }
 
+.btn--text.btn--icon {
+  padding: 12px 20px;
+}
+
+.btn--text.btn--icon .btn__text {
+  padding-left: 8px;
+}
+
+.btn--text.btn--icon .btn__icon {
+  vertical-align: middle;
+}
+
 .btn--icon {
-  padding: 0;
+  padding: 12px;
 }
 
 .btn--icon-sm {
@@ -153,6 +184,17 @@ const passthroughAttrs = computed(() => {
   width: 40px;
   height: 40px;
   line-height: 40px;
+}
+
+.btn__icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.btn__text {
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .btn--ghost.btn--icon-sm:not(:disabled):hover {

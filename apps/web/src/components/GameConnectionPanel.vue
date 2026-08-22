@@ -139,105 +139,56 @@ defineExpose({ reset });
           <template v-if="slot.teamId === teamId">
             <div v-if="renamingTeam" class="rename-team-form">
               <label :for="`rename-team-input-${slot.teamId}`">Новое название</label>
-              <input
-                :id="`rename-team-input-${slot.teamId}`"
-                v-model="renameDraft"
-                class="input"
-                placeholder="Название команды"
-                @keyup.enter="saveRenameTeam"
-              />
+              <input :id="`rename-team-input-${slot.teamId}`" v-model="renameDraft" class="input"
+                placeholder="Название команды" @keyup.enter="saveRenameTeam" />
               <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
               <div class="rename-team-actions">
                 <Button :disabled="renameLoading" @click="saveRenameTeam">
                   {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
                 </Button>
-                <Button
-                  variant="secondary"
-                  :disabled="renameLoading"
-                  @click="cancelRenameTeam"
-                >
+                <Button variant="secondary" :disabled="renameLoading" @click="cancelRenameTeam">
                   Отмена
                 </Button>
               </div>
             </div>
             <div v-else class="team-name-row">
               <span class="team-name">{{ slot.name }} <span class="team-you">(Вы)</span></span>
-              <Button
-                variant="ghost"
-                icon
-                aria-label="Переименовать команду"
-                @click="startRenameTeam"
-              >
-                <svg class="team-rename-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#pencil-icon"></use>
-                </svg>
-              </Button>
+              <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
             </div>
           </template>
           <span v-else class="team-slot-name">{{ slot.name }}</span>
 
-          <LinkCopyField
-            :url="getTeamSlotUrl(roomCode, slot.teamId)"
+          <LinkCopyField :url="getTeamSlotUrl(roomCode, slot.teamId)"
             :label="slot.teamId === teamId ? 'Ссылка слота' : `Ссылка «${slot.name}»`"
-            :highlight="slot.teamId === teamId"
-            @copied="onLinkCopied"
-          />
+            :highlight="slot.teamId === teamId" @copied="onLinkCopied" />
         </div>
       </template>
 
       <div v-else-if="mySlotUrl" class="team-slot-row">
         <div v-if="renamingTeam" class="rename-team-form">
           <label for="rename-team-input">Новое название</label>
-          <input
-            id="rename-team-input"
-            v-model="renameDraft"
-            class="input"
-            placeholder="Название команды"
-            @keyup.enter="saveRenameTeam"
-          />
+          <input id="rename-team-input" v-model="renameDraft" class="input" placeholder="Название команды"
+            @keyup.enter="saveRenameTeam" />
           <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
           <div class="rename-team-actions">
             <Button :disabled="renameLoading" @click="saveRenameTeam">
               {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
             </Button>
-            <Button
-              variant="secondary"
-              :disabled="renameLoading"
-              @click="cancelRenameTeam"
-            >
+            <Button variant="secondary" :disabled="renameLoading" @click="cancelRenameTeam">
               Отмена
             </Button>
           </div>
         </div>
         <div v-else-if="teamName" class="team-name-row">
           <span class="team-name">{{ teamName }} <span class="team-you">(Вы)</span></span>
-          <Button
-            variant="ghost"
-            icon
-            aria-label="Переименовать команду"
-            @click="startRenameTeam"
-          >
-            <svg class="team-rename-icon" role="presentation" aria-hidden="true">
-              <use href="/icons.svg#pencil-icon"></use>
-            </svg>
-          </Button>
+          <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
         </div>
 
-        <LinkCopyField
-          :url="mySlotUrl"
-          label="Ссылка слота"
-          highlight
-          @copied="onLinkCopied"
-        />
+        <LinkCopyField :url="mySlotUrl" label="Ссылка слота" highlight @copied="onLinkCopied" />
       </div>
 
-      <Button
-        v-if="canAddTeam && !showAddTeamLink"
-        variant="secondary"
-        block
-        class="add-team-btn"
-        @click="addTeam"
-      >
+      <Button v-if="canAddTeam && !showAddTeamLink" variant="secondary" block class="add-team-btn" @click="addTeam"
+        icon="copy">
         Добавить команду
       </Button>
       <p v-else-if="!canAddTeam" class="teams-limit-notice">
@@ -247,11 +198,7 @@ defineExpose({ reset });
         <p class="link-desc">
           Чтобы добавить команду, откройте ссылку на другом устройстве или отсканируйте QR-код.
         </p>
-        <LinkCopyField
-          :url="joinUrl"
-          label="Ссылка для новой команды"
-          @copied="onLinkCopied"
-        />
+        <LinkCopyField :url="joinUrl" label="Ссылка для новой команды" @copied="onLinkCopied" />
       </div>
     </div>
 
@@ -307,7 +254,7 @@ defineExpose({ reset });
   clear: both;
 }
 
-.room-code-row > div:first-child {
+.room-code-row>div:first-child {
   display: inline-block;
   vertical-align: middle;
 }
@@ -370,7 +317,7 @@ defineExpose({ reset });
   font-size: 0;
 }
 
-.rename-team-actions > * {
+.rename-team-actions>* {
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
@@ -383,14 +330,14 @@ defineExpose({ reset });
   margin: 0 0 5.6px;
 }
 
-.team-name-row > * {
+.team-name-row>* {
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
   margin-left: 6px;
 }
 
-.team-name-row > *:first-child {
+.team-name-row>*:first-child {
   margin-left: 0;
 }
 
@@ -409,11 +356,6 @@ defineExpose({ reset });
 .team-you {
   font-weight: normal;
   color: #6b7280;
-}
-
-.team-rename-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .add-team-btn {

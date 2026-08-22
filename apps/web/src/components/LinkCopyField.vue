@@ -60,27 +60,19 @@ function selectAll(event: FocusEvent) {
       <div class="link-copy-btn-wrap">
         <Button
           variant="ghost"
-          icon
+          icon="copy"
           :aria-label="`Копировать ${label}`"
           @click="copy"
-        >
-          <svg class="link-copy-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#copy-icon"></use>
-          </svg>
-        </Button>
+        />
       </div>
     </div>
     <Button
-      icon
+      icon="qr"
       icon-size="md"
       class="link-qr-btn"
       :aria-label="`QR-код: ${label}`"
       @click="openQr"
-    >
-      <svg class="link-qr-icon" role="presentation" aria-hidden="true">
-        <use href="/icons.svg#qr-icon"></use>
-      </svg>
-    </Button>
+    />
   </div>
 
   <Teleport to="body">
@@ -147,18 +139,8 @@ function selectAll(event: FocusEvent) {
   transform: translateY(-50%);
 }
 
-.link-copy-icon {
-  width: 18px;
-  height: 18px;
-}
-
 .link-qr-btn {
   margin-left: 8px;
-}
-
-.link-qr-icon {
-  width: 18px;
-  height: 18px;
 }
 
 .qr-overlay {

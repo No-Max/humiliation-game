@@ -30,12 +30,14 @@ defineEmits<{
         Выйти
       </Button>
     </template>
-    <Button v-if="linksActive" variant="secondary" icon icon-size="lg" aria-label="Подключение"
-      @click="$emit('openConnection')">
-      <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
-        <use href="/icons.svg#settings-icon"></use>
-      </svg>
-    </Button>
+    <Button
+      v-if="linksActive"
+      variant="secondary"
+      icon="settings"
+      icon-size="lg"
+      aria-label="Подключение"
+      @click="$emit('openConnection')"
+    />
   </div>
 </template>
 
@@ -64,10 +66,5 @@ defineEmits<{
 
 .page-actions .page-title {
   max-width: calc(100% - 280px);
-}
-
-.connection-settings-icon {
-  width: 20px;
-  height: 20px;
 }
 </style>

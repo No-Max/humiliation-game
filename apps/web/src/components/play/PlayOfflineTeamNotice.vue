@@ -17,16 +17,12 @@ defineEmits<{
     откройте ссылку командного слота на другом телефоне.
     <Button
       variant="secondary"
-      icon
+      icon="settings"
       icon-size="lg"
       class="connection-btn"
       aria-label="Подключение"
       @click="$emit('openConnection')"
-    >
-      <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
-        <use href="/icons.svg#settings-icon"></use>
-      </svg>
-    </Button>
+    />
   </div>
 </template>
 
@@ -40,10 +36,5 @@ defineEmits<{
 
 .connection-btn {
   margin-top: 12px;
-}
-
-.connection-settings-icon {
-  width: 20px;
-  height: 20px;
 }
 </style>

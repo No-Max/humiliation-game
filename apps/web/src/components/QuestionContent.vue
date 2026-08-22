@@ -32,19 +32,19 @@ defineProps<{
 }
 
 .question-text {
-  font-size: 1.125rem;
+  font-size: 18px;
   margin: 0;
   text-align: center;
 }
 
 .large .question-text {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: 600;
 }
 
 @media (min-width: 1024px) {
   .large .question-text {
-    font-size: 2.5rem;
+    font-size: 40px;
   }
 }
 </style>

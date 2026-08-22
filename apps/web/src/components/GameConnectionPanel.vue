@@ -267,23 +267,23 @@ defineExpose({ reset });
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .room-code-row > * + * {
-  margin-left: 0.75rem;
+  margin-left: 12px;
 }
 
 .room-code-label {
   display: block;
-  font-size: 0.8125rem;
+  font-size: 13px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .room-code-value {
-  font-size: 1.75rem;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 0.2em;
   font-variant-numeric: tabular-nums;
@@ -296,61 +296,61 @@ defineExpose({ reset });
 
 .room-code-hint {
   margin-top: 0;
-  margin-bottom: 0.75rem;
+  margin-bottom: 12px;
 }
 
 .connection-intro {
-  font-size: 0.875rem;
+  font-size: 14px;
   color: #6b7280;
-  margin: 0 0 1rem;
+  margin: 0 0 16px;
 }
 
 .connection-copy-message {
-  margin: 1rem 0 0;
+  margin: 16px 0 0;
   color: #059669;
-  font-size: 0.9375rem;
+  font-size: 15px;
   font-weight: 600;
   text-align: center;
 }
 
 .rename-team-form {
-  margin: 0 0 0.5rem;
+  margin: 0 0 8px;
 }
 
 .rename-team-form label {
   display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.875rem;
+  margin-bottom: 5.6px;
+  font-size: 14px;
   color: #374151;
 }
 
 .rename-team-actions {
   display: flex;
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 
 .rename-team-actions > * + * {
-  margin-left: 0.5rem;
+  margin-left: 8px;
 }
 
 .rename-team-error {
   color: #dc2626;
-  font-size: 0.875rem;
-  margin: 0.5rem 0 0;
+  font-size: 14px;
+  margin: 8px 0 0;
 }
 
 .team-name-row {
   display: flex;
   align-items: center;
-  margin: 0 0 0.35rem;
+  margin: 0 0 5.6px;
 }
 
 .team-name-row > * + * {
-  margin-left: 0.375rem;
+  margin-left: 6px;
 }
 
 .team-name {
-  font-size: 0.9375rem;
+  font-size: 15px;
   font-weight: 600;
   color: #4f46e5;
 }
@@ -364,8 +364,8 @@ defineExpose({ reset });
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -381,23 +381,23 @@ defineExpose({ reset });
 }
 
 .team-rename-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 16px;
+  height: 16px;
 }
 
 .add-team-btn {
   width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 
 .teams-limit-notice {
-  margin: 0.75rem 0 0;
+  margin: 12px 0 0;
   color: #92400e;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .add-team-link {
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 </style>

@@ -59,11 +59,11 @@ const emit = defineEmits<{
 }
 
 .team-score-name-row > * + * {
-  margin-left: 0.5rem;
+  margin-left: 8px;
 }
 
 .team-score-name-row :deep(.answer-timer) {
-  font-size: 1rem;
+  font-size: 16px;
 }
 
 .team-score.scored {
@@ -78,7 +78,7 @@ const emit = defineEmits<{
 
 .team-score-status {
   display: block;
-  font-size: 0.875rem;
+  font-size: 14px;
   color: #9ca3af;
 }
 

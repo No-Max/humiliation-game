@@ -182,7 +182,7 @@ const headerTitle = computed(() =>
       @confirm="confirmExit"
     />
 
-    <p v-if="message" style="color: #dc2626; margin-top: 1rem">
+    <p v-if="message" style="color: #dc2626; margin-top: 16px">
       {{ message }}
     </p>
   </div>

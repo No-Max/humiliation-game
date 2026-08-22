@@ -103,10 +103,10 @@ function reconnectAs(team: RoomTeam) {
 <template>
   <div>
     <h1 class="page-title">Новая команда</h1>
-    <p style="margin-bottom: 1rem">Код комнаты: <strong>{{ route.params.code }}</strong></p>
+    <p style="margin-bottom: 16px">Код комнаты: <strong>{{ route.params.code }}</strong></p>
 
-    <div class="card" style="margin-bottom: 1rem">
-      <p style="color: #6b7280; margin-bottom: 0.75rem">
+    <div class="card" style="margin-bottom: 16px">
+      <p style="color: #6b7280; margin-bottom: 12px">
         Эта страница — только для команды, которая ещё не в игре.
         Если телефон выключился — откройте <strong>ссылку командного слота</strong>,
         которую сохранили в начале игры.
@@ -116,7 +116,7 @@ function reconnectAs(team: RoomTeam) {
       </p>
       <template v-else>
         <input v-model="teamName" class="input" placeholder="Название новой команды" />
-        <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem">
+        <p style="color: #6b7280; font-size: 14px; margin-bottom: 12px">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>
         <button class="btn" :disabled="loading" @click="joinNew">
@@ -126,11 +126,11 @@ function reconnectAs(team: RoomTeam) {
     </div>
 
     <div v-if="existingTeams.length" class="card">
-      <h3 style="margin-bottom: 0.5rem">Уже в игре</h3>
-      <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem">
+      <h3 style="margin-bottom: 8px">Уже в игре</h3>
+      <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px">
         Занять слот существующей команды (если потеряли ссылку):
       </p>
-      <div style="display: grid; gap: 0.5rem">
+      <div style="display: grid; gap: 8px">
         <button
           v-for="team in existingTeams"
           :key="team.id"
@@ -143,7 +143,7 @@ function reconnectAs(team: RoomTeam) {
       </div>
     </div>
 
-    <p v-if="error" style="color: #dc2626; margin-top: 1rem">{{ error }}</p>
+    <p v-if="error" style="color: #dc2626; margin-top: 16px">{{ error }}</p>
   </div>
 </template>
 
@@ -151,7 +151,7 @@ function reconnectAs(team: RoomTeam) {
 .teams-limit-notice {
   margin: 0;
   color: #92400e;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
 }
 </style>

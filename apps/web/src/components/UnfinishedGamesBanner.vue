@@ -62,14 +62,14 @@ function dismiss(session: SavedGameSession) {
 
 <template>
   <div v-if="!loading && sessions.length && !isHiddenRoute()" class="card unfinished-games">
-    <h2 style="margin-bottom: 0.5rem">Незавершённые игры</h2>
-    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem">
+    <h2 style="margin-bottom: 8px">Незавершённые игры</h2>
+    <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px">
       У вас есть сохранённые игры — продолжите с того места, где остановились
     </p>
     <div v-for="session in sessions" :key="session.roomCode" class="unfinished-item">
       <div>
         <strong>{{ session.seriesTitle }}</strong>
-        <span style="color: #6b7280; font-size: 0.875rem">
+        <span style="color: #6b7280; font-size: 14px">
           · {{ session.teamName }} · {{ statusLabel(session.status) }}
         </span>
       </div>
@@ -91,8 +91,8 @@ function dismiss(session: SavedGameSession) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
+  gap: 12px;
+  padding: 12px 0;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -103,6 +103,6 @@ function dismiss(session: SavedGameSession) {
 
 .unfinished-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
 }
 </style>

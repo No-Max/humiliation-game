@@ -15,10 +15,10 @@ defineEmits<{
         </button>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom: 1rem">
+        <p style="margin-bottom: 16px">
           Игра будет поставлена на паузу. Вернитесь по ссылке командного слота, когда будете готовы.
         </p>
-        <div style="display: flex; gap: 0.5rem">
+        <div style="display: flex; gap: 8px">
           <button class="btn" @click="$emit('confirm')">Выйти</button>
           <button class="btn btn-secondary" @click="$emit('close')">Отмена</button>
         </div>

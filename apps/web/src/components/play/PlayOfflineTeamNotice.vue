@@ -11,14 +11,14 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card hint" style="margin-top: 1rem">
+  <div class="card hint" style="margin-top: 16px">
     <strong>{{ team.name }}</strong> offline —
     откройте ссылку командного слота на другом телефоне.
     <button
       class="btn btn-secondary connection-settings-btn"
       type="button"
       aria-label="Подключение"
-      style="margin-top: 0.75rem"
+      style="margin-top: 12px"
       @click="$emit('openConnection')"
     >
       <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
@@ -33,13 +33,13 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 40px;
+  height: 40px;
   padding: 0;
 }
 
 .connection-settings-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 20px;
+  height: 20px;
 }
 </style>

@@ -61,7 +61,7 @@ onUnmounted(() => {
 <style scoped>
 .answer-timer {
   display: inline-block;
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #4f46e5;

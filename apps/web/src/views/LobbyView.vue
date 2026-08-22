@@ -169,8 +169,8 @@ function startGame() {
 <style scoped>
 .hint {
   color: #6b7280;
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .setup-hint {
@@ -179,11 +179,11 @@ function startGame() {
 
 .error {
   color: #dc2626;
-  margin-bottom: 0.75rem;
+  margin-bottom: 12px;
 }
 
 .start-game-btn {
   width: 100%;
-  margin-top: 1.25rem;
+  margin-top: 20px;
 }
 </style>

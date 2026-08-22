@@ -6,14 +6,14 @@ import { RouterLink } from 'vue-router';
   <div>
     <h1 class="page-title">Добро пожаловать!</h1>
     <div class="card">
-      <p style="margin-bottom: 1rem">
+      <p style="margin-bottom: 16px">
         Собирайтесь с друзьями, запускайте нашу игру, улыбайтесь и получайте удовольствие от ваших знаний.
       </p>
       <RouterLink to="/series" class="btn">Выбрать выпуск</RouterLink>
     </div>
 
     <div class="card">
-      <h2 style="margin-bottom: 1rem">Как начать играть</h2>
+      <h2 style="margin-bottom: 16px">Как начать играть</h2>
       <div class="steps">
         <div class="step">
           <span class="step-num">1</span>

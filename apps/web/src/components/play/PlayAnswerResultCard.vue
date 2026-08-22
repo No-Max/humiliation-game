@@ -42,12 +42,12 @@ defineEmits<{
 
 <style scoped>
 .answer-result-card {
-  margin-top: 1rem;
+  margin-top: 16px;
 }
 
 .question-prompt {
-  margin: 0 0 1rem;
-  font-size: 1.0625rem;
+  margin: 0 0 16px;
+  font-size: 17px;
   line-height: 1.5;
   color: #374151;
 }

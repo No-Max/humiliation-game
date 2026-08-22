@@ -30,9 +30,9 @@ a.router-link-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  padding-left: max(2rem, env(safe-area-inset-left, 0px));
-  padding-right: max(2rem, env(safe-area-inset-right, 0px));
+  padding: 16px 32px;
+  padding-left: max(32px, env(safe-area-inset-left, 0px));
+  padding-right: max(32px, env(safe-area-inset-right, 0px));
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -40,7 +40,7 @@ a.router-link-active {
 .logo {
   flex-shrink: 0;
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 20px;
   color: #1a1a2e;
 }
 
@@ -53,18 +53,18 @@ a.router-link-active {
 
 .header nav a {
   display: inline-block;
-  padding: 0.375rem 0.5rem;
+  padding: 6px 8px;
   white-space: nowrap;
 }
 
 .header-connect-btn {
-  padding: 0.5rem 0.875rem;
+  padding: 8px 14px;
   border: none;
   border-radius: 8px;
   background: #4f46e5;
   color: #fff;
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -77,20 +77,20 @@ a.router-link-active {
 
 @media (min-width: 1024px) {
   .header {
-    padding-top: 1.25rem;
-    padding-bottom: 1.25rem;
-    padding-left: max(3rem, 2vw);
-    padding-right: max(3rem, 2vw);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: max(48px, 2vw);
+    padding-right: max(48px, 2vw);
   }
 
   .header nav a {
-    padding: 0.5rem 0.75rem;
+    padding: 8px 12px;
   }
 }
 
 .main {
   flex: 1;
-  padding: 2rem;
+  padding: 32px;
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
@@ -99,30 +99,30 @@ a.router-link-active {
 
 .main--display {
   max-width: none;
-  padding-left: max(2rem, 2vw);
-  padding-right: max(2rem, 2vw);
+  padding-left: max(32px, 2vw);
+  padding-right: max(32px, 2vw);
 }
 
 .main--game {
-  padding-top: 1rem;
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  padding-top: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
 }
 
 .main--game.main--display {
-  padding-top: 2rem;
+  padding-top: 32px;
 }
 
 .footer {
   text-align: center;
-  padding: 1rem;
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .page-title {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 32px;
+  margin-bottom: 16px;
 }
 
 .card {
@@ -130,7 +130,7 @@ a.router-link-active {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -164,12 +164,12 @@ a.router-link-active {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.625rem 1.25rem;
+  padding: 10px 20px;
   border: none;
   border-radius: 8px;
   background: #4f46e5;
   color: #fff;
-  font-size: 1rem;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -185,11 +185,11 @@ a.router-link-active {
 
 .input {
   width: 100%;
-  padding: 0.625rem 0.75rem;
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+  font-size: 16px;
+  margin-bottom: 12px;
 }
 
 .steps {
@@ -197,7 +197,7 @@ a.router-link-active {
 }
 
 .steps > * + * {
-  margin-top: 1rem;
+  margin-top: 16px;
 }
 
 .step {
@@ -206,12 +206,12 @@ a.router-link-active {
 }
 
 .step > * + * {
-  margin-left: 1rem;
+  margin-left: 16px;
 }
 
 .step-num {
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #4f46e5;
   color: #fff;
@@ -225,19 +225,19 @@ a.router-link-active {
 .scoreboard {
   display: flex;
   flex-wrap: wrap;
-  margin: -0.5rem -0.5rem 1rem;
+  margin: -8px -8px 16px;
   min-width: 0;
 }
 
 .team-score > * + * {
-  margin-top: 0.375rem;
+  margin-top: 6px;
 }
 
 .team-score {
   flex: 1 1 120px;
   min-width: 120px;
-  margin: 0.5rem;
-  padding: 1rem;
+  margin: 4px;
+  padding: 8px;
   border-radius: 8px;
   background: #f3f4f6;
   text-align: center;
@@ -259,12 +259,12 @@ a.router-link-active {
 }
 
 .tour-results-title {
-  font-size: 1.125rem;
+  font-size: 18px;
   margin: 0;
 }
 
 .tour-results-row {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
@@ -275,14 +275,14 @@ a.router-link-active {
 
 .tour-intro-meta {
   color: #6b7280;
-  font-size: 0.9375rem;
+  font-size: 15px;
   margin: 0;
   text-align: center;
 }
 
 .tour-intro-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.35;
   text-align: center;
@@ -290,7 +290,7 @@ a.router-link-active {
 
 .tour-intro-subtitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.35;
   text-align: left;
@@ -312,7 +312,7 @@ a.router-link-active {
 .rich-text-preview ul,
 .rich-text-preview ol {
   margin: 0 0 16px;
-  padding-left: 1.25rem;
+  padding-left: 20px;
 }
 
 .banner {
@@ -352,7 +352,7 @@ a.router-link-active {
 }
 
 .hints-caption {
-  font-size: 0.8125rem;
+  font-size: 13px;
   color: #92400e;
   font-weight: 600;
   margin: 0 0 16px;
@@ -391,7 +391,7 @@ a.router-link-active {
 .question-stack {
   display: flex;
   flex-direction: column;
-  margin-top: 1rem;
+  margin-top: 16px;
   min-width: 0;
 }
 
@@ -407,36 +407,35 @@ a.router-link-active {
   max-width: none;
   width: 100%;
   min-width: 0;
-  padding: 2rem 0;
+  padding: 32px 0;
   box-sizing: border-box;
 }
 
 .display-screen > * + * {
-  margin-top: 1.5rem;
+  margin-top: 24px;
 }
 
 .display-screen h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 32px;
   line-height: 1.2;
   text-align: center;
 }
 
 .display-screen .question {
-  font-size: 2rem;
+  font-size: 32px;
   text-align: center;
-  margin: 2rem 0;
+  margin: 32px 0;
 }
 
 @media (min-width: 1024px) {
   .display-screen h1 {
-    font-size: 2.5rem;
+    font-size: 40px;
   }
 
   .team-score {
     flex: 1 1 160px;
     min-width: 160px;
-    padding: 1.25rem;
   }
 }
 
@@ -447,7 +446,7 @@ a.router-link-active {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 16px;
   z-index: 1000;
 }
 
@@ -465,30 +464,30 @@ a.router-link-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
+  padding: 16px 20px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .modal-header h2 {
-  font-size: 1.25rem;
+  font-size: 20px;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 24px;
   line-height: 1;
   cursor: pointer;
   color: #6b7280;
-  padding: 0.25rem;
+  padding: 4px;
 }
 
 .modal-body {
-  padding: 1.25rem;
+  padding: 20px;
 }
 
 .link-block {
-  margin-bottom: 1.25rem;
+  margin-bottom: 20px;
 }
 
 .link-block:last-child {
@@ -497,13 +496,13 @@ a.router-link-active {
 
 .link-block strong {
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .link-desc {
-  font-size: 0.875rem;
+  font-size: 14px;
   color: #6b7280;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .link-copy-row {
@@ -513,7 +512,7 @@ a.router-link-active {
 }
 
 .link-copy-row > * + * {
-  margin-left: 0.5rem;
+  margin-left: 8px;
 }
 
 .link-copy-field {
@@ -525,12 +524,12 @@ a.router-link-active {
 .link-copy-input {
   width: 100%;
   box-sizing: border-box;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-family: inherit;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  padding: 8px 40px 8px 12px;
   color: #374151;
   outline: none;
 }
@@ -547,13 +546,13 @@ a.router-link-active {
 .link-copy-btn {
   position: absolute;
   top: 50%;
-  right: 0.25rem;
+  right: 4px;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -572,8 +571,8 @@ a.router-link-active {
 }
 
 .link-copy-icon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 18px;
+  height: 18px;
 }
 
 .link-qr-btn {
@@ -581,15 +580,15 @@ a.router-link-active {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2.375rem;
-  height: 2.375rem;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border-radius: 6px;
 }
 
 .link-qr-icon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 18px;
+  height: 18px;
 }
 
 .qr-overlay {
@@ -600,13 +599,13 @@ a.router-link-active {
   align-items: center;
   justify-content: center;
   z-index: 1100;
-  padding: 1rem;
+  padding: 16px;
 }
 
 .qr-dialog {
   background: #fff;
   border-radius: 12px;
-  width: min(100%, 20rem);
+  width: min(100%, 320px);
   box-shadow: 0 20px 40px rgb(0 0 0 / 20%);
 }
 
@@ -614,45 +613,45 @@ a.router-link-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem 0;
+  padding: 16px 20px 0;
 }
 
 .qr-dialog-header > * + * {
-  margin-left: 0.75rem;
+  margin-left: 12px;
 }
 
 .qr-dialog-header strong {
-  font-size: 0.9375rem;
+  font-size: 15px;
 }
 
 .qr-dialog-body {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 16px 20px 20px;
   text-align: center;
 }
 
 .qr-image {
   display: block;
-  width: 15rem;
-  height: 15rem;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   border-radius: 8px;
 }
 
 .qr-loading {
   color: #6b7280;
-  font-size: 0.875rem;
-  padding: 4rem 0;
+  font-size: 14px;
+  padding: 64px 0;
 }
 
 .qr-hint {
-  margin: 0.75rem 0 0;
+  margin: 12px 0 0;
   color: #6b7280;
-  font-size: 0.8125rem;
+  font-size: 13px;
   line-height: 1.4;
 }
 
 .team-slot-row {
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 
 .team-slot-row:first-of-type {
@@ -661,18 +660,18 @@ a.router-link-active {
 
 .team-slot-name {
   display: block;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 0.35rem;
+  margin-bottom: 5.6px;
 }
 
 .link-url {
-  font-size: 0.875rem;
+  font-size: 14px;
   word-break: break-all;
   background: #f3f4f6;
-  padding: 0.5rem 0.75rem;
+  padding: 8px 12px;
   border-radius: 6px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .link-url.highlight {
@@ -681,23 +680,23 @@ a.router-link-active {
 
 .page-actions {
   display: flex;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .page-actions > * + * {
-  margin-left: 0.5rem;
+  margin-left: 8px;
 }
 
 .pause-banner {
   background: #fef3c7;
   color: #92400e;
   text-align: center;
-  padding: 1rem;
+  padding: 16px;
   border-radius: 8px;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
 .pause-overlay {
@@ -714,8 +713,8 @@ a.router-link-active {
 .pause-overlay span {
   background: #fef3c7;
   color: #92400e;
-  font-size: 2.5rem;
+  font-size: 40px;
   font-weight: 700;
-  padding: 1.5rem 3rem;
+  padding: 24px 48px;
   border-radius: 12px;
 }

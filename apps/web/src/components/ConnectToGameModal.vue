@@ -102,24 +102,24 @@ async function connect() {
 }
 
 .connect-game-modal > * + * {
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 
 .connect-game-hint {
   margin: 0;
   color: #6b7280;
-  font-size: 0.9375rem;
+  font-size: 15px;
   line-height: 1.5;
 }
 
 .connect-game-label {
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
   color: #374151;
 }
 
 .connect-game-code {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-align: center;
@@ -129,10 +129,10 @@ async function connect() {
 .connect-game-error {
   margin: 0;
   color: #dc2626;
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .connect-game-submit {
-  margin-top: 0.25rem;
+  margin-top: 4px;
 }
 </style>

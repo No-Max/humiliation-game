@@ -51,7 +51,7 @@ onMounted(async () => {
           {{ formatTourQuestionMeta(tour._count.questions, tour.limitQuestionsToTeamCount) }}
         </li>
       </ul>
-      <p v-else style="color: #6b7280; font-size: 0.875rem; margin: 0.5rem 0">Туры не добавлены</p>
+      <p v-else style="color: #6b7280; font-size: 14px; margin: 8px 0">Туры не добавлены</p>
       <RouterLink :to="`/lobby/${item.id}`" class="btn">Играть</RouterLink>
     </div>
   </div>
@@ -59,16 +59,16 @@ onMounted(async () => {
 
 <style scoped>
 .series-description {
-  margin: 0.5rem 0;
+  margin: 8px 0;
 }
 
 .series-tours-list {
   list-style: none;
   padding: 0;
-  margin: 0.5rem 0 1rem;
+  margin: 8px 0 16px;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 14px;
   display: grid;
-  gap: 0.25rem;
+  gap: 4px;
 }
 </style>

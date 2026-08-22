@@ -82,7 +82,7 @@ function imageUrls(group: MediaGroup): string[] {
 
 <style scoped>
 .answer-reveal-media {
-  margin: 0.75rem 0;
+  margin: 12px 0;
   display: block;
   width: 100%;
   max-width: 100%;
@@ -90,7 +90,7 @@ function imageUrls(group: MediaGroup): string[] {
 }
 
 .answer-reveal-media > * + * {
-  margin-top: 0.75rem;
+  margin-top: 12px;
 }
 
 .answer-reveal-group {
@@ -99,7 +99,7 @@ function imageUrls(group: MediaGroup): string[] {
   justify-content: center;
   align-items: stretch;
   width: 100%;
-  margin: -0.375rem;
+  margin: -6px;
 }
 
 .answer-reveal-item {
@@ -107,7 +107,7 @@ function imageUrls(group: MediaGroup): string[] {
   width: 100%;
   max-width: 420px;
   min-width: 0;
-  margin: 0.375rem;
+  margin: 6px;
   box-sizing: border-box;
 }
 

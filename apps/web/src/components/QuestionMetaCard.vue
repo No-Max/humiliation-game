@@ -38,7 +38,7 @@ defineProps<{
 .question-meta-details {
   margin: 0;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .question-meta-turn {

@@ -16,6 +16,7 @@ const props = withDefaults(
     icon?: boolean;
     iconSize?: "sm" | "md" | "lg";
     large?: boolean;
+    compact?: boolean;
   }>(),
   {
     variant: "primary",
@@ -53,6 +54,10 @@ const buttonClass = computed(() => {
     classes.push("btn--large");
   }
 
+  if (props.compact) {
+    classes.push("btn--compact");
+  }
+
   if (typeof attrs.class === "string") {
     classes.push(attrs.class);
   } else if (Array.isArray(attrs.class)) {
@@ -71,16 +76,8 @@ const passthroughAttrs = computed(() => {
 </script>
 
 <template>
-  <component
-    :is="component"
-    class="btn"
-    :class="buttonClass"
-    :type="component === 'button' ? type : undefined"
-    :to="to"
-    :href="href"
-    :disabled="disabled"
-    v-bind="passthroughAttrs"
-  >
+  <component :is="component" class="btn" :class="buttonClass" :type="component === 'button' ? type : undefined" :to="to"
+    :href="href" :disabled="disabled" v-bind="passthroughAttrs">
     <slot />
   </component>
 </template>
@@ -198,5 +195,11 @@ const passthroughAttrs = computed(() => {
 .btn--choice.btn--large {
   padding: 16px 20px;
   font-size: 20px;
+}
+
+.btn--compact {
+  padding: 8px 16px;
+  font-size: 14px;
+  line-height: 18px;
 }
 </style>

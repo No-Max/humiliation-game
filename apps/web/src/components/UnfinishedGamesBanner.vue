@@ -69,14 +69,14 @@ function dismiss(session: SavedGameSession) {
     </p>
     <div v-for="session in sessions" :key="session.roomCode" class="unfinished-item">
       <div class="unfinished-item-content">
-        <strong>{{ session.seriesTitle }}</strong>
+        <span class="unfinished-series-title">{{ session.seriesTitle }}</span>
         <span class="unfinished-meta text-muted-sm">
           {{ session.teamName }} · {{ statusLabel(session.status) }}
         </span>
       </div>
       <div class="unfinished-actions">
-        <Button @click="continueGame(session)">Продолжить</Button>
-        <Button variant="secondary" @click="dismiss(session)">Убрать</Button>
+        <Button @click="continueGame(session)" compact>Продолжить</Button>
+        <Button variant="secondary" @click="dismiss(session)" compact>Убрать</Button>
       </div>
     </div>
   </div>
@@ -96,7 +96,15 @@ function dismiss(session: SavedGameSession) {
 }
 
 .unfinished-meta {
-  display: inline;
+  display: inline-block;
+
+}
+
+.unfinished-series-title {
+  display: inline-block;
+  padding-right: 16px;
+  font-weight: 600;
+  width: 100%;
 }
 
 .unfinished-item {
@@ -104,6 +112,10 @@ function dismiss(session: SavedGameSession) {
   padding: 12px 0;
   border-top: 1px solid #e5e7eb;
   width: 100%;
+}
+
+.unfinished-item:last-child {
+  padding-bottom: 0;
 }
 
 .unfinished-item-content {
@@ -128,12 +140,12 @@ function dismiss(session: SavedGameSession) {
   display: inline-block;
   vertical-align: middle;
   font-size: 0;
+  position: relative;
+  top: 12px;
 }
 
 .unfinished-actions>* {
   display: inline-block;
-  vertical-align: middle;
-  font-size: 16px;
   margin-left: 8px;
 }
 

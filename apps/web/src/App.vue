@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { RouterLink, RouterView, useRoute } from 'vue-router';
-import Button from './components/Button.vue';
-import ConnectToGameModal from './components/ConnectToGameModal.vue';
-import UnfinishedGamesBanner from './components/UnfinishedGamesBanner.vue';
+import { computed, ref } from "vue";
+import { RouterLink, RouterView, useRoute } from "vue-router";
+import Button from "./components/Button.vue";
+import ConnectToGameModal from "./components/ConnectToGameModal.vue";
+import UnfinishedGamesBanner from "./components/UnfinishedGamesBanner.vue";
 
 const showConnectModal = ref(false);
 const route = useRoute();
-const isDisplayLayout = computed(() => route.path.startsWith('/display/'));
+const isDisplayLayout = computed(() => route.path.startsWith("/display/"));
 const isGameLayout = computed(
   () =>
-    route.path.startsWith('/display/')
-    || route.path.startsWith('/play/')
-    || route.path.startsWith('/team/'),
+    route.path.startsWith("/display/") ||
+    route.path.startsWith("/play/") ||
+    route.path.startsWith("/team/")
 );
 </script>
 
@@ -24,15 +24,10 @@ const isGameLayout = computed(
         <RouterLink to="/">Главная</RouterLink>
         <RouterLink to="/rules">Правила</RouterLink>
         <RouterLink to="/series">Выпуски</RouterLink>
+        <Button @click="showConnectModal = true"> Подключиться к игре </Button>
       </nav>
-      <Button @click="showConnectModal = true">
-        Подключиться к игре
-      </Button>
     </header>
-    <main
-      class="main"
-      :class="{ 'main--display': isDisplayLayout, 'main--game': isGameLayout }"
-    >
+    <main class="main" :class="{ 'main--display': isDisplayLayout, 'main--game': isGameLayout }">
       <UnfinishedGamesBanner v-if="!isGameLayout" />
       <RouterView />
     </main>
@@ -51,13 +46,13 @@ const isGameLayout = computed(
 
 .header {
   display: block;
-  padding: 16px;
+  padding: 16px 32px;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .header::after {
-  content: '';
+  content: "";
   display: table;
   clear: both;
 }
@@ -77,18 +72,25 @@ const isGameLayout = computed(
   max-width: 100%;
   text-align: right;
   vertical-align: middle;
+  width: calc(100% - 200px);
+  text-align: center;
 }
 
 .header nav a {
   display: inline-block;
   vertical-align: middle;
-  padding: 8px 12px;
+  padding: 12px 8px;
+  line-height: 20px;
   white-space: nowrap;
+}
+
+.header nav a:first-child {
+  padding-left: 0;
 }
 
 .header :deep(.btn) {
   float: right;
-  margin-left: 12px;
+  margin-left: 8px;
 }
 
 .main {
@@ -123,16 +125,10 @@ const isGameLayout = computed(
   font-size: 14px;
 }
 
-@media (max-width: 1023px) {
-  .header {
-    padding-top: 16px;
-    padding-bottom: 16px;
-    padding-left: max(32px, env(safe-area-inset-left, 0px));
-    padding-right: max(32px, env(safe-area-inset-right, 0px));
-  }
-
-  .header nav a {
-    padding: 6px 8px;
+@media (max-width: 768px) {
+  .header nav {
+    width: 100%;
+    text-align: left;
   }
 }
 </style>

@@ -35,14 +35,6 @@ a.router-link-active {
   min-width: 0;
 }
 
-.card > * {
-  margin-bottom: 0;
-}
-
-.card > * + * {
-  margin-top: 16px;
-}
-
 .card .input {
   margin-bottom: 0;
 }

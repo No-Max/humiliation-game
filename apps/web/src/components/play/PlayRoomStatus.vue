@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from '../Button.vue';
+import Icon from '../Icon.vue';
 
 defineProps<{
   code: string;
@@ -19,7 +20,8 @@ defineEmits<{
 
 <template>
   <div v-if="isPaused" class="banner warning pause-banner">
-    ⏸ Игра на паузе
+    <Icon name="pause" :size="18" />
+    Игра на паузе
     <span v-if="pausedBy"> ({{ pausedBy }})</span>
     — нажмите «Продолжить», когда будете готовы
   </div>
@@ -45,6 +47,10 @@ defineEmits<{
 
 <style scoped>
 .pause-banner {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 8px;
 }
 </style>

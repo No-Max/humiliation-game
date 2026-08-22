@@ -15,6 +15,7 @@ import QuestionHints from '../components/QuestionHints.vue';
 import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 import AnswerRevealMedia from '../components/AnswerRevealMedia.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
+import Icon from '../components/Icon.vue';
 
 const route = useRoute();
 const state = ref<RoomState | null>(null);
@@ -51,7 +52,10 @@ onUnmounted(() => cleanup?.());
 <template>
   <div class="display-screen">
     <div v-if="state?.status === 'PAUSED'" class="pause-overlay">
-      <span>⏸ ПАУЗА</span>
+      <span class="pause-overlay-label">
+        <Icon name="pause" :size="40" />
+        ПАУЗА
+      </span>
     </div>
 
     <h1>{{ headerTitle }}</h1>
@@ -178,7 +182,9 @@ onUnmounted(() => cleanup?.());
 }
 
 .pause-overlay span {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
   vertical-align: middle;
   white-space: normal;
   background: #fef3c7;

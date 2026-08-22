@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { formatHintsCount, formatHintsProgress } from '@humiliation-game/shared';
+import Icon from './Icon.vue';
 
 const props = defineProps<{
   hints?: string[];
@@ -20,7 +21,8 @@ const caption = computed(() => {
 
 <template>
   <p class="hints-caption">
-    💡 {{ caption }}
+    <Icon name="hint" :size="14" />
+    {{ caption }}
   </p>
   <div v-if="hintsTotal" class="hints-list">
     <p v-for="(hint, index) in hints" :key="`${index}-${hint}`" class="hint"
@@ -38,6 +40,9 @@ const caption = computed(() => {
 }
 
 .hints-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: #92400e;
   font-weight: bold;

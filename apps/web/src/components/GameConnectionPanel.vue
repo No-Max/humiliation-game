@@ -6,6 +6,7 @@ import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
 import Button from './Button.vue';
 import Input from './Input.vue';
+import Icon from './Icon.vue';
 import {
   getDisplayUrl,
   getJoinUrl,
@@ -109,7 +110,10 @@ defineExpose({ reset });
     <p v-if="introText" class="connection-intro text-muted-sm">{{ introText }}</p>
 
     <div class="link-block">
-      <strong>📺 Экран</strong>
+      <strong class="link-block-title">
+        <Icon name="display" :size="18" />
+        Экран
+      </strong>
       <p class="link-desc text-muted-sm">
         TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
       </p>
@@ -127,7 +131,10 @@ defineExpose({ reset });
     </div>
 
     <div v-if="state?.teamSlots?.length || mySlotUrl" class="link-block">
-      <strong>📱 Команды</strong>
+      <strong class="link-block-title">
+        <Icon name="phone" :size="18" />
+        Команды
+      </strong>
       <p class="link-desc text-muted-sm">
         Джойстик команды. Любой телефон команды может подключиться —
         предыдущее устройство отключится.
@@ -215,8 +222,10 @@ defineExpose({ reset });
   margin-bottom: 0;
 }
 
-.link-block strong {
-  display: block;
+.link-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 4px;
 }
 

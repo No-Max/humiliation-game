@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import Icon from './Icon.vue';
 
 const props = defineProps<{
   deadlineAt?: number;
@@ -54,18 +55,31 @@ onUnmounted(() => {
 
 <template>
   <div v-if="remainingSec != null" class="answer-timer" :class="{ urgent }">
-    ⏱ {{ formatted }}
+    <Icon name="timer" :size="18" class="answer-timer__icon" />
+    <span class="answer-timer__text">{{ formatted }}</span>
   </div>
 </template>
 
 <style scoped>
 .answer-timer {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 20px;
   font-weight: bold;
   font-variant-numeric: tabular-nums;
   color: #4f46e5;
   margin: 0;
+}
+
+.answer-timer__text {
+  vertical-align: middle;
+  padding-left: 4px;
+}
+
+.answer-timer__icon {
+  color: inherit;
+  vertical-align: middle;
 }
 
 .answer-timer.urgent {

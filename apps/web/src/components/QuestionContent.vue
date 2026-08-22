@@ -39,7 +39,7 @@ defineProps<{
 
 .large .question-text {
   font-size: 40px;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 @media (max-width: 1023px) {

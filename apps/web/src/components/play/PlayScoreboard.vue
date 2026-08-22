@@ -115,7 +115,7 @@ const emit = defineEmits<{
 }
 
 .team-score-award {
-  font-weight: 700;
+  font-weight: bold;
   color: #065f46;
 }
 

@@ -103,7 +103,7 @@ function dismiss(session: SavedGameSession) {
 .unfinished-series-title {
   display: inline-block;
   padding-right: 16px;
-  font-weight: 600;
+  font-weight: bold;
   width: 100%;
 }
 

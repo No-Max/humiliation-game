@@ -44,7 +44,7 @@ const caption = computed(() => {
 .hints-caption {
   font-size: 13px;
   color: #92400e;
-  font-weight: 600;
+  font-weight: bold;
   margin: 0 0 16px;
 }
 

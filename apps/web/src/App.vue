@@ -60,7 +60,7 @@ const isGameLayout = computed(
 .logo {
   float: left;
   display: inline-block;
-  font-weight: 700;
+  font-weight: bold;
   font-size: 20px;
   line-height: 44px;
   color: #1a1a2e;

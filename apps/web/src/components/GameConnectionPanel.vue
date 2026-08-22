@@ -292,7 +292,7 @@ defineExpose({ reset });
 .team-slot-name {
   display: block;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: bold;
   margin-bottom: 5.6px;
 }
 
@@ -321,14 +321,14 @@ defineExpose({ reset });
 .room-code-label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: bold;
   color: #6b7280;
   margin-bottom: 4px;
 }
 
 .room-code-value {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: bold;
   letter-spacing: 0.2em;
   font-variant-numeric: tabular-nums;
   color: #1a1a2e;
@@ -349,7 +349,7 @@ defineExpose({ reset });
   margin: 16px 0 0;
   color: #059669;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: bold;
   text-align: center;
 }
 
@@ -402,12 +402,12 @@ defineExpose({ reset });
 
 .team-name {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: bold;
   color: #4f46e5;
 }
 
 .team-you {
-  font-weight: 500;
+  font-weight: normal;
   color: #6b7280;
 }
 
@@ -424,7 +424,7 @@ defineExpose({ reset });
   margin: 12px 0 0;
   color: #92400e;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .add-team-link {

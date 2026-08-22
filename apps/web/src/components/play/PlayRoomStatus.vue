@@ -50,7 +50,7 @@ defineEmits<{
   text-align: center;
   padding: 8px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: bold;
   margin-bottom: 8px;
 }
 </style>

@@ -114,13 +114,13 @@ async function connect() {
 
 .connect-game-label {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: bold;
   color: #374151;
 }
 
 .connect-game-code {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: bold;
   letter-spacing: 0.2em;
   text-align: center;
   font-variant-numeric: tabular-nums;

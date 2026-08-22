@@ -34,7 +34,7 @@ defineProps<{
 
 .tour-results-row {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: bold;
   margin: 0;
 }
 </style>

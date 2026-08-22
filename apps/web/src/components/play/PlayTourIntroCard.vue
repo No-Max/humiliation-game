@@ -46,7 +46,7 @@ defineEmits<{
 .tour-intro-title {
   margin: 0;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: bold;
   line-height: 1.35;
   text-align: center;
 }
@@ -61,7 +61,7 @@ defineEmits<{
 .tour-intro-subtitle {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: bold;
   line-height: 1.35;
   text-align: left;
 }
@@ -87,7 +87,7 @@ defineEmits<{
 
 .tour-results-row {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: bold;
   margin: 0;
 }
 </style>

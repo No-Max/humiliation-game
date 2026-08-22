@@ -206,7 +206,7 @@ onUnmounted(() => cleanup?.());
 
 .tour-results-row {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: bold;
   margin: 0;
 }
 
@@ -220,7 +220,7 @@ onUnmounted(() => cleanup?.());
 .tour-intro-subtitle {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: bold;
   line-height: 1.35;
   text-align: left;
 }
@@ -259,7 +259,7 @@ onUnmounted(() => cleanup?.());
   background: #fef3c7;
   color: #92400e;
   font-size: 40px;
-  font-weight: 700;
+  font-weight: bold;
   padding: 24px 48px;
   border-radius: 12px;
 }

@@ -46,12 +46,12 @@ defineProps<{
 }
 
 .question-meta-turn-own {
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .turn-notice {
   margin-top: 16px;
   text-align: center;
-  font-weight: 600;
+  font-weight: bold;
 }
 </style>

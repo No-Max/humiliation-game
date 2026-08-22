@@ -186,6 +186,6 @@ function reconnectAs(team: RoomTeam) {
   margin: 0;
   color: #92400e;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: bold;
 }
 </style>

@@ -95,6 +95,7 @@ const passthroughAttrs = computed(() => {
   font-size: 16px;
   line-height: 20px;
   font-family: inherit;
+  font-weight: bold;
   cursor: pointer;
   text-decoration: none;
   box-sizing: border-box;

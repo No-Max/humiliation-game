@@ -72,7 +72,7 @@ import Button from '../components/Button.vue';
   color: #fff;
   text-align: center;
   line-height: 32px;
-  font-weight: 700;
+  font-weight: bold;
 }
 
 .step > :not(.step-num) {

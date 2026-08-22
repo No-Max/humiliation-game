@@ -62,7 +62,7 @@ onUnmounted(() => {
 .answer-timer {
   display: inline-block;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: bold;
   font-variant-numeric: tabular-nums;
   color: #4f46e5;
   margin: 0;

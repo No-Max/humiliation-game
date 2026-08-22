@@ -12,9 +12,28 @@
     "dev:admin": "npm run build --workspace=packages/shared && npm run dev --workspace=apps/admin",
     "dev:public": "bash scripts/dev-public.sh",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/server && npm run build --workspace=apps/web && npm run build --workspace=apps/admin",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck --workspace=apps/web && npm run typecheck --workspace=apps/admin && npm run typecheck:server",
+    "typecheck:server": "npm run db:generate --workspace=apps/server && tsc -p apps/server/tsconfig.json",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate --workspace=apps/server",
     "db:seed": "npm run db:seed --workspace=apps/server"
+  },
+  "overrides": {
+    "typescript": "6.0.3",
+    "vue-tsc": {
+      "typescript": "6.0.3"
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-vue": "^10.6.2",
+    "globals": "^16.5.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.48.0",
+    "vue-eslint-parser": "^10.2.0",
+    "vue-tsc": "^3.3.10"
   }
 }

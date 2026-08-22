@@ -20,31 +20,18 @@ defineEmits<{
   <div class="page-actions">
     <h1 class="page-title" style="margin: 0">{{ seriesTitle }}</h1>
     <template v-if="linksActive && joined">
-      <Button
-        v-if="!isPaused"
-        variant="secondary"
-        @click="$emit('pause')"
-      >
+      <Button v-if="!isPaused" variant="secondary" @click="$emit('pause')">
         Пауза
       </Button>
-      <Button
-        v-else
-        @click="$emit('resume')"
-      >
+      <Button v-else @click="$emit('resume')">
         Продолжить
       </Button>
       <Button variant="secondary" @click="$emit('exit')">
         Выйти
       </Button>
     </template>
-    <Button
-      v-if="linksActive"
-      variant="secondary"
-      icon
-      icon-size="lg"
-      aria-label="Подключение"
-      @click="$emit('openConnection')"
-    >
+    <Button v-if="linksActive" variant="secondary" icon icon-size="lg" aria-label="Подключение"
+      @click="$emit('openConnection')">
       <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#settings-icon"></use>
       </svg>
@@ -55,11 +42,11 @@ defineEmits<{
 <style scoped>
 .page-actions {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   font-size: 0;
 }
 
-.page-actions > * {
+.page-actions>* {
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
@@ -67,7 +54,7 @@ defineEmits<{
   margin-bottom: 8px;
 }
 
-.page-actions > :first-child {
+.page-actions> :first-child {
   margin-left: 0;
 }
 

@@ -186,8 +186,7 @@ defineExpose({ reset });
         <LinkCopyField :url="mySlotUrl" label="Ссылка слота" highlight @copied="onLinkCopied" />
       </div>
 
-      <Button v-if="canAddTeam && !showAddTeamLink" variant="secondary" block class="add-team-btn" @click="addTeam"
-        icon="copy">
+      <Button v-if="canAddTeam && !showAddTeamLink" variant="secondary" block class="add-team-btn" @click="addTeam">
         Добавить команду
       </Button>
       <p v-else-if="!canAddTeam" class="teams-limit-notice">

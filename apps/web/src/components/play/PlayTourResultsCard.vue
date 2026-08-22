@@ -22,3 +22,10 @@ defineEmits<{
     <Button @click="$emit('continueToTourIntro')">Далее</Button>
   </div>
 </template>
+
+
+<style scoped>
+.tour-results {
+  margin-bottom: 16px;
+}
+</style>

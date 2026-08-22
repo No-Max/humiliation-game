@@ -114,7 +114,7 @@ const isGameLayout = computed(
 }
 
 .main--game.main--display {
-  padding-top: 32px;
+  padding-top: 44px;
 }
 
 .footer {

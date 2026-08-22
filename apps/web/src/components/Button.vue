@@ -174,6 +174,7 @@ const iconHref = computed(() => {
 .btn__text {
   vertical-align: middle;
   display: inline-block;
+  line-height: 20px;
 }
 
 .btn--block {
@@ -213,6 +214,11 @@ const iconHref = computed(() => {
 .btn--compact {
   padding: 8px 16px;
   font-size: 14px;
+  line-height: 18px;
+  height: 36px;
+}
+
+.btn--compact .btn__text {
   line-height: 18px;
 }
 </style>

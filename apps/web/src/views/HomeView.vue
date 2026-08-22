@@ -46,10 +46,6 @@ import Button from '../components/Button.vue';
   margin-bottom: 16px;
 }
 
-.section-heading {
-  margin-bottom: 16px;
-}
-
 .steps {
   display: block;
 }

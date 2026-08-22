@@ -2,6 +2,7 @@
 import QRCode from 'qrcode';
 import { ref } from 'vue';
 import Button from './Button.vue';
+import ModalShell from './ModalShell.vue';
 
 const props = defineProps<{
   url: string;
@@ -68,7 +69,6 @@ function selectAll(event: FocusEvent) {
     </div>
     <Button
       icon="qr"
-      icon-size="md"
       class="link-qr-btn"
       :aria-label="`QR-код: ${label}`"
       @click="openQr"
@@ -76,21 +76,19 @@ function selectAll(event: FocusEvent) {
   </div>
 
   <Teleport to="body">
-    <div v-if="showQr" class="qr-overlay" @click.self="closeQr">
-      <div class="qr-dialog" role="dialog" :aria-label="`QR-код: ${label}`">
-        <div class="qr-dialog-header">
-          <strong>{{ label }}</strong>
-          <Button variant="close" aria-label="Закрыть" @click="closeQr">
-            ×
-          </Button>
-        </div>
-        <div class="qr-dialog-body">
-          <p v-if="qrLoading" class="qr-loading">Генерация QR-кода…</p>
-          <img v-else-if="qrDataUrl" :src="qrDataUrl" alt="" class="qr-image" />
-          <p class="qr-hint">Отсканируйте камерой телефона, чтобы открыть ссылку</p>
-        </div>
+    <ModalShell v-if="showQr" title-id="qr-dialog-title" @close="closeQr">
+      <template #header>
+        <h2 id="qr-dialog-title">{{ label }}</h2>
+        <Button variant="close" aria-label="Закрыть" @click="closeQr">
+          ×
+        </Button>
+      </template>
+      <div class="qr-dialog-body">
+        <p v-if="qrLoading" class="qr-loading text-muted-sm">Генерация QR-кода…</p>
+        <img v-else-if="qrDataUrl" :src="qrDataUrl" alt="" class="qr-image" />
+        <p class="qr-hint text-muted-sm">Отсканируйте камерой телефона, чтобы открыть ссылку</p>
       </div>
-    </div>
+    </ModalShell>
   </Teleport>
 </template>
 
@@ -143,57 +141,7 @@ function selectAll(event: FocusEvent) {
   margin-left: 8px;
 }
 
-.qr-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgb(0 0 0 / 45%);
-  z-index: 1100;
-  padding: 16px;
-  text-align: center;
-  font-size: 0;
-  white-space: nowrap;
-  overflow: auto;
-}
-
-.qr-overlay::before {
-  content: '';
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-}
-
-.qr-dialog {
-  display: inline-block;
-  vertical-align: middle;
-  white-space: normal;
-  text-align: left;
-  font-size: 16px;
-  background: #fff;
-  border-radius: 12px;
-  width: min(100%, 320px);
-  box-shadow: 0 20px 40px rgb(0 0 0 / 20%);
-}
-
-.qr-dialog-header {
-  display: block;
-  padding: 16px 20px 0;
-}
-
-.qr-dialog-header::after {
-  content: '';
-  display: table;
-  clear: both;
-}
-
-.qr-dialog-header strong {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 15px;
-  max-width: calc(100% - 40px);
-}
-
 .qr-dialog-body {
-  padding: 16px 20px 20px;
   text-align: center;
 }
 
@@ -206,15 +154,11 @@ function selectAll(event: FocusEvent) {
 }
 
 .qr-loading {
-  color: #6b7280;
-  font-size: 14px;
   padding: 64px 0;
 }
 
 .qr-hint {
   margin: 12px 0 0;
-  color: #6b7280;
-  font-size: 13px;
   line-height: 1.4;
 }
 </style>

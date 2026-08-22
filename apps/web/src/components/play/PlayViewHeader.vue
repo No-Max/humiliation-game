@@ -34,7 +34,6 @@ defineEmits<{
       v-if="linksActive"
       variant="secondary"
       icon="settings"
-      icon-size="lg"
       aria-label="Подключение"
       @click="$emit('openConnection')"
     />

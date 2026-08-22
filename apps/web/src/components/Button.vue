@@ -109,7 +109,6 @@ const iconHref = computed(() => {
   background: #4f46e5;
   color: #fff;
   font-size: 16px;
-  line-height: 20px;
   font-family: inherit;
   font-weight: bold;
   cursor: pointer;
@@ -166,26 +165,6 @@ const iconHref = computed(() => {
   padding: 12px;
 }
 
-.btn--icon-sm {
-  width: 32px;
-  height: 32px;
-  line-height: 32px;
-  border-radius: 4px;
-}
-
-.btn--icon-md {
-  width: 38px;
-  height: 38px;
-  line-height: 38px;
-  border-radius: 6px;
-}
-
-.btn--icon-lg {
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-}
-
 .btn__icon {
   width: 20px;
   height: 20px;
@@ -195,15 +174,6 @@ const iconHref = computed(() => {
 .btn__text {
   vertical-align: middle;
   display: inline-block;
-}
-
-.btn--ghost.btn--icon-sm:not(:disabled):hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.btn--ghost.btn--icon-sm:not(:disabled):active {
-  background: #d1d5db;
 }
 
 .btn--block {

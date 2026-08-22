@@ -16,25 +16,3 @@ defineProps<{
     </div>
   </div>
 </template>
-
-<style scoped>
-.tour-results {
-  margin: 0;
-  display: block;
-}
-
-.tour-results > * + * {
-  margin-top: 16px;
-}
-
-.tour-results-title {
-  font-size: 18px;
-  margin: 0;
-}
-
-.tour-results-row {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0;
-}
-</style>

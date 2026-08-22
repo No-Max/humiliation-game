@@ -176,64 +176,6 @@ onUnmounted(() => cleanup?.());
   text-align: center;
 }
 
-.question-stack {
-  display: block;
-  margin-top: 16px;
-  min-width: 0;
-}
-
-.question-stack > * + * {
-  margin-top: 16px;
-}
-
-.question-stack > :deep(.card) {
-  margin-bottom: 0;
-}
-
-.tour-results {
-  margin: 0;
-  display: block;
-}
-
-.tour-results > * + * {
-  margin-top: 16px;
-}
-
-.tour-results-title {
-  font-size: 18px;
-  margin: 0;
-}
-
-.tour-results-row {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0;
-}
-
-.tour-intro-meta {
-  color: #6b7280;
-  font-size: 15px;
-  margin: 0;
-  text-align: center;
-}
-
-.tour-intro-subtitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: bold;
-  line-height: 1.35;
-  text-align: left;
-}
-
-.tour-rules {
-  margin: 0;
-  text-align: left;
-}
-
-.tour-hint {
-  margin: 0;
-}
-
 .pause-overlay {
   position: fixed;
   inset: 0;

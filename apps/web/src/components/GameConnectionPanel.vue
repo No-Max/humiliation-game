@@ -105,23 +105,23 @@ defineExpose({ reset });
 
 <template>
   <div>
-    <p v-if="introText" class="connection-intro">{{ introText }}</p>
+    <p v-if="introText" class="connection-intro text-muted-sm">{{ introText }}</p>
 
     <div class="link-block">
       <strong>📺 Экран</strong>
-      <p class="link-desc">
+      <p class="link-desc text-muted-sm">
         TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
       </p>
       <div v-if="roomCode" class="room-code-row">
         <div>
-          <span class="room-code-label">Код комнаты</span>
+          <span class="room-code-label text-muted-sm">Код комнаты</span>
           <span class="room-code-value">{{ roomCode }}</span>
         </div>
         <Button variant="secondary" class="room-code-copy" @click="copyRoomCode">
           Копировать
         </Button>
       </div>
-      <p v-if="roomCode" class="link-desc room-code-hint">
+      <p v-if="roomCode" class="link-desc room-code-hint text-muted-sm">
         Или введите код на экране через «Подключиться к игре» в шапке сайта.
       </p>
       <LinkCopyField :url="displayUrl" label="Ссылка экрана" @copied="onLinkCopied" />
@@ -129,7 +129,7 @@ defineExpose({ reset });
 
     <div v-if="state?.teamSlots?.length || mySlotUrl" class="link-block">
       <strong>📱 Команды</strong>
-      <p class="link-desc">
+      <p class="link-desc text-muted-sm">
         Джойстик команды. Любой телефон команды может подключиться —
         предыдущее устройство отключится.
       </p>
@@ -141,7 +141,7 @@ defineExpose({ reset });
               <label :for="`rename-team-input-${slot.teamId}`">Новое название</label>
               <input :id="`rename-team-input-${slot.teamId}`" v-model="renameDraft" class="input"
                 placeholder="Название команды" @keyup.enter="saveRenameTeam" />
-              <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
+              <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
               <div class="rename-team-actions">
                 <Button :disabled="renameLoading" @click="saveRenameTeam">
                   {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
@@ -152,7 +152,7 @@ defineExpose({ reset });
               </div>
             </div>
             <div v-else class="team-name-row">
-              <span class="team-name">{{ slot.name }} <span class="team-you">(Вы)</span></span>
+              <span class="team-name">{{ slot.name }} <span class="team-you text-muted">(Вы)</span></span>
               <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
             </div>
           </template>
@@ -169,7 +169,7 @@ defineExpose({ reset });
           <label for="rename-team-input">Новое название</label>
           <input id="rename-team-input" v-model="renameDraft" class="input" placeholder="Название команды"
             @keyup.enter="saveRenameTeam" />
-          <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
+          <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
           <div class="rename-team-actions">
             <Button :disabled="renameLoading" @click="saveRenameTeam">
               {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
@@ -180,7 +180,7 @@ defineExpose({ reset });
           </div>
         </div>
         <div v-else-if="teamName" class="team-name-row">
-          <span class="team-name">{{ teamName }} <span class="team-you">(Вы)</span></span>
+          <span class="team-name">{{ teamName }} <span class="team-you text-muted">(Вы)</span></span>
           <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
         </div>
 
@@ -195,7 +195,7 @@ defineExpose({ reset });
         Достигнут лимит — в комнате максимум {{ MAX_ROOM_TEAMS }} команды.
       </p>
       <div v-else class="add-team-link">
-        <p class="link-desc">
+        <p class="link-desc text-muted-sm">
           Чтобы добавить команду, откройте ссылку на другом устройстве или отсканируйте QR-код.
         </p>
         <LinkCopyField :url="joinUrl" label="Ссылка для новой команды" @copied="onLinkCopied" />
@@ -223,8 +223,6 @@ defineExpose({ reset });
 }
 
 .link-desc {
-  font-size: 14px;
-  color: #6b7280;
   margin-bottom: 8px;
 }
 
@@ -267,9 +265,7 @@ defineExpose({ reset });
 
 .room-code-label {
   display: block;
-  font-size: 13px;
   font-weight: bold;
-  color: #6b7280;
   margin-bottom: 4px;
 }
 
@@ -287,8 +283,6 @@ defineExpose({ reset });
 }
 
 .connection-intro {
-  font-size: 14px;
-  color: #6b7280;
   margin: 0 0 16px;
 }
 
@@ -342,8 +336,6 @@ defineExpose({ reset });
 }
 
 .rename-team-error {
-  color: #dc2626;
-  font-size: 14px;
   margin: 8px 0 0;
 }
 
@@ -355,7 +347,6 @@ defineExpose({ reset });
 
 .team-you {
   font-weight: normal;
-  color: #6b7280;
 }
 
 .add-team-btn {
@@ -363,10 +354,7 @@ defineExpose({ reset });
 }
 
 .teams-limit-notice {
-  margin: 12px 0 0;
-  color: #92400e;
-  font-size: 14px;
-  font-weight: bold;
+  margin-top: 12px;
 }
 
 .add-team-link {

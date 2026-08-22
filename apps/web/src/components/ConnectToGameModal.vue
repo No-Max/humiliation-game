@@ -68,7 +68,7 @@ async function connect() {
       </Button>
     </template>
     <div class="connect-game-modal">
-      <p class="connect-game-hint">
+      <p class="connect-game-hint text-muted">
         Введите 6-значный код комнаты, чтобы открыть игру на этом экране.
       </p>
       <label class="connect-game-label" for="room-code-input">Код комнаты</label>
@@ -83,7 +83,7 @@ async function connect() {
         :value="code"
         @input="onCodeInput"
       />
-      <p v-if="error" class="connect-game-error">{{ error }}</p>
+      <p v-if="error" class="connect-game-error text-error">{{ error }}</p>
       <Button
         block
         class="connect-game-submit"
@@ -107,7 +107,6 @@ async function connect() {
 
 .connect-game-hint {
   margin: 0;
-  color: #6b7280;
   font-size: 15px;
   line-height: 1.5;
 }
@@ -128,7 +127,6 @@ async function connect() {
 
 .connect-game-error {
   margin: 0;
-  color: #dc2626;
   font-size: 14px;
 }
 

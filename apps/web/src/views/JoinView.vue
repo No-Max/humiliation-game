@@ -181,11 +181,4 @@ function reconnectAs(team: RoomTeam) {
 .join-error {
   margin-top: 16px;
 }
-
-.teams-limit-notice {
-  margin: 0;
-  color: #92400e;
-  font-size: 14px;
-  font-weight: bold;
-}
 </style>

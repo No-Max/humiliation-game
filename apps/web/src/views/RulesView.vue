@@ -30,9 +30,3 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
     </div>
   </div>
 </template>
-
-<style scoped>
-.section-heading {
-  margin-bottom: 12px;
-}
-</style>

@@ -18,7 +18,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div v-if="isPaused" class="pause-banner">
+  <div v-if="isPaused" class="banner warning pause-banner">
     ⏸ Игра на паузе
     <span v-if="pausedBy"> ({{ pausedBy }})</span>
     — нажмите «Продолжить», когда будете готовы
@@ -45,12 +45,6 @@ defineEmits<{
 
 <style scoped>
 .pause-banner {
-  background: #fef3c7;
-  color: #92400e;
-  text-align: center;
-  padding: 8px;
-  border-radius: 8px;
-  font-weight: bold;
   margin-bottom: 8px;
 }
 </style>

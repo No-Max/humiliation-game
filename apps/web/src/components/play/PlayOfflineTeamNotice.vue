@@ -18,7 +18,6 @@ defineEmits<{
     <Button
       variant="secondary"
       icon="settings"
-      icon-size="lg"
       class="connection-btn"
       aria-label="Подключение"
       @click="$emit('openConnection')"

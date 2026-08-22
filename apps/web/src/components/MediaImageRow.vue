@@ -20,9 +20,22 @@ const rowWidth = ref(0);
 const aspectRatios = ref<number[]>([]);
 const loaded = ref<boolean[]>([]);
 const stableRowHeightPx = ref<number | null>(null);
+const stableAtWidth = ref<number | null>(null);
+const isWideLayout = ref(true);
 
 let resizeObserver: ResizeObserver | undefined;
+let layoutMediaQuery: MediaQueryList | undefined;
 let resizeRaf = 0;
+
+function onLayoutMediaChange(event: MediaQueryListEvent | MediaQueryList) {
+  isWideLayout.value = event.matches;
+  if (!event.matches) resetStableLayout();
+}
+
+function resetStableLayout() {
+  stableRowHeightPx.value = null;
+  stableAtWidth.value = null;
+}
 
 function syncFromUrls(urls: string[] | undefined) {
   const next = syncMediaLayoutState(urls);
@@ -33,7 +46,7 @@ function syncFromUrls(urls: string[] | undefined) {
 watch(
   () => mediaUrlsKey(props.mediaUrls),
   () => {
-    stableRowHeightPx.value = null;
+    resetStableLayout();
     syncFromUrls(props.mediaUrls);
   },
   { immediate: true },
@@ -61,27 +74,65 @@ const computedRowHeightPx = computed(() => {
 });
 
 watch(computedRowHeightPx, (height) => {
-  if (height != null) stableRowHeightPx.value = height;
+  if (height != null && rowWidth.value > 0) {
+    stableRowHeightPx.value = height;
+    stableAtWidth.value = rowWidth.value;
+  }
 });
 
-const rowHeightPx = computed(
-  () => computedRowHeightPx.value ?? stableRowHeightPx.value,
-);
+const rowHeightPx = computed(() => {
+  const computed = computedRowHeightPx.value;
+  if (computed != null) return computed;
+
+  if (
+    stableRowHeightPx.value != null
+    && stableAtWidth.value != null
+    && rowWidth.value > 0
+    && Math.abs(rowWidth.value - stableAtWidth.value) < 1
+  ) {
+    return stableRowHeightPx.value;
+  }
+
+  return null;
+});
 
 const rowStyle = computed(() => {
+  if (!isWideLayout.value) return undefined;
   const height = rowHeightPx.value;
-  return height ? { height: `${height}px` } : undefined;
+  if (!height) return undefined;
+  const clamped = Math.min(height, MAX_ROW_HEIGHT_PX);
+  return {
+    height: `${clamped}px`,
+    maxHeight: `${MAX_ROW_HEIGHT_PX}px`,
+  };
 });
 
 const isLayoutReady = computed(
-  () => Boolean(allLoaded.value && rowHeightPx.value),
+  () =>
+    isWideLayout.value
+    && Boolean(allLoaded.value && rowHeightPx.value && rowWidth.value > 0),
+);
+
+const useComputedItemWidths = computed(
+  () => isLayoutReady.value && isWideLayout.value,
 );
 
 function itemWidthPx(index: number): string | undefined {
   const height = rowHeightPx.value;
-  if (!height) return undefined;
+  const width = rowWidth.value;
+  if (!height || !width) return undefined;
+
   const ratio = aspectRatios.value[index] ?? 1;
-  return `${height * ratio}px`;
+  const totalRatio = sumAspectRatios.value;
+  if (!totalRatio) return undefined;
+
+  const available = Math.max(0, width - gapTotal.value);
+  const itemWidth = Math.min(
+    height * ratio,
+    (available * ratio) / totalRatio,
+  );
+
+  return `${Math.max(0, itemWidth)}px`;
 }
 
 function registerImage(img: HTMLImageElement | null, index: number) {
@@ -119,11 +170,28 @@ function setRatio(index: number, ratio: number) {
 }
 
 function updateRowWidth(width: number) {
+  if (width <= 0) {
+    rowWidth.value = 0;
+    resetStableLayout();
+    return;
+  }
+
+  if (
+    stableAtWidth.value != null
+    && Math.abs(width - stableAtWidth.value) >= 1
+  ) {
+    resetStableLayout();
+  }
+
   if (Math.abs(width - rowWidth.value) < 0.5) return;
   rowWidth.value = width;
 }
 
 onMounted(() => {
+  layoutMediaQuery = window.matchMedia('(min-width: 1024px)');
+  onLayoutMediaChange(layoutMediaQuery);
+  layoutMediaQuery.addEventListener('change', onLayoutMediaChange);
+
   if (!rowRef.value) return;
   resizeObserver = new ResizeObserver(([entry]) => {
     cancelAnimationFrame(resizeRaf);
@@ -142,6 +210,7 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(resizeRaf);
   resizeObserver?.disconnect();
+  layoutMediaQuery?.removeEventListener('change', onLayoutMediaChange);
 });
 </script>
 
@@ -149,14 +218,17 @@ onUnmounted(() => {
   <div v-if="mediaUrls?.length" ref="rowRef" class="media-row-measure" :class="{ large }">
     <div
       class="media-row"
-      :class="{ 'media-row--ready': isLayoutReady }"
+      :class="{
+        'media-row--ready': isLayoutReady,
+        'media-row--compact': !isWideLayout,
+      }"
       :style="rowStyle"
     >
       <div
         v-for="(url, index) in mediaUrls"
         :key="url"
         class="media-image-container"
-        :style="{ width: itemWidthPx(index) }"
+        :style="useComputedItemWidths ? { width: itemWidthPx(index) } : undefined"
       >
         <img
           :ref="(el) => registerImage(el as HTMLImageElement | null, index)"
@@ -174,40 +246,64 @@ onUnmounted(() => {
 <style scoped>
 .media-row-measure {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .media-row {
   display: flex;
   align-items: stretch;
   justify-content: center;
+  flex-wrap: wrap;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 6rem;
   max-height: 400px;
   gap: 16px;
+  overflow: hidden;
   transition: height 0.15s ease;
 }
 
 .media-row--ready {
+  flex-wrap: nowrap;
   min-height: 0;
 }
 
 .media-image-container {
-  flex: none;
-  height: 100%;
+  flex: 1 1 min(100%, 280px);
   min-width: 0;
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
 }
 
-.media-image {
-  width: 100%;
+.media-row--ready .media-image-container {
+  flex: 0 1 auto;
   height: 100%;
+  max-height: 100%;
+}
+
+.media-image {
   display: block;
-  object-fit: cover;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 0.15s ease;
+}
+
+.media-row--ready .media-image {
+  height: 100%;
+  max-height: 100%;
+  object-fit: cover;
 }
 
 .media-image--loaded {
@@ -216,5 +312,38 @@ onUnmounted(() => {
 
 .large .media-row {
   min-height: 10rem;
+}
+
+.large .media-image {
+  max-height: min(400px, 50vh);
+}
+
+@media (max-width: 1023px) {
+  .media-row,
+  .media-row--ready {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto !important;
+    max-height: none;
+    min-height: 0;
+  }
+
+  .media-row--compact .media-image-container,
+  .media-row--ready.media-row--compact .media-image-container {
+    width: auto !important;
+    height: auto;
+    max-height: 280px;
+  }
+
+  .media-row--compact .media-image,
+  .media-row--ready.media-row--compact .media-image {
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+  }
+
+  .large .media-row--compact .media-image {
+    max-height: min(280px, 40vh);
+  }
 }
 </style>

@@ -23,6 +23,10 @@ defineProps<{
 .question-content {
   display: grid;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .question-text {

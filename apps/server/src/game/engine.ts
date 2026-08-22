@@ -45,6 +45,8 @@ interface InMemoryQuestionState {
   attemptedTeamIds: Set<string>;
   currentTourIndex: number;
   currentQuestionIndex: number;
+  /** Команда, которой начислили баллы на фазе CORRECT */
+  scoringTeamId?: string;
 }
 
 export class GameEngine {
@@ -58,6 +60,8 @@ export class GameEngine {
   private turnRemainingMs: number | null = null;
   private turnNotice?: string;
   private onStateChange?: () => void;
+  private handlingTimeout = false;
+  private deadlineWatchdog: ReturnType<typeof setInterval> | null = null;
   displayCount = 0;
 
   constructor(
@@ -85,6 +89,8 @@ export class GameEngine {
       currentTourIndex: 0,
       currentQuestionIndex: 0,
     };
+
+    this.deadlineWatchdog = setInterval(() => this.checkAnswerDeadline(), 500);
   }
 
   setOnStateChange(cb: () => void) {
@@ -225,6 +231,13 @@ export class GameEngine {
       tourRules: !tourStarted ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       answerMedia: answerMedia.length ? answerMedia : undefined,
+      scoringTeamName:
+        this.state.phase === 'CORRECT' && this.state.scoringTeamId
+          ? this.teams.get(this.state.scoringTeamId)?.name
+          : undefined,
+      scoringTeamId:
+        this.state.phase === 'CORRECT' ? this.state.scoringTeamId : undefined,
+      nextQuestionTeamId: this.getNextQuestionTeamIdForState(),
       teamSlots: this.state.teamOrder.map((id) => {
         const team = this.teams.get(id)!;
         return { teamId: id, name: team.name };
@@ -295,9 +308,9 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.setWrongTurnNotice(questionValueReduced, false);
     this.advanceToNextTeam(teamId);
     this.afterWrongAnswer(question);
+    this.setWrongTurnNotice(teamId, questionValueReduced, false);
     this.refreshTurnTimer();
     return { ok: true, correct: false, questionValueReduced };
   }
@@ -311,11 +324,18 @@ export class GameEngine {
     return this.passInternal(teamId);
   }
 
-  nextQuestion(): { ok: boolean; error?: string } {
+  nextQuestion(teamId: string): { ok: boolean; error?: string } {
     const guard = this.ensurePlaying();
     if (!guard.ok) return guard;
     if (this.state.phase !== 'CORRECT' && this.state.phase !== 'REVEAL') {
       return { ok: false, error: 'Cannot advance now' };
+    }
+
+    if (this.getTeamCount() >= 2) {
+      const allowedTeamId = this.getNextQuestionStarterId();
+      if (!allowedTeamId || teamId !== allowedTeamId) {
+        return { ok: false, error: 'Not your turn' };
+      }
     }
 
     const tour = this.series.tours[this.state.currentTourIndex];
@@ -375,19 +395,48 @@ export class GameEngine {
     return { ok: true };
   }
 
+  /** Клиент или watchdog: если дедлайн прошёл — передать ход */
+  syncExpiredTurn(): boolean {
+    return this.checkAnswerDeadline();
+  }
+
+  private checkAnswerDeadline(): boolean {
+    if (this.paused || this.isGameFinished()) return false;
+    if (!this.answerDeadlineAt || Date.now() < this.answerDeadlineAt) return false;
+    this.handleTurnTimeout();
+    return true;
+  }
+
   private handleTurnTimeout() {
-    if (this.paused || this.isGameFinished()) return;
+    if (this.handlingTimeout || this.paused || this.isGameFinished()) return;
 
-    const activeId = this.getActiveTeamId();
-    if (!activeId) return;
+    this.handlingTimeout = true;
+    try {
+      const activeId = this.getActiveTeamId();
+      // Сбрасываем текущий дедлайн до обработки, чтобы не зациклить watchdog
+      if (this.turnTimer) clearTimeout(this.turnTimer);
+      this.turnTimer = null;
+      this.answerDeadlineAt = null;
+      this.turnRemainingMs = null;
 
-    this.timeoutTurn(activeId);
-    this.onStateChange?.();
+      if (!activeId) {
+        this.onStateChange?.();
+        return;
+      }
+
+      this.timeoutTurn(activeId);
+      this.onStateChange?.();
+    } finally {
+      this.handlingTimeout = false;
+    }
   }
 
   private timeoutTurn(teamId: string) {
     const question = this.getCurrentQuestion();
-    if (!question) return;
+    if (!question) {
+      this.clearTurnTimer();
+      return;
+    }
 
     this.ensureStealRoundStarted();
 
@@ -399,9 +448,9 @@ export class GameEngine {
       this.state.valueReduced = true;
     }
 
-    this.setWrongTurnNotice(questionValueReduced, true);
     this.advanceToNextTeam(teamId);
     this.afterWrongAnswer(question);
+    this.setWrongTurnNotice(teamId, questionValueReduced, true);
 
     if (this.getActiveTeamId()) {
       this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
@@ -411,11 +460,15 @@ export class GameEngine {
     }
   }
 
-  private setWrongTurnNotice(questionValueReduced: boolean, timedOut: boolean) {
+  private setWrongTurnNotice(
+    teamId: string,
+    questionValueReduced: boolean,
+    timedOut: boolean,
+  ) {
+    const teamName = this.teams.get(teamId)?.name ?? 'Команда';
     const prefix = timedOut ? 'Время вышло!' : 'Неверно!';
-    this.turnNotice = questionValueReduced
-      ? `${prefix} −1 балл за вопрос`
-      : `${prefix} Попробуйте ещё`;
+    const detail = questionValueReduced ? '−1 балл за вопрос' : 'Попробуйте ещё';
+    this.turnNotice = `${teamName}: ${prefix} ${detail}`;
   }
 
   private getTimeLimitSec(): number {
@@ -511,10 +564,24 @@ export class GameEngine {
     this.turnNotice = undefined;
     this.state.passedTeamIds = new Set();
     this.state.attemptedTeamIds = new Set();
+    this.state.scoringTeamId = undefined;
   }
 
   private getTeamCount(): number {
     return this.teams.size;
+  }
+
+  private getNextQuestionStarterId(): string | undefined {
+    const { teamOrder, currentTeamIndex } = this.state;
+    if (!teamOrder.length) return undefined;
+    const nextIndex = ((currentTeamIndex + 1) % teamOrder.length + teamOrder.length) % teamOrder.length;
+    return teamOrder[nextIndex];
+  }
+
+  private getNextQuestionTeamIdForState(): string | undefined {
+    if (this.state.phase !== 'CORRECT' && this.state.phase !== 'REVEAL') return undefined;
+    if (this.getTeamCount() < 2) return undefined;
+    return this.getNextQuestionStarterId();
   }
 
   private getEffectiveQuestionCount(tour: Tour & { questions: Question[] }): number {
@@ -658,6 +725,7 @@ export class GameEngine {
   private awardPoints(teamId: string) {
     const team = this.teams.get(teamId);
     if (team) team.score += this.state.questionValue;
+    this.state.scoringTeamId = teamId;
   }
 
   private buildTeamStates(): TeamState[] {

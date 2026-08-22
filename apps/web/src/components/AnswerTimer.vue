@@ -6,8 +6,13 @@ const props = defineProps<{
   paused?: boolean;
 }>();
 
+const emit = defineEmits<{
+  expired: [];
+}>();
+
 const now = ref(Date.now());
 let interval: ReturnType<typeof setInterval> | undefined;
+let expiredEmittedFor: number | undefined;
 
 const remainingSec = computed(() => {
   if (!props.deadlineAt || props.paused) return null;
@@ -26,6 +31,14 @@ const urgent = computed(() => remainingSec.value != null && remainingSec.value <
 
 watch(() => props.deadlineAt, () => {
   now.value = Date.now();
+  expiredEmittedFor = undefined;
+});
+
+watch(remainingSec, (sec) => {
+  if (sec !== 0 || !props.deadlineAt || props.paused) return;
+  if (expiredEmittedFor === props.deadlineAt) return;
+  expiredEmittedFor = props.deadlineAt;
+  emit('expired');
 });
 
 onMounted(() => {

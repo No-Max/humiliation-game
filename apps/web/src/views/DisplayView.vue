@@ -33,6 +33,10 @@ const headerTitle = computed(() =>
 );
 let cleanup: (() => void) | undefined;
 
+function syncExpiredTurn() {
+  connectSocket().emit('syncExpiredTurn', () => {});
+}
+
 onMounted(() => {
   const code = route.params.code as string;
   const socket = connectSocket();
@@ -62,7 +66,10 @@ onUnmounted(() => cleanup?.());
       :answer-deadline-at="state.answerDeadlineAt"
       :is-paused="state.status === 'PAUSED'"
       :show-timer="isActiveQuestion"
+      :scoring-team-id="state.phase === 'CORRECT' ? state.scoringTeamId : undefined"
+      :scoring-points="state.phase === 'CORRECT' ? state.questionValue : undefined"
       style="margin: 1.5rem 0"
+      @timer-expired="syncExpiredTurn"
     />
 
     <div v-if="state?.phase === 'TOUR_INTRO'" class="card">
@@ -125,7 +132,8 @@ onUnmounted(() => cleanup?.());
         />
         <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
         <div v-if="state.phase === 'CORRECT'" class="banner correct">
-          Верный ответ: {{ state.correctAnswer }}
+          Верно!
+          <span v-if="state.correctAnswer"> · {{ state.correctAnswer }}</span>
         </div>
         <div v-if="state.phase === 'REVEAL'" class="banner wrong">
           Правильный ответ: {{ state.correctAnswer }}

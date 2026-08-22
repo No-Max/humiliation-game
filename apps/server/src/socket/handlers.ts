@@ -199,11 +199,11 @@ export function setupSocketHandlers(io: GameServer) {
 
     socket.on('nextQuestion', (callback) => {
       const engine = roomCode ? rooms.get(roomCode) : undefined;
-      if (!engine) {
-        callback({ ok: false, error: 'Room not found' });
+      if (!engine || !teamId) {
+        callback({ ok: false, error: 'Not in room' });
         return;
       }
-      const result = engine.nextQuestion();
+      const result = engine.nextQuestion(teamId);
       if (result.ok && roomCode) {
         io.to(roomCode).emit('roomState', engine.getPublicState());
       }
@@ -252,6 +252,16 @@ export function setupSocketHandlers(io: GameServer) {
         io.to(roomCode!).emit('roomState', engine.getPublicState());
       }
       callback(result);
+    });
+
+    socket.on('syncExpiredTurn', (callback) => {
+      const engine = roomCode ? rooms.get(roomCode) : undefined;
+      if (!engine) {
+        callback({ ok: false, error: 'Room not found' });
+        return;
+      }
+      const advanced = engine.syncExpiredTurn();
+      callback({ ok: true, error: advanced ? undefined : 'Timer still running' });
     });
 
     socket.on('leaveRoom', (callback) => {

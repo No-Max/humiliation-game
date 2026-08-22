@@ -20,7 +20,7 @@ defineProps<{
       {{ formatPoints(state.questionValue) }}
     </p>
 
-    <div v-if="state.turnNotice" class="banner wrong turn-notice">
+    <div v-if="state.turnNotice" class="banner warning turn-notice">
       {{ state.turnNotice }}
     </div>
   </div>

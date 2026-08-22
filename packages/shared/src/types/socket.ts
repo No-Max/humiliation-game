@@ -16,6 +16,8 @@ export interface ClientToServerEvents {
   resumeGame: (callback: (result: ActionResult) => void) => void;
   leaveRoom: (callback: (result: ActionResult) => void) => void;
   renameTeam: (name: string, callback: (result: ActionResult) => void) => void;
+  /** Клиент: локальный таймер истёк — сервер сверит дедлайн и передаст ход */
+  syncExpiredTurn: (callback: (result: ActionResult) => void) => void;
 }
 
 export type JoinRole = 'team' | 'display';
@@ -60,4 +62,5 @@ export const SOCKET_EVENTS = {
   RESUME_GAME: 'resumeGame',
   LEAVE_ROOM: 'leaveRoom',
   RENAME_TEAM: 'renameTeam',
+  SYNC_EXPIRED_TURN: 'syncExpiredTurn',
 } as const;

@@ -60,6 +60,12 @@ export function usePlayRoom() {
     () =>
       state.value?.phase === 'QUESTION' || state.value?.phase === 'STEAL_ROUND',
   );
+  const canAdvanceQuestion = computed(() => {
+    if (!state.value) return false;
+    if (state.value.phase !== 'CORRECT' && state.value.phase !== 'REVEAL') return false;
+    if (state.value.teams.length < 2) return true;
+    return state.value.nextQuestionTeamId === teamId.value;
+  });
   const offlineActiveTeam = computed(() => {
     if (!state.value?.activeTeamId) return null;
     const team = state.value.teams.find((t) => t.id === state.value!.activeTeamId);
@@ -175,6 +181,10 @@ export function usePlayRoom() {
     });
   }
 
+  function syncExpiredTurn() {
+    connectSocket().emit('syncExpiredTurn', () => {});
+  }
+
   function nextQuestion() {
     connectSocket().emit('nextQuestion', (result) => {
       if (!result.ok) message.value = result.error ?? 'Ошибка';
@@ -263,11 +273,13 @@ export function usePlayRoom() {
     tourResultsTeams,
     canSubmit,
     isActiveQuestion,
+    canAdvanceQuestion,
     offlineActiveTeam,
     startTour,
     submitChoice,
     submit,
     pass,
+    syncExpiredTurn,
     nextQuestion,
     reconnect,
     onTeamRenamed,

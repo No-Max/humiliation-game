@@ -8,6 +8,7 @@ defineProps<{
   questionPrompt?: string;
   correctAnswer?: string;
   answerMedia?: AnswerMediaItem[];
+  showNextQuestion?: boolean;
 }>();
 
 defineEmits<{
@@ -16,9 +17,9 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card">
+  <div class="card answer-result-card">
     <div v-if="phase === 'CORRECT'" class="banner correct">
-      Верно! +{{ questionValue }}
+      Верно!
     </div>
     <div v-else class="banner wrong">Никто не угадал</div>
     <div
@@ -30,11 +31,20 @@ defineEmits<{
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
     <AnswerRevealMedia :items="answerMedia" />
-    <button class="btn" type="button" @click="$emit('nextQuestion')">Следующий вопрос</button>
+    <button
+      v-if="showNextQuestion !== false"
+      class="btn"
+      type="button"
+      @click="$emit('nextQuestion')"
+    >Следующий вопрос</button>
   </div>
 </template>
 
 <style scoped>
+.answer-result-card {
+  margin-top: 1rem;
+}
+
 .question-prompt {
   margin: 0 0 1rem;
   font-size: 1.0625rem;

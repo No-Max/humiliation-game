@@ -34,11 +34,13 @@ const {
   tourResultsTeams,
   canSubmit,
   isActiveQuestion,
+  canAdvanceQuestion,
   offlineActiveTeam,
   startTour,
   submitChoice,
   submit,
   pass,
+  syncExpiredTurn,
   nextQuestion,
   reconnect,
   onTeamRenamed,
@@ -97,6 +99,9 @@ const headerTitle = computed(() =>
       :answer-deadline-at="state.answerDeadlineAt"
       :is-paused="isPaused"
       :show-timer="isActiveQuestion"
+      :scoring-team-id="state.phase === 'CORRECT' ? state.scoringTeamId : undefined"
+      :scoring-points="state.phase === 'CORRECT' ? state.questionValue : undefined"
+      @timer-expired="syncExpiredTurn"
     />
 
     <PlayOfflineTeamNotice
@@ -151,6 +156,7 @@ const headerTitle = computed(() =>
       :question-prompt="state.questionPrompt"
       :correct-answer="state.correctAnswer"
       :answer-media="state.answerMedia"
+      :show-next-question="canAdvanceQuestion"
       @next-question="nextQuestion"
     />
 
@@ -161,6 +167,7 @@ const headerTitle = computed(() =>
       :question-prompt="state.questionPrompt"
       :correct-answer="state.correctAnswer"
       :answer-media="state.answerMedia"
+      :show-next-question="canAdvanceQuestion"
       @next-question="nextQuestion"
     />
 

@@ -250,6 +250,11 @@ a.router-link-active {
   color: #991b1b;
 }
 
+.banner.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .hint {
   background: #fef3c7;
   padding: 16px;

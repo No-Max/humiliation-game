@@ -61,6 +61,12 @@ export interface RoomState {
   mediaUrls?: string[];
   correctAnswer?: string;
   answerMedia?: AnswerMediaItem[];
+  /** Название команды, которой начислили баллы (фаза CORRECT) */
+  scoringTeamName?: string;
+  /** Id команды, которой начислили баллы (фаза CORRECT) */
+  scoringTeamId?: string;
+  /** Id команды, которая может нажать «Следующий вопрос» (2+ команд, фазы CORRECT/REVEAL) */
+  nextQuestionTeamId?: string;
   /** Командные слоты — ссылки активны до конца игры */
   teamSlots: TeamSlot[];
   pausedBy?: string;

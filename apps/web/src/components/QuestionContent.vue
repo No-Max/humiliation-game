@@ -38,13 +38,13 @@ defineProps<{
 }
 
 .large .question-text {
-  font-size: 24px;
+  font-size: 40px;
   font-weight: 600;
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 1023px) {
   .large .question-text {
-    font-size: 40px;
+    font-size: 24px;
   }
 }
 </style>

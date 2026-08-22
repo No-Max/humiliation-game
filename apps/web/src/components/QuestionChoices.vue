@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Button from './Button.vue';
+
 defineProps<{
   choices: string[];
   selected?: string;
@@ -14,16 +16,16 @@ const emit = defineEmits<{
 <template>
   <ul class="question-choices" :class="{ 'question-choices-large': large }">
     <li v-for="(choice, index) in choices" :key="`${index}-${choice}`">
-      <button
+      <Button
         v-if="!readonly"
-        class="choice-btn"
-        :class="{ selected: selected === choice }"
-        type="button"
+        variant="choice"
+        :large="large"
+        :selected="selected === choice"
         @click="emit('select', choice)"
       >
         <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
         <span>{{ choice }}</span>
-      </button>
+      </Button>
       <div v-else class="choice-readonly">
         <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
         <span>{{ choice }}</span>
@@ -51,7 +53,16 @@ const emit = defineEmits<{
   font-size: 16px;
 }
 
-.choice-btn,
+.btn--choice > span:last-child,
+.choice-readonly > span:last-child {
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 0;
+  width: calc(100% - 40px);
+  word-break: break-word;
+  margin-left: 12px;
+}
+
 .choice-readonly {
   width: 100%;
   min-width: 0;
@@ -62,42 +73,10 @@ const emit = defineEmits<{
   font-size: 16px;
   line-height: 1.35;
   box-sizing: border-box;
-}
-
-.choice-btn > span:last-child,
-.choice-readonly > span:last-child {
-  display: inline-block;
-  vertical-align: middle;
-  min-width: 0;
-  width: calc(100% - 40px);
-  word-break: break-word;
-  margin-left: 12px;
-}
-
-.choice-btn {
-  border: 2px solid #e5e7eb;
-  background: #fff;
-  color: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.choice-btn:hover {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-}
-
-.choice-btn.selected {
-  border-color: #4f46e5;
-  background: #eef2ff;
-}
-
-.choice-readonly {
   border: 2px solid #e5e7eb;
   background: #f9fafb;
 }
 
-.question-choices-large .choice-btn,
 .question-choices-large .choice-readonly {
   padding: 16px 20px;
   font-size: 20px;
@@ -117,7 +96,7 @@ const emit = defineEmits<{
   margin-right: 0;
 }
 
-.choice-btn.selected .choice-label {
+.btn--selected .choice-label {
   background: #4f46e5;
   color: #fff;
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import Button from '../Button.vue';
 
 defineProps<{
   code: string;
@@ -34,11 +34,11 @@ defineEmits<{
 
   <div v-else-if="!teamId" class="card">
     <p>Командный слот не выбран.</p>
-    <RouterLink :to="`/join/${code}`" class="btn">Подключиться к комнате</RouterLink>
+    <Button :to="`/join/${code}`">Подключиться к комнате</Button>
   </div>
 
   <div v-else-if="!joined && teamId && linksActive" class="card">
     <p>Не удалось занять командный слот.</p>
-    <button class="btn" @click="$emit('reconnect')">Подключиться снова</button>
+    <Button @click="$emit('reconnect')">Подключиться снова</Button>
   </div>
 </template>

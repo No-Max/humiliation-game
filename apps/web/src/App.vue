@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
+import Button from './components/Button.vue';
 import ConnectToGameModal from './components/ConnectToGameModal.vue';
 import UnfinishedGamesBanner from './components/UnfinishedGamesBanner.vue';
 
@@ -23,13 +24,9 @@ const isGameLayout = computed(
         <RouterLink to="/">Главная</RouterLink>
         <RouterLink to="/rules">Правила</RouterLink>
         <RouterLink to="/series">Выпуски</RouterLink>
-        <button
-          type="button"
-          class="header-connect-btn"
-          @click="showConnectModal = true"
-        >
+        <Button @click="showConnectModal = true">
           Подключиться к игре
-        </button>
+        </Button>
       </nav>
     </header>
     <main

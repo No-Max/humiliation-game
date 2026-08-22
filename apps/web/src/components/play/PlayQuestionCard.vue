@@ -3,6 +3,7 @@ import type { RoomState, TeamState } from '@humiliation-game/shared';
 import QuestionChoices from '../QuestionChoices.vue';
 import QuestionContent from '../QuestionContent.vue';
 import QuestionHints from '../QuestionHints.vue';
+import Button from '../Button.vue';
 
 defineProps<{
   state: RoomState;
@@ -34,9 +35,9 @@ defineEmits<{
           :selected="answer"
           @select="$emit('submitChoice', $event)"
         />
-        <button class="btn btn-secondary" type="button" @click="$emit('pass')">
+        <Button variant="secondary" @click="$emit('pass')">
           Сдаёмся
-        </button>
+        </Button>
       </template>
 
       <template v-else>
@@ -47,12 +48,12 @@ defineEmits<{
           @keyup.enter="$emit('submit')"
         />
         <div class="card-actions">
-          <button class="btn" type="button" :disabled="!canSubmit" @click="$emit('submit')">
+          <Button :disabled="!canSubmit" @click="$emit('submit')">
             Ответить
-          </button>
-          <button class="btn btn-secondary" type="button" @click="$emit('pass')">
+          </Button>
+          <Button variant="secondary" @click="$emit('pass')">
             Сдаёмся
-          </button>
+          </Button>
         </div>
       </template>
     </template>

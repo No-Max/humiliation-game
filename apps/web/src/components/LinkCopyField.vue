@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import QRCode from 'qrcode';
 import { ref } from 'vue';
+import Button from './Button.vue';
 
 const props = defineProps<{
   url: string;
@@ -56,27 +57,30 @@ function selectAll(event: FocusEvent) {
         :value="url"
         @focus="selectAll"
       />
-      <button
-        type="button"
-        class="link-copy-btn"
-        :aria-label="`Копировать ${label}`"
-        @click="copy"
-      >
-        <svg class="link-copy-icon" role="presentation" aria-hidden="true">
-          <use href="/icons.svg#copy-icon"></use>
-        </svg>
-      </button>
+      <div class="link-copy-btn-wrap">
+        <Button
+          variant="ghost"
+          icon
+          :aria-label="`Копировать ${label}`"
+          @click="copy"
+        >
+          <svg class="link-copy-icon" role="presentation" aria-hidden="true">
+            <use href="/icons.svg#copy-icon"></use>
+          </svg>
+        </Button>
+      </div>
     </div>
-    <button
-      type="button"
-      class="btn link-qr-btn"
+    <Button
+      icon
+      icon-size="md"
+      class="link-qr-btn"
       :aria-label="`QR-код: ${label}`"
       @click="openQr"
     >
       <svg class="link-qr-icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#qr-icon"></use>
       </svg>
-    </button>
+    </Button>
   </div>
 
   <Teleport to="body">
@@ -84,9 +88,9 @@ function selectAll(event: FocusEvent) {
       <div class="qr-dialog" role="dialog" :aria-label="`QR-код: ${label}`">
         <div class="qr-dialog-header">
           <strong>{{ label }}</strong>
-          <button type="button" class="modal-close" aria-label="Закрыть" @click="closeQr">
+          <Button variant="close" aria-label="Закрыть" @click="closeQr">
             ×
-          </button>
+          </Button>
         </div>
         <div class="qr-dialog-body">
           <p v-if="qrLoading" class="qr-loading">Генерация QR-кода…</p>

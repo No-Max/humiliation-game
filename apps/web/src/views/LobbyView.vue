@@ -6,6 +6,7 @@ import { api, connectSocket, joinRoom, onRoomState } from '../lib/api';
 import { syncFromRoomState } from '../lib/gameStorage';
 import { getPreferredTeamName } from '../lib/teamPreferences';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
+import Button from '../components/Button.vue';
 import GameConnectionPanel from '../components/GameConnectionPanel.vue';
 
 const route = useRoute();
@@ -131,9 +132,9 @@ function startGame() {
           Название сохраняется на этом устройстве — его можно изменить перед игрой.
         </p>
         <p v-if="error" class="error">{{ error }}</p>
-        <button class="btn" :disabled="loading" @click="createRoom">
+        <Button :disabled="loading" @click="createRoom">
           Продолжить
-        </button>
+        </Button>
       </template>
 
       <template v-else>
@@ -153,14 +154,14 @@ function startGame() {
         />
         <p v-else class="hint">Подключение к комнате…</p>
 
-        <button
-          class="btn start-game-btn"
-          type="button"
+        <Button
+          block
+          class="start-game-btn"
           :disabled="!joined"
           @click="startGame"
         >
           Начать игру
-        </button>
+        </Button>
       </template>
     </div>
   </div>
@@ -183,7 +184,6 @@ function startGame() {
 }
 
 .start-game-btn {
-  width: 100%;
   margin-top: 20px;
 }
 </style>

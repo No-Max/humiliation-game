@@ -5,6 +5,7 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import { getPreferredTeamName } from '../lib/teamPreferences';
+import Button from '../components/Button.vue';
 
 interface RoomTeam {
   id: string;
@@ -119,9 +120,9 @@ function reconnectAs(team: RoomTeam) {
         <p style="color: #6b7280; font-size: 14px; margin-bottom: 12px">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>
-        <button class="btn" :disabled="loading" @click="joinNew">
+        <Button :disabled="loading" @click="joinNew">
           {{ loading ? 'Подключение...' : 'Войти' }}
-        </button>
+        </Button>
       </template>
     </div>
 
@@ -131,15 +132,15 @@ function reconnectAs(team: RoomTeam) {
         Занять слот существующей команды (если потеряли ссылку):
       </p>
       <div style="display: grid; gap: 8px">
-        <button
+        <Button
           v-for="team in existingTeams"
           :key="team.id"
-          class="btn btn-secondary"
+          variant="secondary"
           :disabled="loading"
           @click="reconnectAs(team)"
         >
           {{ team.name }}
-        </button>
+        </Button>
       </div>
     </div>
 

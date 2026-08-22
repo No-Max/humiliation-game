@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RoomState } from '@humiliation-game/shared';
 import GameConnectionPanel from '../GameConnectionPanel.vue';
+import Button from '../Button.vue';
 
 defineProps<{
   roomCode: string;
@@ -21,9 +22,9 @@ defineEmits<{
     <div class="modal" role="dialog" aria-labelledby="connection-title">
       <div class="modal-header">
         <h2 id="connection-title">Подключение</h2>
-        <button class="modal-close" type="button" aria-label="Закрыть" @click="$emit('close')">
+        <Button variant="close" aria-label="Закрыть" @click="$emit('close')">
           ×
-        </button>
+        </Button>
       </div>
       <div class="modal-body">
         <GameConnectionPanel

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Button from '../Button.vue';
+
 defineProps<{
   seriesTitle: string;
   linksActive: boolean;
@@ -18,51 +20,39 @@ defineEmits<{
   <div class="page-actions">
     <h1 class="page-title" style="margin: 0">{{ seriesTitle }}</h1>
     <template v-if="linksActive && joined">
-      <button
+      <Button
         v-if="!isPaused"
-        class="btn btn-secondary"
-        type="button"
+        variant="secondary"
         @click="$emit('pause')"
       >
         Пауза
-      </button>
-      <button
+      </Button>
+      <Button
         v-else
-        class="btn"
-        type="button"
         @click="$emit('resume')"
       >
         Продолжить
-      </button>
-      <button class="btn btn-secondary" type="button" @click="$emit('exit')">
+      </Button>
+      <Button variant="secondary" @click="$emit('exit')">
         Выйти
-      </button>
+      </Button>
     </template>
-    <button
+    <Button
       v-if="linksActive"
-      class="btn btn-secondary connection-settings-btn"
-      type="button"
+      variant="secondary"
+      icon
+      icon-size="lg"
       aria-label="Подключение"
       @click="$emit('openConnection')"
     >
       <svg class="connection-settings-icon" role="presentation" aria-hidden="true">
         <use href="/icons.svg#settings-icon"></use>
       </svg>
-    </button>
+    </Button>
   </div>
 </template>
 
 <style scoped>
-.connection-settings-btn {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-  line-height: 40px;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-}
-
 .connection-settings-icon {
   width: 20px;
   height: 20px;

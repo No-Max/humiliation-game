@@ -2,6 +2,7 @@
 import type { RoomState, TeamState } from '@humiliation-game/shared';
 import { formatTourLabel, formatTourQuestionMeta } from '@humiliation-game/shared';
 import QuestionContent from '../QuestionContent.vue';
+import Button from '../Button.vue';
 
 defineProps<{
   state: RoomState;
@@ -37,6 +38,6 @@ defineEmits<{
       class="rich-text-preview tour-rules"
       v-html="state.tourRules"
     />
-    <button class="btn" @click="$emit('startTour')">Начать тур</button>
+    <Button @click="$emit('startTour')">Начать тур</Button>
   </div>
 </template>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
 import { formatTourQuestionMeta } from '@humiliation-game/shared';
 import { api } from '../lib/api';
+import Button from '../components/Button.vue';
 
 interface SeriesItem {
   id: string;
@@ -52,7 +52,7 @@ onMounted(async () => {
         </li>
       </ul>
       <p v-else style="color: #6b7280; font-size: 14px; margin: 8px 0">Туры не добавлены</p>
-      <RouterLink :to="`/lobby/${item.id}`" class="btn">Играть</RouterLink>
+      <Button :to="`/lobby/${item.id}`">Играть</Button>
     </div>
   </div>
 </template>

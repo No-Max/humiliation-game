@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../lib/api';
+import Button from './Button.vue';
 
 const props = defineProps<{
   open: boolean;
@@ -62,9 +63,9 @@ async function connect() {
     <div class="modal" role="dialog" aria-labelledby="connect-game-title">
       <div class="modal-header">
         <h2 id="connect-game-title">Подключиться к игре</h2>
-        <button class="modal-close" type="button" aria-label="Закрыть" @click="close">
+        <Button variant="close" aria-label="Закрыть" @click="close">
           ×
-        </button>
+        </Button>
       </div>
       <div class="modal-body connect-game-modal">
         <p class="connect-game-hint">
@@ -83,14 +84,14 @@ async function connect() {
           @input="onCodeInput"
         />
         <p v-if="error" class="connect-game-error">{{ error }}</p>
-        <button
-          class="btn connect-game-submit"
-          type="button"
+        <Button
+          block
+          class="connect-game-submit"
           :disabled="!canSubmit"
           @click="connect"
         >
           {{ loading ? 'Подключение…' : 'Подключиться' }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>

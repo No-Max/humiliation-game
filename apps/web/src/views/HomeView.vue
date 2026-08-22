@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import Button from '../components/Button.vue';
 </script>
 
 <template>
@@ -9,7 +9,7 @@ import { RouterLink } from 'vue-router';
       <p style="margin-bottom: 16px">
         Собирайтесь с друзьями, запускайте нашу игру, улыбайтесь и получайте удовольствие от ваших знаний.
       </p>
-      <RouterLink to="/series" class="btn">Выбрать выпуск</RouterLink>
+      <Button to="/series">Выбрать выпуск</Button>
     </div>
 
     <div class="card">

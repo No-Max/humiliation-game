@@ -4,6 +4,7 @@ import type { RoomState } from '@humiliation-game/shared';
 import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
+import Button from './Button.vue';
 import {
   getDisplayUrl,
   getJoinUrl,
@@ -116,9 +117,9 @@ defineExpose({ reset });
           <span class="room-code-label">Код комнаты</span>
           <span class="room-code-value">{{ roomCode }}</span>
         </div>
-        <button type="button" class="btn btn-secondary room-code-copy" @click="copyRoomCode">
+        <Button variant="secondary" class="room-code-copy" @click="copyRoomCode">
           Копировать
-        </button>
+        </Button>
       </div>
       <p v-if="roomCode" class="link-desc room-code-hint">
         Или введите код на экране через «Подключиться к игре» в шапке сайта.
@@ -147,31 +148,30 @@ defineExpose({ reset });
               />
               <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
               <div class="rename-team-actions">
-                <button class="btn" type="button" :disabled="renameLoading" @click="saveRenameTeam">
+                <Button :disabled="renameLoading" @click="saveRenameTeam">
                   {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
-                </button>
-                <button
-                  class="btn btn-secondary"
-                  type="button"
+                </Button>
+                <Button
+                  variant="secondary"
                   :disabled="renameLoading"
                   @click="cancelRenameTeam"
                 >
                   Отмена
-                </button>
+                </Button>
               </div>
             </div>
             <div v-else class="team-name-row">
               <span class="team-name">{{ slot.name }} <span class="team-you">(Вы)</span></span>
-              <button
-                type="button"
-                class="team-rename-btn"
+              <Button
+                variant="ghost"
+                icon
                 aria-label="Переименовать команду"
                 @click="startRenameTeam"
               >
                 <svg class="team-rename-icon" role="presentation" aria-hidden="true">
                   <use href="/icons.svg#pencil-icon"></use>
                 </svg>
-              </button>
+              </Button>
             </div>
           </template>
           <span v-else class="team-slot-name">{{ slot.name }}</span>
@@ -197,31 +197,30 @@ defineExpose({ reset });
           />
           <p v-if="renameError" class="rename-team-error">{{ renameError }}</p>
           <div class="rename-team-actions">
-            <button class="btn" type="button" :disabled="renameLoading" @click="saveRenameTeam">
+            <Button :disabled="renameLoading" @click="saveRenameTeam">
               {{ renameLoading ? 'Сохранение...' : 'Сохранить' }}
-            </button>
-            <button
-              class="btn btn-secondary"
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
               :disabled="renameLoading"
               @click="cancelRenameTeam"
             >
               Отмена
-            </button>
+            </Button>
           </div>
         </div>
         <div v-else-if="teamName" class="team-name-row">
           <span class="team-name">{{ teamName }} <span class="team-you">(Вы)</span></span>
-          <button
-            type="button"
-            class="team-rename-btn"
+          <Button
+            variant="ghost"
+            icon
             aria-label="Переименовать команду"
             @click="startRenameTeam"
           >
             <svg class="team-rename-icon" role="presentation" aria-hidden="true">
               <use href="/icons.svg#pencil-icon"></use>
             </svg>
-          </button>
+          </Button>
         </div>
 
         <LinkCopyField
@@ -232,14 +231,15 @@ defineExpose({ reset });
         />
       </div>
 
-      <button
+      <Button
         v-if="canAddTeam && !showAddTeamLink"
-        type="button"
-        class="btn btn-secondary add-team-btn"
+        variant="secondary"
+        block
+        class="add-team-btn"
         @click="addTeam"
       >
         Добавить команду
-      </button>
+      </Button>
       <p v-else-if="!canAddTeam" class="teams-limit-notice">
         Достигнут лимит — в комнате максимум {{ MAX_ROOM_TEAMS }} команды.
       </p>
@@ -377,33 +377,12 @@ defineExpose({ reset });
   color: #6b7280;
 }
 
-.team-rename-btn {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: center;
-  line-height: 32px;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: #6b7280;
-  cursor: pointer;
-}
-
-.team-rename-btn:hover {
-  background: #f3f4f6;
-  color: #4f46e5;
-}
-
 .team-rename-icon {
   width: 16px;
   height: 16px;
 }
 
 .add-team-btn {
-  width: 100%;
   margin-top: 12px;
 }
 

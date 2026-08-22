@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AnswerMediaItem } from '@humiliation-game/shared';
 import AnswerRevealMedia from '../AnswerRevealMedia.vue';
+import Button from '../Button.vue';
 
 defineProps<{
   phase: 'CORRECT' | 'REVEAL';
@@ -31,12 +32,10 @@ defineEmits<{
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
     <AnswerRevealMedia :items="answerMedia" />
-    <button
+    <Button
       v-if="showNextQuestion !== false"
-      class="btn"
-      type="button"
       @click="$emit('nextQuestion')"
-    >Следующий вопрос</button>
+    >Следующий вопрос</Button>
   </div>
 </template>
 

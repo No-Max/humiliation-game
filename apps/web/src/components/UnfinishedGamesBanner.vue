@@ -9,6 +9,7 @@ import {
 } from '../lib/gameStorage';
 import { getTeamSlotPath } from '../lib/teamSession';
 import { api } from '../lib/api';
+import Button from './Button.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -74,8 +75,8 @@ function dismiss(session: SavedGameSession) {
         </span>
       </div>
       <div class="unfinished-actions">
-        <button class="btn" type="button" @click="continueGame(session)">Продолжить</button>
-        <button class="btn btn-secondary" type="button" @click="dismiss(session)">Убрать</button>
+        <Button @click="continueGame(session)">Продолжить</Button>
+        <Button variant="secondary" @click="dismiss(session)">Убрать</Button>
       </div>
     </div>
   </div>

@@ -83,11 +83,14 @@ function imageUrls(group: MediaGroup): string[] {
 <style scoped>
 .answer-reveal-media {
   margin: 0.75rem 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.answer-reveal-media > * + * {
+  margin-top: 0.75rem;
 }
 
 .answer-reveal-group {
@@ -95,16 +98,16 @@ function imageUrls(group: MediaGroup): string[] {
   flex-wrap: wrap;
   justify-content: center;
   align-items: stretch;
-  gap: 0.75rem;
   width: 100%;
-  align-self: stretch;
+  margin: -0.375rem;
 }
 
 .answer-reveal-item {
-  flex: 0 1 min(100%, 420px);
-  width: min(100%, 420px);
-  min-width: min(100%, 300px);
-  max-width: 100%;
+  flex: 1 1 300px;
+  width: 100%;
+  max-width: 420px;
+  min-width: 0;
+  margin: 0.375rem;
   box-sizing: border-box;
 }
 

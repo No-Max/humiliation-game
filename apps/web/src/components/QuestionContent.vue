@@ -21,12 +21,14 @@ defineProps<{
 
 <style scoped>
 .question-content {
-  display: grid;
-  gap: 16px;
+  display: block;
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
+}
+
+.question-content > * + * {
+  margin-top: 16px;
 }
 
 .question-text {
@@ -36,7 +38,13 @@ defineProps<{
 }
 
 .large .question-text {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: 1.5rem;
   font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .large .question-text {
+    font-size: 2.5rem;
+  }
 }
 </style>

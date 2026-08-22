@@ -36,10 +36,15 @@ const emit = defineEmits<{
 .question-choices {
   list-style: none;
   padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  margin: -8px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.question-choices > li {
+  width: 50%;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .choice-btn,
@@ -48,18 +53,19 @@ const emit = defineEmits<{
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   text-align: left;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   font-size: 1rem;
   line-height: 1.35;
+  box-sizing: border-box;
 }
 
 .choice-btn > span:last-child,
 .choice-readonly > span:last-child {
   min-width: 0;
   word-break: break-word;
+  margin-left: 0.75rem;
 }
 
 .choice-btn {
@@ -102,6 +108,7 @@ const emit = defineEmits<{
   background: #e5e7eb;
   font-weight: 700;
   font-size: 0.875rem;
+  margin-right: 0;
 }
 
 .choice-btn.selected .choice-label {

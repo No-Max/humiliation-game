@@ -68,7 +68,6 @@ onUnmounted(() => cleanup?.());
       :show-timer="isActiveQuestion"
       :scoring-team-id="state.phase === 'CORRECT' ? state.scoringTeamId : undefined"
       :scoring-points="state.phase === 'CORRECT' ? state.questionValue : undefined"
-      style="margin: 1.5rem 0"
       @timer-expired="syncExpiredTurn"
     />
 

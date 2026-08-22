@@ -266,9 +266,12 @@ defineExpose({ reset });
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
   flex-wrap: wrap;
   margin-bottom: 0.5rem;
+}
+
+.room-code-row > * + * {
+  margin-left: 0.75rem;
 }
 
 .room-code-label {
@@ -323,8 +326,11 @@ defineExpose({ reset });
 
 .rename-team-actions {
   display: flex;
-  gap: 0.5rem;
   margin-top: 0.75rem;
+}
+
+.rename-team-actions > * + * {
+  margin-left: 0.5rem;
 }
 
 .rename-team-error {
@@ -336,8 +342,11 @@ defineExpose({ reset });
 .team-name-row {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
   margin: 0 0 0.35rem;
+}
+
+.team-name-row > * + * {
+  margin-left: 0.375rem;
 }
 
 .team-name {

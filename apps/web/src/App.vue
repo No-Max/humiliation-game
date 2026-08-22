@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { RouterLink, RouterView } from 'vue-router';
+import { computed, ref } from 'vue';
+import { RouterLink, RouterView, useRoute } from 'vue-router';
 import ConnectToGameModal from './components/ConnectToGameModal.vue';
 import UnfinishedGamesBanner from './components/UnfinishedGamesBanner.vue';
 
 const showConnectModal = ref(false);
+const route = useRoute();
+const isDisplayLayout = computed(() => route.path.startsWith('/display/'));
+const isGameLayout = computed(
+  () =>
+    route.path.startsWith('/display/')
+    || route.path.startsWith('/play/')
+    || route.path.startsWith('/team/'),
+);
 </script>
 
 <template>
   <div class="app">
-    <header class="header">
+    <header v-if="!isGameLayout" class="header">
       <RouterLink to="/" class="logo">Игра на унижение</RouterLink>
       <nav>
         <RouterLink to="/">Главная</RouterLink>
@@ -24,11 +32,14 @@ const showConnectModal = ref(false);
         </button>
       </nav>
     </header>
-    <main class="main">
-      <UnfinishedGamesBanner />
+    <main
+      class="main"
+      :class="{ 'main--display': isDisplayLayout, 'main--game': isGameLayout }"
+    >
+      <UnfinishedGamesBanner v-if="!isGameLayout" />
       <RouterView />
     </main>
-    <footer class="footer">
+    <footer v-if="!isGameLayout" class="footer">
       <p>© {{ new Date().getFullYear() }} Игра на унижение</p>
     </footer>
     <ConnectToGameModal :open="showConnectModal" @close="showConnectModal = false" />

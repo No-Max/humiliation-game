@@ -31,11 +31,14 @@ a.router-link-active {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
+  padding-left: max(2rem, env(safe-area-inset-left, 0px));
+  padding-right: max(2rem, env(safe-area-inset-right, 0px));
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .logo {
+  flex-shrink: 0;
   font-weight: 700;
   font-size: 1.25rem;
   color: #1a1a2e;
@@ -44,7 +47,14 @@ a.router-link-active {
 .header nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header nav a {
+  display: inline-block;
+  padding: 0.375rem 0.5rem;
+  white-space: nowrap;
 }
 
 .header-connect-btn {
@@ -57,10 +67,25 @@ a.router-link-active {
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .header-connect-btn:hover {
   background: #4338ca;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+    padding-left: max(3rem, 2vw);
+    padding-right: max(3rem, 2vw);
+  }
+
+  .header nav a {
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 .main {
@@ -69,11 +94,28 @@ a.router-link-active {
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
+}
+
+.main--display {
+  max-width: none;
+  padding-left: max(2rem, 2vw);
+  padding-right: max(2rem, 2vw);
+}
+
+.main--game {
+  padding-top: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.main--game.main--display {
+  padding-top: 2rem;
 }
 
 .footer {
   text-align: center;
   padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   color: #6b7280;
   font-size: 0.875rem;
 }
@@ -91,12 +133,16 @@ a.router-link-active {
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   align-items: stretch;
+  min-width: 0;
 }
 
 .card > * {
-  margin: 0;
+  margin-bottom: 0;
+}
+
+.card > * + * {
+  margin-top: 16px;
 }
 
 .card .input {
@@ -105,8 +151,12 @@ a.router-link-active {
 
 .card-actions {
   display: flex;
-  gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.card-actions > * + * {
+  margin-left: 16px;
 }
 
 .btn {
@@ -143,14 +193,20 @@ a.router-link-active {
 }
 
 .steps {
-  display: grid;
-  gap: 1rem;
+  display: block;
+}
+
+.steps > * + * {
+  margin-top: 1rem;
 }
 
 .step {
   display: flex;
-  gap: 1rem;
   align-items: flex-start;
+}
+
+.step > * + * {
+  margin-left: 1rem;
 }
 
 .step-num {
@@ -168,17 +224,24 @@ a.router-link-active {
 
 .scoreboard {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
+  margin: -0.5rem -0.5rem 1rem;
+  min-width: 0;
+}
+
+.team-score > * + * {
+  margin-top: 0.375rem;
 }
 
 .team-score {
-  flex: 1;
+  flex: 1 1 120px;
   min-width: 120px;
+  margin: 0.5rem;
   padding: 1rem;
   border-radius: 8px;
   background: #f3f4f6;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .team-score.active {
@@ -189,7 +252,10 @@ a.router-link-active {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+
+.tour-results > * + * {
+  margin-top: 16px;
 }
 
 .tour-results-title {
@@ -280,9 +346,12 @@ a.router-link-active {
 }
 
 .hints-list {
-  display: grid;
-  gap: 16px;
+  display: block;
   margin: 0;
+}
+
+.hints-list > * + * {
+  margin-top: 16px;
 }
 
 .hints-caption {
@@ -313,7 +382,7 @@ a.router-link-active {
 }
 
 .turn-notice {
-  margin: 0;
+  margin-top: 16px;
   text-align: center;
   font-weight: 600;
 }
@@ -321,8 +390,12 @@ a.router-link-active {
 .question-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   margin-top: 1rem;
+  min-width: 0;
+}
+
+.question-stack > * + * {
+  margin-top: 16px;
 }
 
 .question-stack > .card {
@@ -331,13 +404,39 @@ a.router-link-active {
 
 .display-screen {
   max-width: none;
-  padding: 2rem;
+  width: 100%;
+  min-width: 0;
+  padding: 2rem 0;
+  box-sizing: border-box;
+}
+
+.display-screen > * + * {
+  margin-top: 1.5rem;
+}
+
+.display-screen h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .display-screen .question {
   font-size: 2rem;
   text-align: center;
   margin: 2rem 0;
+}
+
+@media (min-width: 1024px) {
+  .display-screen h1 {
+    font-size: 2.5rem;
+  }
+
+  .team-score {
+    flex: 1 1 160px;
+    min-width: 160px;
+    padding: 1.25rem;
+  }
 }
 
 .modal-overlay {
@@ -408,8 +507,12 @@ a.router-link-active {
 
 .link-copy-row {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  min-width: 0;
+}
+
+.link-copy-row > * + * {
+  margin-left: 0.5rem;
 }
 
 .link-copy-field {
@@ -510,8 +613,11 @@ a.router-link-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
   padding: 1rem 1.25rem 0;
+}
+
+.qr-dialog-header > * + * {
+  margin-left: 0.75rem;
 }
 
 .qr-dialog-header strong {
@@ -574,10 +680,13 @@ a.router-link-active {
 
 .page-actions {
   display: flex;
-  gap: 0.5rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.page-actions > * + * {
+  margin-left: 0.5rem;
 }
 
 .pause-banner {

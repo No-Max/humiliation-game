@@ -31,6 +31,10 @@ defineProps<{
   text-align: center;
 }
 
+.question-meta-card > * + * {
+  margin-top: 16px;
+}
+
 .question-meta-details {
   margin: 0;
   color: #6b7280;

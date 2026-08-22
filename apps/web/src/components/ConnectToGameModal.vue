@@ -98,9 +98,11 @@ async function connect() {
 
 <style scoped>
 .connect-game-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: block;
+}
+
+.connect-game-modal > * + * {
+  margin-top: 0.75rem;
 }
 
 .connect-game-hint {

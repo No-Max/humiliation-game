@@ -8,6 +8,7 @@ import {
 } from '../lib/mediaLayoutCache';
 
 const GAP_PX = 16;
+const ROW_PADDING_PX = 16;
 const MAX_ROW_HEIGHT_PX = 400;
 
 const props = defineProps<{
@@ -69,7 +70,8 @@ const gapTotal = computed(() =>
 
 const computedRowHeightPx = computed(() => {
   if (!allLoaded.value || !rowWidth.value || !sumAspectRatios.value) return null;
-  const height = (rowWidth.value - gapTotal.value) / sumAspectRatios.value;
+  const height =
+    (rowWidth.value - ROW_PADDING_PX - gapTotal.value) / sumAspectRatios.value;
   return Math.min(height, MAX_ROW_HEIGHT_PX);
 });
 
@@ -126,7 +128,7 @@ function itemWidthPx(index: number): string | undefined {
   const totalRatio = sumAspectRatios.value;
   if (!totalRatio) return undefined;
 
-  const available = Math.max(0, width - gapTotal.value);
+  const available = Math.max(0, width - ROW_PADDING_PX - gapTotal.value);
   const itemWidth = Math.min(
     height * ratio,
     (available * ratio) / totalRatio,
@@ -248,7 +250,6 @@ onUnmounted(() => {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
 }
 
 .media-row {
@@ -260,9 +261,8 @@ onUnmounted(() => {
   max-width: 100%;
   min-width: 0;
   min-height: 6rem;
-  max-height: 400px;
-  gap: 16px;
-  overflow: hidden;
+  padding: 8px;
+  box-sizing: border-box;
   transition: height 0.15s ease;
 }
 
@@ -272,21 +272,30 @@ onUnmounted(() => {
 }
 
 .media-image-container {
-  flex: 1 1 min(100%, 280px);
+  flex: 1 1 280px;
   min-width: 0;
   max-width: 100%;
   height: auto;
-  max-height: 400px;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
+  box-sizing: border-box;
+}
+
+.media-row:not(.media-row--ready) .media-image-container {
+  margin-right: 16px;
+  margin-bottom: 16px;
 }
 
 .media-row--ready .media-image-container {
   flex: 0 1 auto;
   height: 100%;
-  max-height: 100%;
+  margin: 0;
+}
+
+.media-row--ready .media-image-container + .media-image-container {
+  margin-left: 16px;
 }
 
 .media-image {
@@ -294,16 +303,15 @@ onUnmounted(() => {
   width: 100%;
   max-width: 100%;
   height: auto;
-  max-height: 400px;
   object-fit: contain;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
 .media-row--ready .media-image {
+  width: 100%;
   height: 100%;
-  max-height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .media-image--loaded {
@@ -314,15 +322,10 @@ onUnmounted(() => {
   min-height: 10rem;
 }
 
-.large .media-image {
-  max-height: min(400px, 50vh);
-}
-
 @media (max-width: 1023px) {
   .media-row,
   .media-row--ready {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex-wrap: wrap;
     height: auto !important;
     max-height: none;
     min-height: 0;
@@ -330,9 +333,16 @@ onUnmounted(() => {
 
   .media-row--compact .media-image-container,
   .media-row--ready.media-row--compact .media-image-container {
-    width: auto !important;
+    flex: 0 0 calc(50% - 8px);
+    width: calc(50% - 8px) !important;
+    max-width: calc(50% - 8px);
     height: auto;
-    max-height: 280px;
+    margin: 0 16px 16px 0;
+  }
+
+  .media-row--compact .media-image-container:nth-child(2n),
+  .media-row--ready.media-row--compact .media-image-container:nth-child(2n) {
+    margin-right: 0;
   }
 
   .media-row--compact .media-image,
@@ -340,10 +350,6 @@ onUnmounted(() => {
     height: auto;
     max-height: 280px;
     object-fit: contain;
-  }
-
-  .large .media-row--compact .media-image {
-    max-height: min(280px, 40vh);
   }
 }
 </style>

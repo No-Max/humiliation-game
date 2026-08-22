@@ -40,12 +40,12 @@ const emit = defineEmits<{
           @expired="emit('timer-expired')"
         />
       </div>
-      <small v-if="!team.connected" style="color: #ef4444; display: block">offline</small>
+      <small v-if="!team.connected" class="team-score-status team-score-status--offline">offline</small>
       <small
         v-if="showTimer && team.id === activeTeamId"
-        style="color: #9ca3af; display: block"
+        class="team-score-status"
       >отвечает</small>
-      <small v-if="team.passed" style="color: #9ca3af; display: block">сдалась</small>
+      <small v-if="team.passed" class="team-score-status">сдалась</small>
     </div>
   </div>
 </template>
@@ -55,8 +55,11 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.team-score-name-row > * + * {
+  margin-left: 0.5rem;
 }
 
 .team-score-name-row :deep(.answer-timer) {
@@ -71,5 +74,15 @@ const emit = defineEmits<{
 .team-score-award {
   font-weight: 700;
   color: #065f46;
+}
+
+.team-score-status {
+  display: block;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.team-score-status--offline {
+  color: #ef4444;
 }
 </style>

@@ -49,12 +49,7 @@ const passthroughAttrs = computed(() => {
 </script>
 
 <template>
-  <input
-    class="input"
-    :class="inputClass"
-    v-model="model"
-    v-bind="passthroughAttrs"
-  />
+  <input class="input" :class="inputClass" v-model="model" v-bind="passthroughAttrs" />
 </template>
 
 <style>
@@ -93,8 +88,6 @@ const passthroughAttrs = computed(() => {
 }
 
 .input--copy {
-  height: 36px;
-  font-size: 14px;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 6px;

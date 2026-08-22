@@ -30,6 +30,12 @@ const slots = useSlots();
 
 const hasDefaultSlot = computed(() => Boolean(slots.default?.()));
 
+const effectiveIcon = computed(() => {
+  if (props.icon) return props.icon;
+  if (props.variant === "close" && !hasDefaultSlot.value) return "close";
+  return "";
+});
+
 const component = computed(() => {
   if (props.to) return RouterLink;
   if (props.href) return "a";
@@ -39,7 +45,7 @@ const component = computed(() => {
 const buttonClass = computed(() => {
   const classes: (string | Record<string, boolean>)[] = [`btn--${props.variant}`];
 
-  if (props.icon) {
+  if (effectiveIcon.value) {
     classes.push("btn--icon");
   }
 
@@ -80,8 +86,10 @@ const passthroughAttrs = computed(() => {
 });
 
 const iconHref = computed(() => {
-  if (!props.icon) return "";
-  const id = props.icon.endsWith("-icon") ? props.icon : `${props.icon}-icon`;
+  if (!effectiveIcon.value) return "";
+  const id = effectiveIcon.value.endsWith("-icon")
+    ? effectiveIcon.value
+    : `${effectiveIcon.value}-icon`;
   return `/icons.svg#${id}`;
 });
 </script>
@@ -89,7 +97,7 @@ const iconHref = computed(() => {
 <template>
   <component :is="component" class="btn" :class="buttonClass" :type="component === 'button' ? type : undefined" :to="to"
     :href="href" :disabled="disabled" v-bind="passthroughAttrs">
-    <svg v-if="icon" class="btn__icon" role="presentation" aria-hidden="true">
+    <svg v-if="effectiveIcon" class="btn__icon" role="presentation" aria-hidden="true">
       <use :href="iconHref"></use>
     </svg>
     <span v-if="hasDefaultSlot" class="btn__text">
@@ -132,10 +140,19 @@ const iconHref = computed(() => {
 .btn--close {
   float: right;
   background: none;
-  font-size: 24px;
-  line-height: 1;
   color: #6b7280;
   padding: 4px;
+  height: 32px;
+}
+
+.btn--close.btn--icon {
+  width: 32px;
+  padding: 4px;
+}
+
+.btn--close .btn__icon {
+  width: 20px;
+  height: 20px;
 }
 
 .btn--ghost {

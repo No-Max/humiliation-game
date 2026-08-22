@@ -31,22 +31,14 @@ defineEmits<{
 
     <template v-if="isMyTurn && myTeam?.connected !== false">
       <template v-if="isChoiceQuestion && state.choices?.length">
-        <QuestionChoices
-          :choices="state.choices"
-          :selected="answer"
-          @select="$emit('submitChoice', $event)"
-        />
+        <QuestionChoices :choices="state.choices" :selected="answer" @select="$emit('submitChoice', $event)" />
         <Button variant="secondary" @click="$emit('pass')">
           Сдаёмся
         </Button>
       </template>
 
       <template v-else>
-        <Input
-          v-model="answer"
-          placeholder="Ваш ответ"
-          @keyup.enter="$emit('submit')"
-        />
+        <Input v-model="answer" placeholder="Ваш ответ" @keyup.enter="$emit('submit')" />
         <div class="card-actions">
           <Button :disabled="!canSubmit" @click="$emit('submit')">
             Ответить
@@ -66,15 +58,15 @@ defineEmits<{
   font-size: 0;
 }
 
-.card-actions > :deep(*) {
+.card-actions> :deep(*) {
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
   margin-right: 16px;
-  margin-bottom: 8px;
+  margin-top: 16px;
 }
 
-.card-actions > :deep(*:last-child) {
+.card-actions> :deep(*:last-child) {
   margin-right: 0;
 }
 </style>

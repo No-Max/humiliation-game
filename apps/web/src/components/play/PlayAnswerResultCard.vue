@@ -23,19 +23,12 @@ defineEmits<{
       Верно!
     </div>
     <div v-else class="banner wrong">Никто не угадал</div>
-    <div
-      v-if="questionPrompt"
-      class="question-prompt rich-text-preview"
-      v-html="questionPrompt"
-    />
-    <p v-if="correctAnswer">
+    <div v-if="questionPrompt" class="question-prompt rich-text-preview" v-html="questionPrompt" />
+    <p class="correct-answer" v-if="correctAnswer">
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
     <AnswerRevealMedia :items="answerMedia" />
-    <Button
-      v-if="showNextQuestion !== false"
-      @click="$emit('nextQuestion')"
-    >Следующий вопрос</Button>
+    <Button v-if="showNextQuestion !== false" @click="$emit('nextQuestion')">Следующий вопрос</Button>
   </div>
 </template>
 
@@ -45,9 +38,13 @@ defineEmits<{
 }
 
 .question-prompt {
-  margin: 0 0 16px;
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 20px;
+  padding: 8px 0;
   color: #374151;
+}
+
+.correct-answer {
+  padding: 8px 0;
 }
 </style>

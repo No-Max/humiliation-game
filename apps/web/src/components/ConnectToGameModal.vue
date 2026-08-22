@@ -65,9 +65,7 @@ async function connect() {
   <ModalShell v-if="open" title-id="connect-game-title" @close="close">
     <template #header>
       <h2 id="connect-game-title">Подключиться к игре</h2>
-      <Button variant="close" aria-label="Закрыть" @click="close">
-        ×
-      </Button>
+      <Button variant="close" aria-label="Закрыть" @click="close" />
     </template>
     <div class="connect-game-modal">
       <p class="connect-game-hint text-muted">

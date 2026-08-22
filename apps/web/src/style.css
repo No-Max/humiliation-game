@@ -41,6 +41,7 @@ a.router-link-active {
   text-align: center;
   font-weight: bold;
   margin: 0;
+  margin-bottom: 8px;
 }
 
 .banner.correct {
@@ -151,6 +152,7 @@ a.router-link-active {
 }
 
 .tour-rules {
+  padding: 8px 0;
   margin: 0;
   text-align: left;
 }

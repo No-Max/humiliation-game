@@ -114,13 +114,11 @@ defineExpose({ reset });
         TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
       </p>
       <div v-if="roomCode" class="room-code-row">
-        <div>
-          <span class="room-code-label text-muted-sm">Код комнаты</span>
+        <div class="room-code-value-wrap">
+          <span class="room-code-label text-muted-sm">Код комнаты: &nbsp;</span>
           <span class="room-code-value">{{ roomCode }}</span>
         </div>
-        <Button variant="secondary" class="room-code-copy" @click="copyRoomCode">
-          Копировать
-        </Button>
+        <Button variant="secondary" icon="copy" @click="copyRoomCode" class="room-code-copy" compact />
       </div>
       <p v-if="roomCode" class="link-desc room-code-hint text-muted-sm">
         Или введите код на экране через «Подключиться к игре» в шапке сайта.
@@ -140,12 +138,8 @@ defineExpose({ reset });
           <template v-if="slot.teamId === teamId">
             <div v-if="renamingTeam" class="rename-team-form">
               <label :for="`rename-team-input-${slot.teamId}`">Новое название</label>
-              <Input
-                :id="`rename-team-input-${slot.teamId}`"
-                v-model="renameDraft"
-                placeholder="Название команды"
-                @keyup.enter="saveRenameTeam"
-              />
+              <Input :id="`rename-team-input-${slot.teamId}`" v-model="renameDraft" placeholder="Название команды"
+                @keyup.enter="saveRenameTeam" />
               <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
               <div class="rename-team-actions">
                 <Button :disabled="renameLoading" @click="saveRenameTeam">
@@ -172,12 +166,8 @@ defineExpose({ reset });
       <div v-else-if="mySlotUrl" class="team-slot-row">
         <div v-if="renamingTeam" class="rename-team-form">
           <label for="rename-team-input">Новое название</label>
-          <Input
-            id="rename-team-input"
-            v-model="renameDraft"
-            placeholder="Название команды"
-            @keyup.enter="saveRenameTeam"
-          />
+          <Input id="rename-team-input" v-model="renameDraft" placeholder="Название команды"
+            @keyup.enter="saveRenameTeam" />
           <p v-if="renameError" class="rename-team-error text-error">{{ renameError }}</p>
           <div class="rename-team-actions">
             <Button :disabled="renameLoading" @click="saveRenameTeam">
@@ -267,19 +257,17 @@ defineExpose({ reset });
 }
 
 .room-code-copy {
-  float: right;
-  display: inline-block;
-  vertical-align: middle;
+  margin-left: 12px;
 }
 
 .room-code-label {
-  display: block;
+  display: inline-block;
   font-weight: bold;
-  margin-bottom: 4px;
+  font-size: 16px;
 }
 
 .room-code-value {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
   letter-spacing: 0.2em;
   font-variant-numeric: tabular-nums;

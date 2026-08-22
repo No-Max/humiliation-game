@@ -19,30 +19,28 @@ defineEmits<{
 <template>
   <div class="page-actions">
     <h1 class="page-title page-title--compact">{{ seriesTitle }}</h1>
-    <template v-if="linksActive && joined">
-      <Button v-if="!isPaused" variant="secondary" @click="$emit('pause')">
-        Пауза
-      </Button>
-      <Button v-else @click="$emit('resume')">
-        Продолжить
-      </Button>
-      <Button variant="secondary" @click="$emit('exit')">
-        Выйти
-      </Button>
-    </template>
-    <Button
-      v-if="linksActive"
-      variant="secondary"
-      icon="settings"
-      aria-label="Подключение"
-      @click="$emit('openConnection')"
-    />
+    <div class="page-actions-inner">
+      <template v-if="linksActive && joined">
+        <Button class="page-action" v-if="!isPaused" variant="secondary" @click="$emit('pause')">
+          Пауза
+        </Button>
+        <Button class="page-action" v-else @click="$emit('resume')">
+          Продолжить
+        </Button>
+        <Button class="page-action" variant="secondary" @click="$emit('exit')">
+          Выйти
+        </Button>
+      </template>
+      <Button class="page-action" v-if="linksActive" variant="secondary" icon="settings" aria-label="Подключение"
+        @click="$emit('openConnection')" />
+    </div>
   </div>
 </template>
 
 <style scoped>
 .page-actions .page-title--compact {
   margin: 0;
+  display: inline-block;
 }
 
 .page-actions {
@@ -51,10 +49,9 @@ defineEmits<{
   font-size: 0;
 }
 
-.page-actions>* {
+.page-action {
   display: inline-block;
   vertical-align: middle;
-  font-size: 16px;
   margin-left: 8px;
   margin-bottom: 8px;
 }
@@ -65,5 +62,9 @@ defineEmits<{
 
 .page-actions .page-title {
   max-width: calc(100% - 280px);
+}
+
+.page-actions-inner {
+  float: right;
 }
 </style>

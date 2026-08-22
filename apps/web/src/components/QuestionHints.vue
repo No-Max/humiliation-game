@@ -19,16 +19,12 @@ const caption = computed(() => {
 </script>
 
 <template>
+  <p class="hints-caption">
+    💡 {{ caption }}
+  </p>
   <div v-if="hintsTotal" class="hints-list">
-    <p class="hints-caption">
-      💡 {{ caption }}
-    </p>
-    <p
-      v-for="(hint, index) in hints"
-      :key="`${index}-${hint}`"
-      class="hint"
-      :class="{ 'hint-latest': index === revealedCount - 1 }"
-    >
+    <p v-for="(hint, index) in hints" :key="`${index}-${hint}`" class="hint"
+      :class="{ 'hint-latest': index === revealedCount - 1 }">
       {{ index + 1 }}. {{ hint }}
     </p>
   </div>
@@ -37,22 +33,22 @@ const caption = computed(() => {
 <style scoped>
 .hints-list {
   display: block;
-  margin: 16px 0;
+  margin-bottom: 16px;
   padding: 0;
 }
 
 .hints-caption {
-  font-size: 13px;
+  font-size: 12px;
   color: #92400e;
   font-weight: bold;
-  margin: 0 0 16px;
+  margin: 0 0 8px;
 }
 
 .hint {
   background: #fef3c7;
-  padding: 16px;
+  padding: 12px 16px;
   border-radius: 8px;
-  margin: 16px 0 0;
+  margin: 8px 0 0;
 }
 
 .hints-list .hint:first-of-type {
@@ -69,6 +65,7 @@ const caption = computed(() => {
     transform: scale(0.98);
     opacity: 0.65;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

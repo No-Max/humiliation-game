@@ -51,38 +51,19 @@ function selectAll(event: FocusEvent) {
 <template>
   <div class="link-copy-row">
     <div class="link-copy-field">
-      <Input
-        variant="copy"
-        :highlight="highlight"
-        type="text"
-        readonly
-        :model-value="url"
-        @focus="selectAll"
-      />
+      <Input variant="copy" :highlight="highlight" type="text" readonly :model-value="url" @focus="selectAll" />
       <div class="link-copy-btn-wrap">
-        <Button
-          variant="ghost"
-          icon="copy"
-          :aria-label="`Копировать ${label}`"
-          @click="copy"
-        />
+        <Button variant="ghost" icon="copy" :aria-label="`Копировать ${label}`" @click="copy" />
       </div>
     </div>
-    <Button
-      icon="qr"
-      class="link-qr-btn"
-      :aria-label="`QR-код: ${label}`"
-      @click="openQr"
-    />
+    <Button icon="qr" class="link-qr-btn" :aria-label="`QR-код: ${label}`" @click="openQr" />
   </div>
 
   <Teleport to="body">
     <ModalShell v-if="showQr" title-id="qr-dialog-title" @close="closeQr">
       <template #header>
         <h2 id="qr-dialog-title">{{ label }}</h2>
-        <Button variant="close" aria-label="Закрыть" @click="closeQr">
-          ×
-        </Button>
+        <Button variant="close" aria-label="Закрыть" @click="closeQr" />
       </template>
       <div class="qr-dialog-body">
         <p v-if="qrLoading" class="qr-loading text-muted-sm">Генерация QR-кода…</p>
@@ -104,7 +85,7 @@ function selectAll(event: FocusEvent) {
   display: inline-block;
   vertical-align: middle;
   position: relative;
-  width: calc(100% - 46px);
+  width: calc(100% - 56px);
   min-width: 0;
   font-size: 14px;
 }
@@ -117,7 +98,7 @@ function selectAll(event: FocusEvent) {
 }
 
 .link-qr-btn {
-  margin-left: 8px;
+  margin-left: 12px;
 }
 
 .qr-dialog-body {

@@ -12,9 +12,7 @@ defineEmits<{
   <ModalShell title-id="exit-title" @close="$emit('close')">
     <template #header>
       <h2 id="exit-title">Выйти из игры?</h2>
-      <Button variant="close" aria-label="Закрыть" @click="$emit('close')">
-        ×
-      </Button>
+      <Button variant="close" aria-label="Закрыть" @click="$emit('close')" />
     </template>
     <p class="exit-message">
       Игра будет поставлена на паузу. Вернитесь по ссылке командного слота, когда будете готовы.

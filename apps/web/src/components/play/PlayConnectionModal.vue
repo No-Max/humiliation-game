@@ -22,9 +22,7 @@ defineEmits<{
   <ModalShell title-id="connection-title" @close="$emit('close')">
     <template #header>
       <h2 id="connection-title">Подключение</h2>
-      <Button variant="close" aria-label="Закрыть" @click="$emit('close')">
-        ×
-      </Button>
+      <Button variant="close" aria-label="Закрыть" @click="$emit('close')" />
     </template>
     <GameConnectionPanel
       :room-code="roomCode"

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import type { AnswerMediaItem } from '@humiliation-game/shared';
 import MediaImageRow from './MediaImageRow.vue';
 
 const props = defineProps<{
   items?: AnswerMediaItem[];
   large?: boolean;
+  autoplay?: boolean;
 }>();
 
 interface MediaEntry {
@@ -32,13 +33,55 @@ const groups = computed<MediaGroup[]>(() => {
   return result;
 });
 
+const rootEl = ref<HTMLElement | null>(null);
+
 function imageUrls(group: MediaGroup): string[] {
   return group.entries.map((entry) => entry.item.url);
 }
+
+function stopAllMedia() {
+  const root = rootEl.value;
+  if (!root) return;
+  for (const el of root.querySelectorAll('audio, video')) {
+    const media = el as HTMLMediaElement;
+    media.pause();
+    media.currentTime = 0;
+  }
+}
+
+async function playFirstMedia() {
+  if (!props.autoplay) return;
+  await nextTick();
+  const root = rootEl.value;
+  if (!root) return;
+
+  const media = root.querySelector('audio, video') as HTMLMediaElement | null;
+  if (!media) return;
+
+  try {
+    media.currentTime = 0;
+    await media.play();
+  } catch {
+    // Autoplay may be blocked by the browser; controls stay available.
+  }
+}
+
+watch(
+  () => [props.autoplay, props.items] as const,
+  () => {
+    stopAllMedia();
+    void playFirstMedia();
+  },
+  { deep: true, immediate: true },
+);
+
+onBeforeUnmount(() => {
+  stopAllMedia();
+});
 </script>
 
 <template>
-  <div v-if="items?.length" class="answer-reveal-media">
+  <div v-if="items?.length" ref="rootEl" class="answer-reveal-media">
     <template v-for="(group, groupIndex) in groups" :key="`${group.type}-${groupIndex}`">
       <MediaImageRow
         v-if="group.type === 'IMAGE'"
@@ -64,15 +107,17 @@ function imageUrls(group: MediaGroup): string[] {
             class="answer-audio"
             :src="item.url"
             controls
-            preload="metadata"
+            preload="auto"
+            :autoplay="autoplay"
           />
           <video
             v-else
             class="answer-video"
             :src="item.url"
             controls
-            preload="metadata"
+            preload="auto"
             playsinline
+            :autoplay="autoplay"
           />
         </div>
       </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
 import {
   teamsSortedByScore,
@@ -8,7 +8,7 @@ import {
   formatTourQuestionMeta,
   playScreenTitle,
 } from '@humiliation-game/shared';
-import { connectSocket, onRoomState } from '../lib/api';
+import { connectSocket, leaveRoom, onRoomState } from '../lib/api';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 import QuestionHints from '../components/QuestionHints.vue';
@@ -16,8 +16,10 @@ import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 import AnswerRevealMedia from '../components/AnswerRevealMedia.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
 import Icon from '../components/Icon.vue';
+import Button from '../components/Button.vue';
 
 const route = useRoute();
+const router = useRouter();
 const state = ref<RoomState | null>(null);
 const tourResultsTeams = computed(() =>
   state.value ? teamsSortedByScore(state.value.teams) : [],
@@ -33,6 +35,14 @@ let cleanup: (() => void) | undefined;
 
 function syncExpiredTurn() {
   connectSocket().emit('syncExpiredTurn', () => {});
+}
+
+function endDisplay() {
+  const socket = connectSocket();
+  leaveRoom(() => {
+    socket.disconnect();
+    router.push('/');
+  });
 }
 
 onMounted(() => {
@@ -52,10 +62,13 @@ onUnmounted(() => cleanup?.());
 <template>
   <div class="display-screen">
     <div v-if="state?.status === 'PAUSED'" class="pause-overlay">
-      <span class="pause-overlay-label">
-        <Icon name="pause" :size="40" />
-        ПАУЗА
-      </span>
+      <div class="pause-overlay-panel">
+        <span class="pause-overlay-label">
+          <Icon name="pause" :size="40" />
+          ПАУЗА
+        </span>
+        <Button large @click="endDisplay">Завершить просмотр</Button>
+      </div>
     </div>
 
     <h1>{{ headerTitle }}</h1>
@@ -127,6 +140,7 @@ onUnmounted(() => cleanup?.());
         <AnswerRevealMedia
           v-if="state.phase === 'CORRECT' || state.phase === 'REVEAL'"
           large
+          autoplay
           :items="state.answerMedia"
         />
       </div>
@@ -168,31 +182,29 @@ onUnmounted(() => cleanup?.());
   inset: 0;
   background: rgb(0 0 0 / 55%);
   z-index: 900;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 0;
-  white-space: nowrap;
 }
 
-.pause-overlay::before {
-  content: '';
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
+.pause-overlay-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 32px 48px;
+  border-radius: 12px;
 }
 
-.pause-overlay span {
+.pause-overlay-label {
   display: inline-flex;
   align-items: center;
   gap: 16px;
-  vertical-align: middle;
-  white-space: normal;
-  background: #fef3c7;
-  color: #92400e;
   font-size: 40px;
   font-weight: bold;
-  padding: 24px 48px;
-  border-radius: 12px;
 }
 
 @media (max-width: 1023px) {

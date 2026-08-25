@@ -35,6 +35,7 @@ defineProps<{
   font-size: 18px;
   margin: 0;
   text-align: center;
+  padding-top: 16px;
 }
 
 .large .question-text {

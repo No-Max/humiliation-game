@@ -41,11 +41,12 @@ defineEmits<{
 .page-actions .page-title--compact {
   margin: 0;
   display: inline-block;
+  vertical-align: middle;
+  width: 360px;
 }
 
 .page-actions {
   display: block;
-  margin-bottom: 8px;
   font-size: 0;
 }
 
@@ -53,18 +54,33 @@ defineEmits<{
   display: inline-block;
   vertical-align: middle;
   margin-left: 8px;
-  margin-bottom: 8px;
-}
-
-.page-actions> :first-child {
-  margin-left: 0;
-}
-
-.page-actions .page-title {
-  max-width: calc(100% - 280px);
 }
 
 .page-actions-inner {
-  float: right;
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(100% - 360px);
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .page-actions .page-title--compact {
+    width: 220px;
+  }
+
+  .page-actions-inner {
+    width: calc(100% - 220px);
+  }
+}
+
+@media (max-width: 500px) {
+  .page-actions .page-title--compact {
+    width: 100%;
+    padding-bottom: 8px;
+  }
+
+  .page-actions-inner {
+    width: 100%;
+  }
 }
 </style>

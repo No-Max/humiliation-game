@@ -62,10 +62,10 @@ onUnmounted(() => {
 
 <style scoped>
 .answer-timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 20px;
+  display: inline-block;
+  font-size: 18px;
+  line-height: 20px;
+  height: 20px;
   font-weight: bold;
   font-variant-numeric: tabular-nums;
   color: #4f46e5;
@@ -80,6 +80,8 @@ onUnmounted(() => {
 .answer-timer__icon {
   color: inherit;
   vertical-align: middle;
+  height: 20px;
+  width: 20px;
 }
 
 .answer-timer.urgent {

@@ -7,7 +7,7 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
     <h1 class="page-title">Правила игры</h1>
     <div class="card">
       <h2 class="section-heading">Описание</h2>
-      <p>Несколько команд отвечают на вопросы по очереди и зарабатывают баллы, команда набравшая большее кол-во баллов - побеждает. При неверном ответе у комады соперников есть возможность перехватить вопрос и зарабоать дополнительные баллы.</p>
+      <p class="rules-description">Несколько команд отвечают на вопросы по очереди и зарабатывают баллы, команда набравшая большее кол-во баллов - побеждает. При неверном ответе у комады соперников есть возможность перехватить вопрос и зарабоать дополнительные баллы.</p>
     </div>
     <div class="card">
       <h2 class="section-heading">Основные правила</h2>
@@ -30,3 +30,9 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
     </div>
   </div>
 </template>
+
+<style scoped>
+.rules-description, .list-grid , .card {
+  margin-top: 16px;
+}
+</style>

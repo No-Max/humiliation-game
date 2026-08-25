@@ -127,7 +127,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .answer-reveal-media {
-  margin: 12px 0;
   display: block;
   width: 100%;
   max-width: 100%;
@@ -143,16 +142,17 @@ onBeforeUnmount(() => {
   text-align: center;
   font-size: 0;
   width: 100%;
-  margin: -6px;
+  margin: 0;
+  padding-top: 16px;
 }
 
 .answer-reveal-item {
   display: inline-block;
   vertical-align: top;
   width: 300px;
-  max-width: calc(50% - 12px);
+  max-width: 100%;
   min-width: 0;
-  margin: 6px;
+  margin: 0;
   box-sizing: border-box;
   font-size: 16px;
 }

@@ -29,9 +29,6 @@ defineProps<{
 <style scoped>
 .question-meta-card {
   text-align: center;
-}
-
-.question-meta-card > * + * {
   margin-top: 16px;
 }
 

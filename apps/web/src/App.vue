@@ -96,7 +96,7 @@ const isGameLayout = computed(
 .main {
   display: block;
   padding: 32px;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   min-width: 0;
@@ -126,9 +126,17 @@ const isGameLayout = computed(
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 16px;
+  }
+
   .header nav {
     width: 100%;
     text-align: left;
+  }
+
+  .main {
+    padding: 16px;
   }
 }
 </style>

@@ -46,7 +46,7 @@ const caption = computed(() => {
   font-size: 12px;
   color: #92400e;
   font-weight: bold;
-  margin: 0 0 8px;
+  margin-top: 16px;
 }
 
 .hint {

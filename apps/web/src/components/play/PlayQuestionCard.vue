@@ -26,7 +26,7 @@ defineEmits<{
 
 <template>
   <div class="card">
-    <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" />
+    <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" class="question-content"/>
     <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
 
     <template v-if="isMyTurn && myTeam?.connected !== false">
@@ -56,6 +56,10 @@ defineEmits<{
 .card-actions {
   display: block;
   font-size: 0;
+}
+
+.question-content {
+  margin-top: -16px;
 }
 
 .card-actions> :deep(*) {

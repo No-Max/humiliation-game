@@ -28,7 +28,7 @@ defineEmits<{
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
     <AnswerRevealMedia :items="answerMedia" />
-    <Button v-if="showNextQuestion !== false" @click="$emit('nextQuestion')">Следующий вопрос</Button>
+    <Button v-if="showNextQuestion !== false" class="answer-result-btn" @click="$emit('nextQuestion')">Следующий вопрос</Button>
   </div>
 </template>
 
@@ -40,11 +40,15 @@ defineEmits<{
 .question-prompt {
   font-size: 16px;
   line-height: 20px;
-  padding: 8px 0;
+  padding-top: 16px;
   color: #374151;
 }
 
 .correct-answer {
-  padding: 8px 0;
+  padding-top: 16px;
+}
+
+.answer-result-btn {
+  margin-top: 16px;
 }
 </style>

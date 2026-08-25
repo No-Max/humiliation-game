@@ -47,10 +47,10 @@ defineEmits<{
 
 <style scoped>
 .pause-banner {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+.wrong {
+  margin-top: 16px;
 }
 </style>

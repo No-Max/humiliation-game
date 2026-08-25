@@ -35,9 +35,9 @@ onMounted(async () => {
 <template>
   <div>
     <h1 class="page-title">Выпуски</h1>
-    <p v-if="loading">Загрузка...</p>
-    <p v-else-if="error">{{ error }}</p>
-    <div v-else-if="!series.length" class="card">Пока нет опубликованных выпусков</div>
+    <p class="series-loading" v-if="loading">Загрузка...</p>
+    <p class="series-error" v-else-if="error">{{ error }}</p>
+    <div class="card" v-else-if="!series.length">Пока нет опубликованных выпусков</div>
     <div v-for="item in series" :key="item.id" class="card">
       <h2>Выпуск {{ item.number }}: {{ item.title }}</h2>
       <div
@@ -62,6 +62,10 @@ onMounted(async () => {
   margin: 8px 0;
 }
 
+.series-loading, .series-error {
+  margin-top: 16px;
+}
+
 .series-tours-list {
   list-style: none;
   padding: 0;
@@ -74,5 +78,9 @@ onMounted(async () => {
 
 .empty-tours {
   margin: 8px 0;
+}
+
+.card {
+  margin-top: 16px;
 }
 </style>

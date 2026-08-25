@@ -32,8 +32,4 @@ defineEmits<{
   border-radius: 8px;
   margin: 16px 0 0;
 }
-
-.connection-btn {
-  margin-top: 12px;
-}
 </style>

@@ -27,32 +27,25 @@ defineProps<{
 }
 
 .media-row {
+  display: block;
   text-align: center;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
   box-sizing: border-box;
+  margin-right: -8px;
+  margin-left: -8px;
 }
 
 .media-image-container {
   display: inline-block;
-  height: 300px;
-  max-width: calc(50% - 16px);
-  margin: 8px;
+  height: 250px;
+  margin: 16px 8px 0 8px;
   vertical-align: top;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
-  box-sizing: border-box;
-  overflow: hidden;
 }
 
 .media-image {
-  display: block;
-  height: 300px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  box-sizing: border-box;
+  height: 100%;
+  border-radius: 8px;
 }
 </style>

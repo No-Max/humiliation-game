@@ -22,7 +22,6 @@ a.router-link-active {
 
 .page-title {
   font-size: 32px;
-  margin-bottom: 16px;
 }
 
 .card {
@@ -30,7 +29,6 @@ a.router-link-active {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
-  margin-bottom: 16px;
   display: block;
   min-width: 0;
 }
@@ -41,7 +39,7 @@ a.router-link-active {
   text-align: center;
   font-weight: bold;
   margin: 0;
-  margin-bottom: 8px;
+  display: block;
 }
 
 .banner.correct {
@@ -92,10 +90,6 @@ a.router-link-active {
   padding-left: 20px;
 }
 
-.section-heading {
-  margin-bottom: 12px;
-}
-
 .teams-limit-notice {
   color: #92400e;
   font-size: 14px;
@@ -104,7 +98,6 @@ a.router-link-active {
 
 .question-stack {
   display: block;
-  margin-top: 16px;
   min-width: 0;
 }
 
@@ -152,11 +145,17 @@ a.router-link-active {
 }
 
 .tour-rules {
-  padding: 8px 0;
+  padding-top: 16px;
   margin: 0;
   text-align: left;
 }
 
 .tour-hint {
   margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .page-title {
+    font-size: 24px;
+  }
 }

@@ -27,25 +27,27 @@ const emit = defineEmits<{
         active: team.id === activeTeamId,
         scored: team.id === scoringTeamId,
       }"
+
+      :style="{ width: `${Math.round(100 / teams.length)}%` }"
     >
-      <div class="team-score-name-row">
-        <div v-if="team.id === scoringTeamId && scoringPoints != null" class="team-score-award">
-          {{ team.name }} +{{ formatPoints(scoringPoints) }}
+      <div class="team-score-card">
+        <div class="team-score-name-row">
+          <div v-if="team.id === scoringTeamId && scoringPoints != null" class="team-score-award">
+            {{ team.name }} +{{ scoringPoints }}
+          </div>
+          <div v-else>{{ team.name }}</div>
         </div>
-        <div v-else>{{ team.name }}</div>
-        <AnswerTimer
-          v-if="showTimer && team.id === activeTeamId && !isPaused"
-          :deadline-at="answerDeadlineAt"
-          :paused="isPaused"
-          @expired="emit('timer-expired')"
-        />
+        <div class="team-score-status-row">
+          <small v-if="!team.connected" class="team-score-status team-score-status--offline">offline</small>
+          <small v-else-if="team.passed" class="team-score-status">сдалась</small>
+          <AnswerTimer
+            v-if="showTimer && team.id === activeTeamId && !isPaused"
+            :deadline-at="answerDeadlineAt"
+            :paused="isPaused"
+            @expired="emit('timer-expired')"
+          />
+        </div>
       </div>
-      <small v-if="!team.connected" class="team-score-status team-score-status--offline">offline</small>
-      <small
-        v-if="showTimer && team.id === activeTeamId"
-        class="team-score-status"
-      >отвечает</small>
-      <small v-if="team.passed" class="team-score-status">сдалась</small>
     </div>
   </div>
 </template>
@@ -54,62 +56,45 @@ const emit = defineEmits<{
 .scoreboard {
   display: block;
   text-align: center;
+  line-height: 0;
   font-size: 0;
-  margin: -8px -8px 16px;
-  min-width: 0;
+  margin-left: -8px;
+  margin-right: -8px;
 }
 
 .team-score {
   display: inline-block;
   vertical-align: top;
-  width: 160px;
-  min-width: 160px;
-  max-width: calc(50% - 16px);
-  margin: 8px;
-  padding: 8px;
-  border-radius: 8px;
-  background: #f3f4f6;
-  text-align: center;
   box-sizing: border-box;
-  font-size: 16px;
+  padding: 16px 8px 0 8px;
+  min-width: 180px;
+  height: 72px;
 }
 
-.team-score > * + * {
-  margin-top: 6px;
+.team-score-card {
+  width: 100%;
+  height: 100%;
+  vertical-align: top;
+  padding: 8px;
+  outline: 2px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 8px;
 }
 
-.team-score.active {
+.active .team-score-card  {
   outline: 3px solid #4f46e5;
-}
-
-@media (max-width: 1023px) {
-  .team-score {
-    width: 120px;
-    min-width: 120px;
-  }
 }
 
 .team-score-name-row {
   text-align: center;
-  font-size: 0;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 20px;
+  height: 20px;
+  display: block;
 }
 
-.team-score-name-row > * {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 16px;
-  margin-left: 8px;
-}
-
-.team-score-name-row > *:first-child {
-  margin-left: 0;
-}
-
-.team-score-name-row :deep(.answer-timer) {
-  font-size: 16px;
-}
-
-.team-score.scored {
+.team-score-card.scored {
   outline: 2px solid #059669;
   background: #ecfdf5;
 }
@@ -117,15 +102,25 @@ const emit = defineEmits<{
 .team-score-award {
   font-weight: bold;
   color: #065f46;
+  font-size: 16px;
+  line-height: 20px;
+  height: 20px;
 }
 
 .team-score-status {
-  display: block;
+  display: inline-block;
+  margin-right: 4px;
   font-size: 14px;
+  line-height: 20px;
+  height: 20px;
   color: #9ca3af;
 }
 
 .team-score-status--offline {
   color: #ef4444;
+}
+
+.team-score-status-row {
+  line-height: 0;
 }
 </style>

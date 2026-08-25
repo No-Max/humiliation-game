@@ -13,6 +13,8 @@ export function parseGameResults(value: unknown): GameQuestionResult[] {
     const points = item.points;
     const scoringTeamId = item.scoringTeamId;
 
+    const tourTitle = item.tourTitle;
+
     if (
       typeof tourIndex !== 'number' ||
       typeof questionIndex !== 'number' ||
@@ -27,6 +29,7 @@ export function parseGameResults(value: unknown): GameQuestionResult[] {
       questionIndex,
       correctAnswer,
       points,
+      tourTitle: typeof tourTitle === 'string' ? tourTitle : undefined,
       scoringTeamId: typeof scoringTeamId === 'string' ? scoringTeamId : undefined,
     });
   }

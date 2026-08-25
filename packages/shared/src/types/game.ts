@@ -92,6 +92,8 @@ export interface GameQuestionResult {
   questionIndex: number;
   correctAnswer: string;
   points: number;
+  /** Название тура */
+  tourTitle?: string;
   /** Команда, которой начислили баллы; если никто не угадал — не задано */
   scoringTeamId?: string;
 }

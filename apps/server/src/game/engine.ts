@@ -655,11 +655,14 @@ export class GameEngine {
     const question = this.getCurrentQuestion();
     if (!question) return;
 
+    const tour = this.series.tours[this.state.currentTourIndex];
+
     this.questionResults.push({
       tourIndex: this.state.currentTourIndex,
       questionIndex: this.state.currentQuestionIndex,
       correctAnswer: question.correctAnswer,
       points: this.state.questionValue,
+      tourTitle: tour?.title ?? undefined,
       scoringTeamId: this.state.scoringTeamId,
     });
   }

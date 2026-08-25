@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { AnswerMediaItem } from '@humiliation-game/shared';
+import { ref } from 'vue';
+import type { AnswerMediaItem, TeamState } from '@humiliation-game/shared';
 import AnswerRevealMedia from '../AnswerRevealMedia.vue';
 import Button from '../Button.vue';
+import PlayAdjustResultModal from './PlayAdjustResultModal.vue';
 
 defineProps<{
   phase: 'CORRECT' | 'REVEAL';
@@ -9,12 +11,30 @@ defineProps<{
   questionPrompt?: string;
   correctAnswer?: string;
   answerMedia?: AnswerMediaItem[];
+  teams: TeamState[];
+  scoringTeamId?: string;
   showNextQuestion?: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   nextQuestion: [];
+  adjustResult: [scoringTeamId: string | null];
 }>();
+
+const showAdjustModal = ref(false);
+
+function openAdjustModal() {
+  showAdjustModal.value = true;
+}
+
+function closeAdjustModal() {
+  showAdjustModal.value = false;
+}
+
+function saveAdjustResult(scoringTeamId: string | null) {
+  emit('adjustResult', scoringTeamId);
+  showAdjustModal.value = false;
+}
 </script>
 
 <template>
@@ -24,11 +44,36 @@ defineEmits<{
     </div>
     <div v-else class="banner wrong">Никто не угадал</div>
     <div v-if="questionPrompt" class="question-prompt rich-text-preview" v-html="questionPrompt" />
-    <p class="correct-answer" v-if="correctAnswer">
+    <p v-if="correctAnswer" class="correct-answer">
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
     <AnswerRevealMedia :items="answerMedia" />
-    <Button v-if="showNextQuestion !== false" class="answer-result-btn" @click="$emit('nextQuestion')">Следующий вопрос</Button>
+
+    <div class="answer-result-actions">
+      <Button
+        v-if="showNextQuestion !== false"
+        class="answer-result-btn"
+        @click="emit('nextQuestion')"
+      >
+        Следующий вопрос
+      </Button>
+      <Button
+        class="answer-result-btn"
+        variant="secondary"
+        @click="openAdjustModal"
+      >
+        Изменить
+      </Button>
+    </div>
+
+    <PlayAdjustResultModal
+      :open="showAdjustModal"
+      :teams="teams"
+      :question-value="questionValue"
+      :scoring-team-id="scoringTeamId"
+      @close="closeAdjustModal"
+      @save="saveAdjustResult"
+    />
   </div>
 </template>
 
@@ -48,7 +93,20 @@ defineEmits<{
   padding-top: 16px;
 }
 
-.answer-result-btn {
+.answer-result-actions {
+  display: block;
+  font-size: 0;
   margin-top: 16px;
+}
+
+.answer-result-actions > :deep(*) {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.answer-result-actions > :deep(*:last-child) {
+  margin-right: 0;
 }
 </style>

@@ -194,6 +194,12 @@ export function usePlayRoom() {
     });
   }
 
+  function adjustQuestionResult(scoringTeamId: string | null) {
+    connectSocket().emit('adjustQuestionResult', scoringTeamId, (result) => {
+      if (!result.ok) message.value = result.error ?? 'Не удалось изменить результат';
+    });
+  }
+
   function reconnect() {
     message.value = '';
     doJoin();
@@ -284,6 +290,7 @@ export function usePlayRoom() {
     pass,
     syncExpiredTurn,
     nextQuestion,
+    adjustQuestionResult,
     reconnect,
     onTeamRenamed,
     openConnection,

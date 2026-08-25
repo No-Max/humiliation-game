@@ -13,6 +13,10 @@ export interface ClientToServerEvents {
   submitAnswer: (answer: string, callback: (result: ActionResult) => void) => void;
   pass: (callback: (result: ActionResult) => void) => void;
   nextQuestion: (callback: (result: ActionResult) => void) => void;
+  adjustQuestionResult: (
+    scoringTeamId: string | null,
+    callback: (result: ActionResult) => void,
+  ) => void;
   pauseGame: (callback: (result: ActionResult) => void) => void;
   resumeGame: (callback: (result: ActionResult) => void) => void;
   leaveRoom: (callback: (result: ActionResult) => void) => void;
@@ -60,6 +64,7 @@ export const SOCKET_EVENTS = {
   SUBMIT_ANSWER: 'submitAnswer',
   PASS: 'pass',
   NEXT_QUESTION: 'nextQuestion',
+  ADJUST_QUESTION_RESULT: 'adjustQuestionResult',
   PAUSE_GAME: 'pauseGame',
   RESUME_GAME: 'resumeGame',
   LEAVE_ROOM: 'leaveRoom',

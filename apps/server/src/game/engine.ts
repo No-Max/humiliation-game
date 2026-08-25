@@ -385,6 +385,43 @@ export class GameEngine {
     return { ok: true };
   }
 
+  adjustQuestionResult(
+    teamId: string,
+    scoringTeamId: string | null,
+  ): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (!this.teams.has(teamId)) {
+      return { ok: false, error: 'Not in room' };
+    }
+    if (this.state.phase !== 'CORRECT' && this.state.phase !== 'REVEAL') {
+      return { ok: false, error: 'Cannot adjust result now' };
+    }
+    if (scoringTeamId !== null && !this.teams.has(scoringTeamId)) {
+      return { ok: false, error: 'Unknown team' };
+    }
+
+    const points = this.state.questionValue;
+    const currentScorer = this.state.scoringTeamId;
+
+    if (currentScorer) {
+      const team = this.teams.get(currentScorer);
+      if (team) team.score = Math.max(0, team.score - points);
+    }
+
+    if (scoringTeamId) {
+      const team = this.teams.get(scoringTeamId);
+      if (team) team.score += points;
+      this.state.scoringTeamId = scoringTeamId;
+      this.state.phase = 'CORRECT';
+    } else {
+      this.state.scoringTeamId = undefined;
+      this.state.phase = 'REVEAL';
+    }
+
+    return { ok: true };
+  }
+
   private passInternal(teamId: string): { ok: boolean; error?: string } {
     this.ensureStealRoundStarted();
 

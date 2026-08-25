@@ -43,6 +43,7 @@ const {
   pass,
   syncExpiredTurn,
   nextQuestion,
+  adjustQuestionResult,
   reconnect,
   onTeamRenamed,
   openConnection,
@@ -161,8 +162,11 @@ const headerTitle = computed(() =>
       :question-prompt="state.questionPrompt"
       :correct-answer="state.correctAnswer"
       :answer-media="state.answerMedia"
+      :teams="state.teams"
+      :scoring-team-id="state.scoringTeamId"
       :show-next-question="canAdvanceQuestion"
       @next-question="nextQuestion"
+      @adjust-result="adjustQuestionResult"
     />
 
     <PlayAnswerResultCard
@@ -172,8 +176,11 @@ const headerTitle = computed(() =>
       :question-prompt="state.questionPrompt"
       :correct-answer="state.correctAnswer"
       :answer-media="state.answerMedia"
+      :teams="state.teams"
+      :scoring-team-id="state.scoringTeamId"
       :show-next-question="canAdvanceQuestion"
       @next-question="nextQuestion"
+      @adjust-result="adjustQuestionResult"
     />
 
     <PlayGameOverCard

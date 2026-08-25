@@ -223,6 +223,19 @@ export function setupSocketHandlers(io: GameServer) {
       callback(result);
     });
 
+    socket.on('adjustQuestionResult', (scoringTeamId, callback) => {
+      const engine = roomCode ? rooms.get(roomCode) : undefined;
+      if (!engine || !teamId) {
+        callback({ ok: false, error: 'Not in room' });
+        return;
+      }
+      const result = engine.adjustQuestionResult(teamId, scoringTeamId);
+      if (result.ok && roomCode) {
+        io.to(roomCode).emit('roomState', engine.getPublicState());
+      }
+      callback(result);
+    });
+
     socket.on('pauseGame', (callback) => {
       const engine = roomCode ? rooms.get(roomCode) : undefined;
       if (!engine || !teamId) {

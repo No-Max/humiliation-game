@@ -39,7 +39,7 @@ onMounted(async () => {
     <p class="series-error" v-else-if="error">{{ error }}</p>
     <div class="card" v-else-if="!series.length">Пока нет опубликованных выпусков</div>
     <div v-for="item in series" :key="item.id" class="card">
-      <h2>Выпуск {{ item.number }}: {{ item.title }}</h2>
+      <h2>#{{ item.number }}: {{ item.title }}</h2>
       <div
         v-if="item.description"
         class="rich-text-preview series-description"

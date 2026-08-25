@@ -85,6 +85,7 @@ function dismiss(session: SavedGameSession) {
 <style scoped>
 .unfinished-games {
   border-left: 4px solid #4f46e5;
+  margin-bottom: 16px;
 }
 
 .unfinished-title {

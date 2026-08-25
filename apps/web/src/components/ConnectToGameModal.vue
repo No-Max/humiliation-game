@@ -69,7 +69,7 @@ async function connect() {
     </template>
     <div class="connect-game-modal">
       <p class="connect-game-hint text-muted">
-        Введите 6-значный код комнаты, чтобы открыть игру на этом экране.
+        Введите 6-значный код комнаты, чтобы смотреть игру на этом устройстве.
       </p>
       <label class="connect-game-label" for="room-code-input">Код комнаты</label>
       <Input

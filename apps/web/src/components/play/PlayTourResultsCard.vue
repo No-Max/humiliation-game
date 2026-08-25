@@ -12,7 +12,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="card">
+  <div class="card tour-results-card">
     <div class="banner correct tour-results">
       <p class="tour-results-title">Итоги тура</p>
       <p v-for="team in teams" :key="team.id" class="tour-results-row">
@@ -25,6 +25,10 @@ defineEmits<{
 
 
 <style scoped>
+.tour-results-card {
+  margin-top: 16px;
+}
+
 .tour-results {
   margin-bottom: 16px;
 }

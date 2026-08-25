@@ -35,7 +35,6 @@ const caption = computed(() => {
 <style scoped>
 .hints-list {
   display: block;
-  margin-bottom: 16px;
   padding: 0;
 }
 
@@ -54,10 +53,6 @@ const caption = computed(() => {
   padding: 12px 16px;
   border-radius: 8px;
   margin: 8px 0 0;
-}
-
-.hints-list .hint:first-of-type {
-  margin-top: 0;
 }
 
 .hint-latest {

@@ -116,7 +116,7 @@ function startGame() {
   <div>
     <h1 class="page-title">{{ seriesTitle || 'Создать игру' }}</h1>
 
-    <div class="card">
+    <div class="card lobby-card">
       <p v-if="initializing || (loading && !roomCreated)" class="hint">
         Создание комнаты…
       </p>
@@ -168,6 +168,10 @@ function startGame() {
 </template>
 
 <style scoped>
+.lobby-card {
+  margin-top: 16px;
+}
+
 .hint {
   color: #6b7280;
   font-size: 14px;

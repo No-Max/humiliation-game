@@ -203,7 +203,7 @@ const iconHref = computed(() => {
   min-width: 0;
   display: block;
   text-align: left;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 10px;
   font-size: 16px;
   line-height: 1.35;
@@ -211,6 +211,7 @@ const iconHref = computed(() => {
   background: #fff;
   color: inherit;
   transition: border-color 0.15s, background 0.15s;
+  height: auto;
 }
 
 .btn--choice:not(:disabled):hover {

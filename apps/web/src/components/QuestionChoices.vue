@@ -15,7 +15,7 @@ const emit = defineEmits<{
 
 <template>
   <ul class="question-choices" :class="{ 'question-choices-large': large }">
-    <li v-for="(choice, index) in choices" :key="`${index}-${choice}`">
+    <li v-for="(choice, index) in choices" :key="`${index}-${choice}`" class="question-choice">
       <Button
         v-if="!readonly"
         variant="choice"
@@ -38,29 +38,20 @@ const emit = defineEmits<{
 .question-choices {
   list-style: none;
   padding: 0;
-  margin: -8px;
+  margin-left: -8px;
+  margin-right: -8px;
   display: block;
-  text-align: center;
   font-size: 0;
+  padding-top: 8px;
 }
 
-.question-choices > li {
+.question-choice {
   display: inline-block;
   vertical-align: top;
   width: 50%;
-  padding: 8px;
+  padding: 8px 4px 0 4px;
   box-sizing: border-box;
   font-size: 16px;
-}
-
-.btn--choice > span:last-child,
-.choice-readonly > span:last-child {
-  display: inline-block;
-  vertical-align: middle;
-  min-width: 0;
-  width: calc(100% - 40px);
-  word-break: break-word;
-  margin-left: 12px;
 }
 
 .choice-readonly {
@@ -68,7 +59,7 @@ const emit = defineEmits<{
   min-width: 0;
   display: block;
   text-align: left;
-  padding: 12px 16px;
+  padding: 16px 8px 0 8px;
   border-radius: 10px;
   font-size: 16px;
   line-height: 1.35;
@@ -93,7 +84,7 @@ const emit = defineEmits<{
   background: #e5e7eb;
   font-weight: bold;
   font-size: 14px;
-  margin-right: 0;
+  margin-right: 8px;
 }
 
 .btn--selected .choice-label {

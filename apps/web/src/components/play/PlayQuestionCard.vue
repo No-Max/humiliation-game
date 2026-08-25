@@ -32,7 +32,7 @@ defineEmits<{
     <template v-if="isMyTurn && myTeam?.connected !== false">
       <template v-if="isChoiceQuestion && state.choices?.length">
         <QuestionChoices :choices="state.choices" :selected="answer" @select="$emit('submitChoice', $event)" />
-        <Button variant="secondary" @click="$emit('pass')">
+        <Button class="question-card-btn" variant="secondary" @click="$emit('pass')">
           Сдаёмся
         </Button>
       </template>
@@ -43,7 +43,7 @@ defineEmits<{
           <Button :disabled="!canSubmit" @click="$emit('submit')">
             Ответить
           </Button>
-          <Button variant="secondary" @click="$emit('pass')">
+          <Button class="question-card-btn" variant="secondary" @click="$emit('pass')">
             Сдаёмся
           </Button>
         </div>
@@ -72,5 +72,9 @@ defineEmits<{
 
 .card-actions> :deep(*:last-child) {
   margin-right: 0;
+}
+
+.question-card-btn {
+  margin-top: 16px;
 }
 </style>

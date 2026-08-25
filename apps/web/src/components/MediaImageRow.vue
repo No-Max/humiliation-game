@@ -48,4 +48,10 @@ defineProps<{
   height: 100%;
   border-radius: 8px;
 }
+
+@media (max-width: 768px) {
+  .media-image-container {
+    height: 150px;
+  }
+}
 </style>

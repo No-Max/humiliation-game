@@ -179,6 +179,7 @@ const headerTitle = computed(() =>
     <PlayGameOverCard
       v-else-if="state?.phase === 'FINISHED'"
       :teams="tourResultsTeams"
+      @finish="confirmExit"
     />
 
     <PlayExitModal

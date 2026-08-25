@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import type { TeamState } from '@humiliation-game/shared';
+import Button from '../Button.vue';
 
 defineProps<{
   teams: TeamState[];
+}>();
+
+defineEmits<{
+  finish: [];
 }>();
 </script>
 
@@ -14,11 +19,16 @@ defineProps<{
         {{ team.name }} — {{ team.score }}
       </p>
     </div>
+    <Button class="game-over-btn" @click="$emit('finish')">Завершить игру</Button>
   </div>
 </template>
 
 <style scoped>
 .game-over-card {
+  margin-top: 16px;
+}
+
+.game-over-btn {
   margin-top: 16px;
 }
 </style>

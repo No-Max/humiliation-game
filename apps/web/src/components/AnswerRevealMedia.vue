@@ -133,10 +133,6 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.answer-reveal-media > * + * {
-  margin-top: 12px;
-}
-
 .answer-reveal-group {
   display: block;
   text-align: center;

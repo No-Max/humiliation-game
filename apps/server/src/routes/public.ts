@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { generateUniqueRoomCode } from '../lib/roomCode.js';
+import { buildFinishedRoomState } from '../lib/gameResults.js';
 
 export const publicRouter = Router();
 
@@ -178,4 +179,23 @@ publicRouter.get('/rooms/:code', async (req, res) => {
       slotUrl: `/team/${room.code}/${t.id}`,
     })),
   });
+});
+
+publicRouter.get('/rooms/:code/results', async (req, res) => {
+  const room = await prisma.gameRoom.findUnique({
+    where: { code: req.params.code },
+    include: {
+      series: { select: { id: true, title: true } },
+      teams: { orderBy: { sortOrder: 'asc' } },
+    },
+  });
+  if (!room) {
+    res.status(404).json({ error: 'Room not found' });
+    return;
+  }
+  if (room.status !== 'FINISHED') {
+    res.status(404).json({ error: 'Game not finished' });
+    return;
+  }
+  res.json(buildFinishedRoomState(room));
 });

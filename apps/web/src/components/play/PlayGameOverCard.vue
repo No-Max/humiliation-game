@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { TeamState } from '@humiliation-game/shared';
+import type { GameQuestionResult, TeamState } from '@humiliation-game/shared';
 import Button from '../Button.vue';
+import PlayGameResultsTable from './PlayGameResultsTable.vue';
 
 defineProps<{
   teams: TeamState[];
+  tableTeams: TeamState[];
+  gameResults?: GameQuestionResult[];
 }>();
 
 defineEmits<{
@@ -19,6 +22,11 @@ defineEmits<{
         {{ team.name }} — {{ team.score }}
       </p>
     </div>
+    <PlayGameResultsTable
+      v-if="gameResults?.length"
+      :results="gameResults"
+      :teams="tableTeams"
+    />
     <Button class="game-over-btn" @click="$emit('finish')">Завершить игру</Button>
   </div>
 </template>

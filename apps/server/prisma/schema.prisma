@@ -136,13 +136,14 @@ model Question {
 }
 
 model GameRoom {
-  id        String     @id @default(cuid())
-  code      String     @unique
-  seriesId  String
-  status    RoomStatus @default(WAITING)
+  id         String     @id @default(cuid())
+  code       String     @unique
+  seriesId   String
+  status     RoomStatus @default(WAITING)
   hostTeamId String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  gameResults Json?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   series Series     @relation(fields: [seriesId], references: [id])
   teams  GameTeam[]

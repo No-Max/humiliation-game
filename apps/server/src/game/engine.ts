@@ -2,6 +2,7 @@ import type {
   AnswerMediaItem,
   AnswerMediaType,
   AnswerType,
+  GameQuestionResult,
   QuestionContentType,
   QuestionPhase,
   RoomState,
@@ -62,6 +63,7 @@ export class GameEngine {
   private onStateChange?: () => void;
   private handlingTimeout = false;
   private deadlineWatchdog: ReturnType<typeof setInterval> | null = null;
+  private questionResults: GameQuestionResult[] = [];
   displayCount = 0;
 
   constructor(
@@ -142,6 +144,21 @@ export class GameEngine {
 
   isGameFinished(): boolean {
     return this.state.phase === 'FINISHED';
+  }
+
+  restoreFinished(gameResults: GameQuestionResult[]) {
+    this.questionResults = gameResults;
+    this.state.phase = 'FINISHED';
+    this.clearTurnTimer();
+    this.paused = false;
+    this.pausedByTeamId = undefined;
+  }
+
+  applyPersistedTeamScores(scores: Map<string, number>) {
+    for (const [teamId, score] of scores) {
+      const team = this.teams.get(teamId);
+      if (team) team.score = score;
+    }
   }
 
   isPaused(): boolean {
@@ -256,6 +273,10 @@ export class GameEngine {
       timeLimitSec: timerActive ? this.getTimeLimitSec() : undefined,
       answerDeadlineAt: timerActive ? this.answerDeadlineAt ?? undefined : undefined,
       turnNotice: tourStarted ? this.turnNotice : undefined,
+      gameResults:
+        this.state.phase === 'FINISHED' && this.questionResults.length
+          ? this.questionResults
+          : undefined,
     };
   }
 
@@ -356,6 +377,8 @@ export class GameEngine {
       }
     }
 
+    this.recordCurrentQuestionResult();
+
     const tour = this.series.tours[this.state.currentTourIndex];
     if (!tour) return { ok: false, error: 'No tour' };
 
@@ -376,11 +399,13 @@ export class GameEngine {
       this.state.currentQuestionIndex = 0;
       this.state.currentTeamIndex =
         (this.state.currentTeamIndex + 1) % this.state.teamOrder.length;
+      this.clearPassedTeamIds();
       this.state.phase = 'TOUR_RESULTS';
       return { ok: true };
     }
 
     this.clearTurnTimer();
+    this.clearPassedTeamIds();
     this.state.phase = 'FINISHED';
     return { ok: true };
   }
@@ -617,9 +642,26 @@ export class GameEngine {
     this.state.firstRoundComplete = false;
     this.state.turnIndex = 0;
     this.turnNotice = undefined;
-    this.state.passedTeamIds = new Set();
+    this.clearPassedTeamIds();
     this.state.attemptedTeamIds = new Set();
     this.state.scoringTeamId = undefined;
+  }
+
+  private clearPassedTeamIds() {
+    this.state.passedTeamIds = new Set();
+  }
+
+  private recordCurrentQuestionResult() {
+    const question = this.getCurrentQuestion();
+    if (!question) return;
+
+    this.questionResults.push({
+      tourIndex: this.state.currentTourIndex,
+      questionIndex: this.state.currentQuestionIndex,
+      correctAnswer: question.correctAnswer,
+      points: this.state.questionValue,
+      scoringTeamId: this.state.scoringTeamId,
+    });
   }
 
   private getTeamCount(): number {

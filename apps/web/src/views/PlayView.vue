@@ -186,6 +186,8 @@ const headerTitle = computed(() =>
     <PlayGameOverCard
       v-else-if="state?.phase === 'FINISHED'"
       :teams="tourResultsTeams"
+      :table-teams="state.teams"
+      :game-results="state.gameResults"
       @finish="confirmExit"
     />
 

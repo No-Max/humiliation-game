@@ -35,7 +35,7 @@ const caption = computed(() => {
 <style scoped>
 .hints-list {
   display: block;
-  padding: 0;
+  margin-bottom: 16px;
 }
 
 .hints-caption {

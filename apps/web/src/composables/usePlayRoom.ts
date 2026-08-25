@@ -10,10 +10,15 @@ import {
   onRoomState,
   onSocketConnectionChange,
   setAutoRejoin,
+  api,
 } from '../lib/api';
-import { syncFromRoomState } from '../lib/gameStorage';
 import {
-  clearTeamSlot,
+  getFinishedGameSnapshot,
+  roomStateFromFinishedSnapshot,
+  saveFinishedGameSnapshot,
+  syncFromRoomState,
+} from '../lib/gameStorage';
+import {
   rememberTeamSlot,
   resolveTeamId,
 } from '../lib/teamSession';
@@ -40,6 +45,7 @@ export function usePlayRoom() {
   });
 
   const linksActive = computed(() => state.value?.status !== 'FINISHED');
+  const isViewOnly = computed(() => state.value?.status === 'FINISHED');
   const isPaused = computed(() => state.value?.status === 'PAUSED');
   const isMyTurn = computed(
     () =>
@@ -69,15 +75,45 @@ export function usePlayRoom() {
     return team && !team.connected ? team : null;
   });
 
+  function applyFinishedState(next: RoomState) {
+    state.value = next;
+    joined.value = true;
+    message.value = '';
+  }
+
+  function loadCachedFinishedState() {
+    const cached = getFinishedGameSnapshot(code.value);
+    if (cached) {
+      applyFinishedState(roomStateFromFinishedSnapshot(cached));
+      return true;
+    }
+    return false;
+  }
+
+  async function loadRemoteFinishedState() {
+    try {
+      const remote = await api<RoomState>(`/rooms/${code.value}/results`);
+      applyFinishedState(remote);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function doJoin() {
-    if (!teamId.value || !linksActive.value) return;
+    if (!teamId.value) return;
 
     joinRoom(
       { roomCode: code.value, role: 'team', teamId: teamId.value },
       (result) => {
         if (!result.ok) {
-          message.value = result.error ?? 'Не удалось подключиться';
-          joined.value = false;
+          if (loadCachedFinishedState()) return;
+          void loadRemoteFinishedState().then((loaded) => {
+            if (!loaded) {
+              message.value = result.error ?? 'Не удалось подключиться';
+              joined.value = false;
+            }
+          });
           return;
         }
         joined.value = true;
@@ -85,13 +121,15 @@ export function usePlayRoom() {
         if (result.teamId) teamId.value = result.teamId;
         if (result.teamName) {
           teamName.value = result.teamName;
-          rememberTeamSlot(
-            code.value,
-            teamId.value,
-            result.teamName,
-            state.value?.seriesTitle ?? 'Игра',
-            state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
-          );
+          if (state.value && state.value.status !== 'FINISHED') {
+            rememberTeamSlot(
+              code.value,
+              teamId.value,
+              result.teamName,
+              state.value?.seriesTitle ?? 'Игра',
+              state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
+            );
+          }
         }
       },
     );
@@ -103,6 +141,9 @@ export function usePlayRoom() {
 
     cleanup = onRoomState((s) => {
       state.value = s;
+      if (s.status === 'FINISHED') {
+        joined.value = true;
+      }
       if (teamId.value) {
         const name =
           teamName.value ||
@@ -111,7 +152,7 @@ export function usePlayRoom() {
         teamName.value = name;
         syncFromRoomState(code.value, teamId.value, name, s);
       } else if (s.status === 'FINISHED') {
-        clearTeamSlot(code.value);
+        saveFinishedGameSnapshot(s);
       }
     });
 
@@ -120,13 +161,16 @@ export function usePlayRoom() {
     });
 
     setAutoRejoin(() =>
-      teamId.value && linksActive.value
+      teamId.value
         ? { roomCode: code.value, role: 'team', teamId: teamId.value }
         : null,
     );
 
     if (teamId.value) {
       doJoin();
+    } else {
+      loadCachedFinishedState();
+      void loadRemoteFinishedState();
     }
   });
 
@@ -274,6 +318,7 @@ export function usePlayRoom() {
     showExitModal,
     code,
     linksActive,
+    isViewOnly,
     isPaused,
     isMyTurn,
     myTeam,

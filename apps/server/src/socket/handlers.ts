@@ -7,6 +7,12 @@ import type {
 import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { loadSeriesWithTours } from '../lib/seriesContent.js';
+import { buildFinishedRoomState } from '../lib/gameResults.js';
+import {
+  markFinishedRoomPersisted,
+  persistFinishedRoom,
+  restoreFinishedEngine,
+} from '../lib/persistFinishedRoom.js';
 import { GameEngine } from '../game/engine.js';
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -19,7 +25,50 @@ const teamConnections = new Map<string, string>();
 function bindEngine(io: GameServer, roomCode: string, engine: GameEngine) {
   engine.setOnStateChange(() => {
     io.to(roomCode).emit('roomState', engine.getPublicState());
+    if (engine.isGameFinished()) {
+      void persistFinishedRoom(roomCode, engine);
+    }
   });
+}
+
+function emitRoomState(io: GameServer, socket: GameSocket, roomCode: string, engine: GameEngine) {
+  const state = engine.getPublicState();
+  socket.emit('roomState', state);
+  io.to(roomCode).emit('roomState', state);
+}
+
+function joinFinishedRoom(
+  io: GameServer,
+  socket: GameSocket,
+  roomCode: string,
+  engine: GameEngine,
+  callback: (result: { ok: boolean; error?: string; teamId?: string; teamName?: string; displayUrl?: string; viewOnly?: boolean }) => void,
+  payload: JoinRoomPayload,
+  roomTeams: Array<{ id: string; name: string }>,
+) {
+  if (payload.role === 'display') {
+    callback({ ok: true, displayUrl: displayPath(roomCode), viewOnly: true });
+    emitRoomState(io, socket, roomCode, engine);
+    return;
+  }
+
+  if (payload.teamId) {
+    const existing = roomTeams.find((team) => team.id === payload.teamId);
+    if (!existing) {
+      callback({ ok: false, error: 'Командный слот не найден' });
+      return;
+    }
+    callback({
+      ok: true,
+      teamId: existing.id,
+      teamName: existing.name,
+      viewOnly: true,
+    });
+    emitRoomState(io, socket, roomCode, engine);
+    return;
+  }
+
+  callback({ ok: false, error: 'Игра уже завершена' });
 }
 
 function teamSlotPath(roomCode: string, teamId: string) {
@@ -62,12 +111,20 @@ export function setupSocketHandlers(io: GameServer) {
             return;
           }
           engine = new GameEngine(roomCode, seriesWithTours, room.teams);
+          if (room.status === 'FINISHED') {
+            restoreFinishedEngine(
+              engine,
+              room.gameResults,
+              room.teams.map((team) => ({ id: team.id, score: team.score })),
+            );
+            markFinishedRoomPersisted(roomCode);
+          }
           rooms.set(roomCode, engine);
           bindEngine(io, roomCode, engine);
         }
 
         if (engine.isGameFinished()) {
-          callback({ ok: false, error: 'Игра уже завершена — ссылки больше не активны' });
+          joinFinishedRoom(io, socket, roomCode, engine, callback, payload, room.teams);
           return;
         }
 

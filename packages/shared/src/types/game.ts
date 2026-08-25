@@ -77,11 +77,23 @@ export interface RoomState {
   answerDeadlineAt?: number;
   /** Сообщение о результате последнего хода (неверно, таймаут) */
   turnNotice?: string;
+  /** Результаты по всем вопросам (экран FINISHED) */
+  gameResults?: GameQuestionResult[];
 }
 
 export interface TeamSlot {
   teamId: string;
   name: string;
+}
+
+/** Итог одного вопроса (экран FINISHED) */
+export interface GameQuestionResult {
+  tourIndex: number;
+  questionIndex: number;
+  correctAnswer: string;
+  points: number;
+  /** Команда, которой начислили баллы; если никто не угадал — не задано */
+  scoringTeamId?: string;
 }
 
 export interface CreateRoomRequest {

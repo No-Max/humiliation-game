@@ -30,8 +30,8 @@ defineEmits<{
     Связь потеряна… Переподключаемся
   </div>
 
-  <div v-if="status === 'FINISHED'" class="card banner wrong">
-    Игра завершена — ссылки больше не активны
+  <div v-if="status === 'FINISHED'" class="card banner correct finished-banner">
+    Игра завершена
   </div>
 
   <div v-else-if="!teamId" class="card">
@@ -41,16 +41,16 @@ defineEmits<{
 
   <div v-else-if="!joined && teamId && linksActive" class="card">
     <p>Не удалось занять командный слот.</p>
-    <Button @click="$emit('reconnect')">Подключиться снова</Button>
+    <Button class="room-status-btn" @click="$emit('reconnect')">Подключиться снова</Button>
   </div>
 </template>
 
 <style scoped>
-.pause-banner {
+.card{
   margin-top: 16px;
 }
 
-.wrong {
+.room-status-btn {
   margin-top: 16px;
 }
 </style>

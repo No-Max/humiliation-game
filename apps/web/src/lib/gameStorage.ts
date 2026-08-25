@@ -1,6 +1,7 @@
-import type { RoomStatus } from '@humiliation-game/shared';
+import type { GameQuestionResult, RoomState, RoomStatus, TeamState } from '@humiliation-game/shared';
 
 const STORAGE_KEY = 'humiliation-game:sessions';
+const FINISHED_PREFIX = 'humiliation-game:finished:';
 
 export interface SavedGameSession {
   roomCode: string;
@@ -9,6 +10,16 @@ export interface SavedGameSession {
   seriesTitle: string;
   status: Exclude<RoomStatus, 'FINISHED'>;
   updatedAt: number;
+}
+
+export interface FinishedGameSnapshot {
+  roomCode: string;
+  seriesId: string;
+  seriesTitle: string;
+  teams: TeamState[];
+  teamOrder: string[];
+  gameResults?: GameQuestionResult[];
+  savedAt: number;
 }
 
 function loadAll(): Record<string, SavedGameSession> {
@@ -56,16 +67,58 @@ export function removeGameSession(roomCode: string) {
   persist(all);
 }
 
+export function saveFinishedGameSnapshot(state: RoomState) {
+  const snapshot: FinishedGameSnapshot = {
+    roomCode: state.roomCode,
+    seriesId: state.seriesId,
+    seriesTitle: state.seriesTitle,
+    teams: state.teams,
+    teamOrder: state.teamOrder,
+    gameResults: state.gameResults,
+    savedAt: Date.now(),
+  };
+  localStorage.setItem(`${FINISHED_PREFIX}${state.roomCode}`, JSON.stringify(snapshot));
+}
+
+export function getFinishedGameSnapshot(roomCode: string): FinishedGameSnapshot | null {
+  try {
+    const raw = localStorage.getItem(`${FINISHED_PREFIX}${roomCode}`);
+    if (!raw) return null;
+    return JSON.parse(raw) as FinishedGameSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+export function roomStateFromFinishedSnapshot(snapshot: FinishedGameSnapshot): RoomState {
+  return {
+    roomCode: snapshot.roomCode,
+    seriesId: snapshot.seriesId,
+    seriesTitle: snapshot.seriesTitle,
+    status: 'FINISHED',
+    phase: 'FINISHED',
+    teams: snapshot.teams,
+    teamOrder: snapshot.teamOrder,
+    currentTeamIndex: 0,
+    currentTourIndex: 0,
+    currentQuestionIndex: 0,
+    questionValue: 0,
+    valueReduced: false,
+    hintShown: false,
+    displayCount: 0,
+    teamSlots: snapshot.teams.map((team) => ({ teamId: team.id, name: team.name })),
+    gameResults: snapshot.gameResults,
+  };
+}
+
 export function syncFromRoomState(
   roomCode: string,
   teamId: string,
   teamName: string,
-  room: {
-    seriesTitle: string;
-    status: RoomStatus;
-  },
+  room: RoomState,
 ) {
   if (room.status === 'FINISHED') {
+    saveFinishedGameSnapshot(room);
     removeGameSession(roomCode);
     return;
   }

@@ -8,13 +8,19 @@ import {
   formatTourQuestionMeta,
   playScreenTitle,
 } from '@humiliation-game/shared';
-import { connectSocket, leaveRoom, onRoomState } from '../lib/api';
+import { api, connectSocket, joinRoom, leaveRoom, onRoomState } from '../lib/api';
+import {
+  getFinishedGameSnapshot,
+  roomStateFromFinishedSnapshot,
+  saveFinishedGameSnapshot,
+} from '../lib/gameStorage';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
 import QuestionHints from '../components/QuestionHints.vue';
 import QuestionMetaCard from '../components/QuestionMetaCard.vue';
 import AnswerRevealMedia from '../components/AnswerRevealMedia.vue';
 import PlayScoreboard from '../components/play/PlayScoreboard.vue';
+import PlayGameResultsTable from '../components/play/PlayGameResultsTable.vue';
 import Icon from '../components/Icon.vue';
 import Button from '../components/Button.vue';
 
@@ -37,6 +43,24 @@ function syncExpiredTurn() {
   connectSocket().emit('syncExpiredTurn', () => {});
 }
 
+function loadCachedFinishedState(roomCode: string) {
+  const cached = getFinishedGameSnapshot(roomCode);
+  if (cached) {
+    state.value = roomStateFromFinishedSnapshot(cached);
+    return true;
+  }
+  return false;
+}
+
+async function loadRemoteFinishedState(roomCode: string) {
+  try {
+    state.value = await api<RoomState>(`/rooms/${roomCode}/results`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function endDisplay() {
   const socket = connectSocket();
   leaveRoom(() => {
@@ -51,9 +75,17 @@ onMounted(() => {
 
   cleanup = onRoomState((s) => {
     state.value = s;
+    if (s.status === 'FINISHED') {
+      saveFinishedGameSnapshot(s);
+    }
   });
 
-  socket.emit('joinRoom', { roomCode: code, role: 'display' }, () => {});
+  joinRoom({ roomCode: code, role: 'display' }, (result) => {
+    if (!result.ok) {
+      if (loadCachedFinishedState(code)) return;
+      void loadRemoteFinishedState(code);
+    }
+  });
 });
 
 onUnmounted(() => cleanup?.());
@@ -153,6 +185,11 @@ onUnmounted(() => cleanup?.());
           {{ team.name }} — {{ team.score }}
         </p>
       </div>
+      <PlayGameResultsTable
+        v-if="state.gameResults?.length"
+        :results="state.gameResults"
+        :teams="state.teams"
+      />
     </div>
   </div>
 </template>

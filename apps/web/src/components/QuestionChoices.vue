@@ -17,32 +17,16 @@ const emit = defineEmits<{
 
 <template>
   <ul class="question-choices" :class="{ 'question-choices-large': large }">
-    <li
-      v-for="(choice, index) in choices"
-      :key="`${index}-${choice.text}`"
-      class="question-choice"
-    >
-      <Button
-        v-if="!readonly"
-        variant="choice"
-        :large="large"
-        :selected="selected === choice.text"
-        :disabled="disabled"
-        @click="emit('select', choice.text)"
-        class="choice-button"
-      >
+    <li v-for="(choice, index) in choices" :key="`${index}-${choice.text}`" class="question-choice">
+      <Button v-if="!readonly" variant="choice" :large="large" :selected="selected === choice.text" :disabled="disabled"
+        @click="emit('select', choice.text)" class="choice-button">
         <span class="choice-content">
           <span class="choice-content-inner">
             <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
             <span>{{ choice.text }}</span>
           </span>
-          <span class="choice-image-container">
-            <img
-              v-if="choice.imageUrl"
-              :src="choice.imageUrl"
-              alt=""
-              class="choice-image"
-            />
+          <span v-if="choice.imageUrl" class="choice-image-container">
+            <img :src="choice.imageUrl" alt="" class="choice-image" />
           </span>
         </span>
       </Button>
@@ -52,14 +36,8 @@ const emit = defineEmits<{
             <span>{{ choice.text }}</span>
             <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
           </span>
-          <span 
-            v-if="choice.imageUrl"
-            class="choice-image-container">
-            <img
-              :src="choice.imageUrl"
-              alt=""
-              class="choice-image"
-            />
+          <span v-if="choice.imageUrl" class="choice-image-container">
+            <img :src="choice.imageUrl" alt="" class="choice-image" />
           </span>
         </span>
       </div>
@@ -108,9 +86,7 @@ const emit = defineEmits<{
   font-size: 20px;
 }
 
-.choice-button {
-
-}
+.choice-button {}
 
 .choice-label {
   width: 28px;

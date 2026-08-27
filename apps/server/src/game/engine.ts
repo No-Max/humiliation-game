@@ -8,6 +8,7 @@ import type {
   RoomState,
   TeamState,
 } from '@humiliation-game/shared';
+import { parseQuestionChoices } from '@humiliation-game/shared';
 import type { GameTeam, Question, Series, Tour } from '@prisma/client';
 
 type SeriesWithContent = Series & {
@@ -245,8 +246,8 @@ export class GameEngine {
       answerType: tourStarted
         ? (question?.answerType as AnswerType | undefined)
         : undefined,
-      choices: tourStarted && question?.answerType === 'CHOICE' && question.choices.length
-        ? question.choices
+      choices: tourStarted && question?.answerType === 'CHOICE'
+        ? parseQuestionChoices(question.choices)
         : undefined,
       mediaUrls: tourStarted && question?.mediaUrls?.length
         ? question.mediaUrls
@@ -861,8 +862,8 @@ function checkAnswer(answer: string, question: Question): boolean {
   const normalized = normalize(answer);
 
   if (question.answerType === 'CHOICE') {
-    const choices = question.choices ?? [];
-    if (!choices.some((choice) => normalize(choice) === normalized)) {
+    const choices = parseQuestionChoices(question.choices);
+    if (!choices.some((choice) => normalize(choice.text) === normalized)) {
       return false;
     }
     return normalize(question.correctAnswer) === normalized;

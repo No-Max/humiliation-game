@@ -117,7 +117,7 @@ model Question {
   prompt             String?
   mediaUrls          String[]            @default([])
   answerType         AnswerType          @default(TEXT)
-  choices            String[]            @default([])
+  choices            Json                @default("[]")
   correctAnswer      String
   acceptableAnswers  String[]            @default([])
   hints              String[]            @default([])

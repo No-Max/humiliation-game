@@ -29,25 +29,33 @@ defineEmits<{
     <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" class="question-content"/>
     <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
 
-    <template v-if="isMyTurn && myTeam?.connected !== false">
-      <template v-if="isChoiceQuestion && state.choices?.length">
-        <QuestionChoices :choices="state.choices" :selected="answer" @select="$emit('submitChoice', $event)" />
+    <template v-if="isChoiceQuestion && state.choices?.length">
+      <QuestionChoices
+        :choices="state.choices"
+        :selected="answer"
+        :disabled="!isMyTurn || myTeam?.connected === false"
+        @select="$emit('submitChoice', $event)"
+      />
+      <Button
+        v-if="isMyTurn && myTeam?.connected !== false"
+        class="question-card-btn"
+        variant="secondary"
+        @click="$emit('pass')"
+      >
+        Сдаёмся
+      </Button>
+    </template>
+
+    <template v-else-if="isMyTurn && myTeam?.connected !== false">
+      <Input v-model="answer" placeholder="Ваш ответ" @keyup.enter="$emit('submit')" />
+      <div class="card-actions">
+        <Button :disabled="!canSubmit" @click="$emit('submit')">
+          Ответить
+        </Button>
         <Button class="question-card-btn" variant="secondary" @click="$emit('pass')">
           Сдаёмся
         </Button>
-      </template>
-
-      <template v-else>
-        <Input v-model="answer" placeholder="Ваш ответ" @keyup.enter="$emit('submit')" />
-        <div class="card-actions">
-          <Button :disabled="!canSubmit" @click="$emit('submit')">
-            Ответить
-          </Button>
-          <Button class="question-card-btn" variant="secondary" @click="$emit('pass')">
-            Сдаёмся
-          </Button>
-        </div>
-      </template>
+      </div>
     </template>
   </div>
 </template>

@@ -17,6 +17,43 @@ export type AnswerType = 'CHOICE' | 'TEXT';
 
 export type SeriesStatus = 'DRAFT' | 'PUBLISHED';
 
+/** Вариант ответа для вопроса с типом CHOICE */
+export interface QuestionChoice {
+  text: string;
+  imageUrl?: string;
+}
+
+export function parseQuestionChoices(value: unknown): QuestionChoice[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry) => {
+    if (typeof entry === 'string') {
+      const text = entry.trim();
+      return text ? [{ text }] : [];
+    }
+    if (!entry || typeof entry !== 'object') return [];
+
+    const text = typeof (entry as { text?: unknown }).text === 'string'
+      ? (entry as { text: string }).text.trim()
+      : '';
+    if (!text) return [];
+
+    const imageUrlRaw = (entry as { imageUrl?: unknown }).imageUrl;
+    const imageUrl = typeof imageUrlRaw === 'string' ? imageUrlRaw.trim() : '';
+
+    return [{ text, imageUrl: imageUrl || undefined }];
+  });
+}
+
+export function serializeQuestionChoices(choices: QuestionChoice[]): QuestionChoice[] {
+  return choices
+    .map((choice) => ({
+      text: choice.text.trim(),
+      imageUrl: choice.imageUrl?.trim() || undefined,
+    }))
+    .filter((choice) => choice.text);
+}
+
 export interface Series {
   id: string;
   title: string;
@@ -51,7 +88,7 @@ export interface Question {
   prompt?: string;
   mediaUrls: string[];
   answerType: AnswerType;
-  choices?: string[];
+  choices?: QuestionChoice[];
   correctAnswer: string;
   acceptableAnswers?: string[];
   hints?: string[];

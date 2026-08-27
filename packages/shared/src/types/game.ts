@@ -1,4 +1,4 @@
-import type { AnswerMediaItem, AnswerType, QuestionContentType } from './content.js';
+import type { AnswerMediaItem, AnswerType, QuestionChoice, QuestionContentType } from './content.js';
 
 /** Максимум команд в одной игровой комнате */
 export const MAX_ROOM_TEAMS = 4;
@@ -58,7 +58,7 @@ export interface RoomState {
   questionPrompt?: string;
   questionContentType?: QuestionContentType;
   answerType?: AnswerType;
-  choices?: string[];
+  choices?: QuestionChoice[];
   mediaUrls?: string[];
   correctAnswer?: string;
   answerMedia?: AnswerMediaItem[];

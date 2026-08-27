@@ -4,7 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import { getSeriesIdFromRoute, tourQuestionsRoute } from '../lib/tourNavigation';
 import AnswerMediaInput from '../components/AnswerMediaInput.vue';
-import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
+import type { QuestionChoice } from '@humiliation-game/shared';
+import { parseQuestionChoices, serializeQuestionChoices } from '@humiliation-game/shared';
 import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
@@ -38,7 +39,7 @@ interface Question {
   contentType?: string;
   mediaUrls?: string[];
   answerType?: string;
-  choices?: string[];
+  choices?: QuestionChoice[] | string[];
   answerMedia?: AnswerMediaItem[] | null;
 }
 
@@ -79,7 +80,7 @@ const form = ref({
   prompt: '',
   mediaUrls: [] as string[],
   correctAnswer: '',
-  choices: [] as string[],
+  choices: [] as QuestionChoice[],
   hints: [] as string[],
   acceptableAnswers: [] as string[],
   points: '',
@@ -150,7 +151,7 @@ async function load() {
         prompt: foundQuestion.prompt ?? '',
         mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
         correctAnswer: foundQuestion.correctAnswer,
-        choices: [...(foundQuestion.choices ?? [])],
+        choices: parseQuestionChoices(foundQuestion.choices),
         hints: [...(foundQuestion.hints ?? [])],
         acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
         points: foundQuestion.points != null ? String(foundQuestion.points) : '',
@@ -209,7 +210,7 @@ watch(
     if (
       form.value.answerType === 'CHOICE' &&
       form.value.correctAnswer &&
-      !choices.includes(form.value.correctAnswer)
+      !choices.some((choice) => choice.text === form.value.correctAnswer)
     ) {
       form.value.correctAnswer = '';
     }
@@ -236,7 +237,7 @@ function buildPayload() {
   const contentType = mediaUrls.length > 0 ? 'IMAGE_TEXT' : 'TEXT';
   const answerType = form.value.answerType;
   const choices = answerType === 'CHOICE'
-    ? form.value.choices.map((item) => trimValue(item)).filter(Boolean)
+    ? serializeQuestionChoices(form.value.choices)
     : [];
 
   const answerMedia = form.value.answerMedia
@@ -269,7 +270,7 @@ function validate(): boolean {
     return false;
   }
   if (form.value.answerType === 'CHOICE') {
-    const choices = form.value.choices.map((item) => trimValue(item)).filter(Boolean);
+    const choices = serializeQuestionChoices(form.value.choices);
     if (choices.length < 2) {
       error.value = 'Добавьте минимум 2 варианта ответа';
       return false;
@@ -279,8 +280,13 @@ function validate(): boolean {
       error.value = 'Выберите правильный вариант';
       return false;
     }
-    if (!choices.includes(correctAnswer)) {
+    if (!choices.some((choice) => choice.text === correctAnswer)) {
       error.value = 'Правильный ответ должен быть одним из вариантов';
+      return false;
+    }
+    const texts = choices.map((choice) => choice.text.trim().toLowerCase());
+    if (new Set(texts).size !== texts.length) {
+      error.value = 'Варианты ответа не должны повторяться';
       return false;
     }
   } else if (!trimValue(form.value.correctAnswer)) {
@@ -439,8 +445,8 @@ async function remove() {
             :disabled="form.choices.length === 0"
           >
             <option value="" disabled>Выберите правильный ответ</option>
-            <option v-for="choice in form.choices" :key="choice" :value="choice">
-              {{ choice }}
+            <option v-for="choice in form.choices" :key="choice.text" :value="choice.text">
+              {{ choice.text }}
             </option>
           </select>
         </template>

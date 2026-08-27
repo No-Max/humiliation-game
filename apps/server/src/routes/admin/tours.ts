@@ -1,10 +1,16 @@
 import { Router } from 'express';
+import { serializeQuestionChoices, parseQuestionChoices } from '@humiliation-game/shared';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { requireAdmin } from '../../middleware/auth.js';
 
 export const adminToursRouter = Router();
 
 adminToursRouter.use(requireAdmin());
+
+function normalizeChoices(value: unknown): Prisma.InputJsonValue {
+  return serializeQuestionChoices(parseQuestionChoices(value)) as unknown as Prisma.InputJsonValue;
+}
 
 adminToursRouter.get('/', async (_req, res) => {
   const tours = await prisma.tour.findMany({
@@ -157,7 +163,7 @@ adminToursRouter.post('/:tourId/questions', async (req, res) => {
       prompt: data.prompt,
       mediaUrls: data.mediaUrls ?? [],
       answerType: data.answerType ?? 'TEXT',
-      choices: data.choices ?? [],
+      choices: normalizeChoices(data.choices),
       correctAnswer: data.correctAnswer,
       acceptableAnswers: data.acceptableAnswers ?? [],
       hints: data.hints ?? [],
@@ -241,7 +247,7 @@ adminToursRouter.put('/questions/:questionId', async (req, res) => {
       prompt: data.prompt,
       mediaUrls: data.mediaUrls,
       answerType: data.answerType,
-      choices: data.choices,
+      choices: normalizeChoices(data.choices),
       correctAnswer: data.correctAnswer,
       acceptableAnswers: data.acceptableAnswers,
       hints: data.hints ?? [],

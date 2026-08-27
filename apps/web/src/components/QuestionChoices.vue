@@ -147,6 +147,7 @@ const emit = defineEmits<{
   top: 50%;
   left: 50%;
   transform: translateY(-50%) translateX(-50%);
+  border-radius: 6px;
 }
 
 .question-choices-large .choice-image {

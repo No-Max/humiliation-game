@@ -52,9 +52,10 @@ const emit = defineEmits<{
             <span>{{ choice.text }}</span>
             <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
           </span>
-          <span class="choice-image-container">
+          <span 
+            v-if="choice.imageUrl"
+            class="choice-image-container">
             <img
-              v-if="choice.imageUrl"
               :src="choice.imageUrl"
               alt=""
               class="choice-image"

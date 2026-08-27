@@ -212,6 +212,7 @@ const iconHref = computed(() => {
   color: inherit;
   transition: border-color 0.15s, background 0.15s;
   height: auto;
+  white-space: normal;
 }
 
 .btn--choice:not(:disabled):hover {

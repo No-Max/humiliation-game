@@ -169,6 +169,11 @@ onUnmounted(() => cleanup?.());
         <div v-if="state.phase === 'REVEAL'" class="banner wrong">
           Правильный ответ: {{ state.correctAnswer }}
         </div>
+        <div
+          v-if="(state.phase === 'CORRECT' || state.phase === 'REVEAL') && state.answerExplanation"
+          class="answer-explanation rich-text-preview"
+          v-html="state.answerExplanation"
+        />
         <AnswerRevealMedia
           v-if="state.phase === 'CORRECT' || state.phase === 'REVEAL'"
           large

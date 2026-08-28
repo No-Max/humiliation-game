@@ -61,6 +61,7 @@ export interface RoomState {
   choices?: QuestionChoice[];
   mediaUrls?: string[];
   correctAnswer?: string;
+  answerExplanation?: string;
   answerMedia?: AnswerMediaItem[];
   /** Название команды, которой начислили баллы (фаза CORRECT) */
   scoringTeamName?: string;

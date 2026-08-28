@@ -41,6 +41,7 @@ interface Question {
   answerType?: string;
   choices?: QuestionChoice[] | string[];
   answerMedia?: AnswerMediaItem[] | null;
+  answerExplanation?: string | null;
 }
 
 interface Tour {
@@ -86,6 +87,7 @@ const form = ref({
   points: '',
   timeLimitSec: '',
   answerMedia: [] as AnswerMediaItem[],
+  answerExplanation: '',
 });
 
 const pageTitle = computed(() =>
@@ -158,6 +160,7 @@ async function load() {
         timeLimitSec:
           foundQuestion.timeLimitSec != null ? String(foundQuestion.timeLimitSec) : '',
         answerMedia: normalizeAnswerMedia(foundQuestion.answerMedia),
+        answerExplanation: foundQuestion.answerExplanation ?? '',
       };
     } else {
       form.value = {
@@ -171,6 +174,7 @@ async function load() {
         points: '',
         timeLimitSec: '',
         answerMedia: [],
+        answerExplanation: '',
       };
     }
   } catch (e) {
@@ -261,6 +265,9 @@ function buildPayload() {
     answerType,
     choices,
     answerMedia,
+    answerExplanation: isEmptyRichText(form.value.answerExplanation)
+      ? null
+      : form.value.answerExplanation.trim(),
   };
 }
 
@@ -464,6 +471,13 @@ async function remove() {
         </template>
 
         <AnswerMediaInput v-model="form.answerMedia" />
+
+        <label class="label" for="question-answer-explanation">Пояснение к ответу</label>
+        <RichTextEditor
+          v-model="form.answerExplanation"
+          input-id="question-answer-explanation"
+          placeholder="Дополнительный комментарий, который увидят игроки после ответа"
+        />
 
         <HintsInput v-model="form.hints" />
       </section>

@@ -10,6 +10,7 @@ defineProps<{
   questionValue: number;
   questionPrompt?: string;
   correctAnswer?: string;
+  answerExplanation?: string;
   answerMedia?: AnswerMediaItem[];
   teams: TeamState[];
   scoringTeamId?: string;
@@ -47,6 +48,11 @@ function saveAdjustResult(scoringTeamId: string | null) {
     <p v-if="correctAnswer" class="correct-answer">
       Правильный ответ: <strong>{{ correctAnswer }}</strong>
     </p>
+    <div
+      v-if="answerExplanation"
+      class="answer-explanation rich-text-preview"
+      v-html="answerExplanation"
+    />
     <AnswerRevealMedia :items="answerMedia" />
 
     <div class="answer-result-actions">
@@ -91,6 +97,13 @@ function saveAdjustResult(scoringTeamId: string | null) {
 
 .correct-answer {
   padding-top: 16px;
+}
+
+.answer-explanation {
+  padding-top: 16px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #374151;
 }
 
 .answer-result-actions {

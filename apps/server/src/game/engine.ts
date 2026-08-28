@@ -256,6 +256,7 @@ export class GameEngine {
           : undefined,
       tourRules: this.state.phase === 'TOUR_INTRO' ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
+      answerExplanation: showAnswer ? question?.answerExplanation ?? undefined : undefined,
       answerMedia: answerMedia.length ? answerMedia : undefined,
       scoringTeamName:
         this.state.phase === 'CORRECT' && this.state.scoringTeamId

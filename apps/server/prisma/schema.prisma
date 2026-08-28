@@ -119,6 +119,7 @@ model Question {
   answerType         AnswerType          @default(TEXT)
   choices            Json                @default("[]")
   correctAnswer      String
+  answerExplanation  String?
   acceptableAnswers  String[]            @default([])
   hints              String[]            @default([])
   points             Int?

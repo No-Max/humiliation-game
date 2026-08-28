@@ -90,6 +90,7 @@ export interface Question {
   answerType: AnswerType;
   choices?: QuestionChoice[];
   correctAnswer: string;
+  answerExplanation?: string;
   acceptableAnswers?: string[];
   hints?: string[];
   points?: number;

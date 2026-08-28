@@ -103,7 +103,7 @@ const isGameLayout = computed(
 }
 
 .main--display {
-  max-width: none;
+  max-width: 1400px;
   padding-left: max(32px, 2vw);
   padding-right: max(32px, 2vw);
 }
@@ -114,7 +114,7 @@ const isGameLayout = computed(
 }
 
 .main--game.main--display {
-  padding-top: 44px;
+  padding-top: 24px;
 }
 
 .footer {

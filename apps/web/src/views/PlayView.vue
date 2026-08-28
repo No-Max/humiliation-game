@@ -41,6 +41,7 @@ const {
   submitChoice,
   submit,
   pass,
+  skipTurn,
   syncExpiredTurn,
   nextQuestion,
   adjustQuestionResult,
@@ -130,6 +131,7 @@ const headerTitle = computed(() =>
         @submit-choice="submitChoice"
         @submit="submit"
         @pass="pass"
+        @skip-turn="skipTurn"
       />
     </div>
 

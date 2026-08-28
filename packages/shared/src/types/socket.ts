@@ -12,6 +12,7 @@ export interface ClientToServerEvents {
   continueToTourIntro: (callback: (result: ActionResult) => void) => void;
   submitAnswer: (answer: string, callback: (result: ActionResult) => void) => void;
   pass: (callback: (result: ActionResult) => void) => void;
+  skipTurn: (callback: (result: ActionResult) => void) => void;
   nextQuestion: (callback: (result: ActionResult) => void) => void;
   adjustQuestionResult: (
     scoringTeamId: string | null,
@@ -63,6 +64,7 @@ export const SOCKET_EVENTS = {
   CONTINUE_TO_TOUR_INTRO: 'continueToTourIntro',
   SUBMIT_ANSWER: 'submitAnswer',
   PASS: 'pass',
+  SKIP_TURN: 'skipTurn',
   NEXT_QUESTION: 'nextQuestion',
   ADJUST_QUESTION_RESULT: 'adjustQuestionResult',
   PAUSE_GAME: 'pauseGame',

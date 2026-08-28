@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MediaImageRow from './MediaImageRow.vue';
+import MediaImageRow from "./MediaImageRow.vue";
 
 defineProps<{
   prompt?: string;
@@ -11,11 +11,7 @@ defineProps<{
 <template>
   <div class="question-content" :class="{ large }">
     <MediaImageRow :media-urls="mediaUrls" :large="large" />
-    <div
-      v-if="prompt"
-      class="question-text rich-text-preview"
-      v-html="prompt"
-    />
+    <div v-if="prompt" class="question-text rich-text-preview" v-html="prompt" />
   </div>
 </template>
 
@@ -27,24 +23,25 @@ defineProps<{
   min-width: 0;
 }
 
-.question-content > * + * {
+.question-content>*+* {
   margin-top: 16px;
 }
 
 .question-text {
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 18px;
   margin: 0;
   padding-top: 16px;
 }
 
 .large .question-text {
-  font-size: 40px;
+  font-size: 16px;
   font-weight: bold;
 }
 
 @media (max-width: 1023px) {
   .large .question-text {
-    font-size: 24px;
+    font-size: 16px;
   }
 }
 </style>

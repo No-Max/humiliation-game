@@ -228,6 +228,12 @@ export function usePlayRoom() {
     });
   }
 
+  function skipTurn() {
+    connectSocket().emit('skipTurn', (result) => {
+      if (!result.ok) message.value = result.error ?? 'Ошибка';
+    });
+  }
+
   function syncExpiredTurn() {
     connectSocket().emit('syncExpiredTurn', () => {});
   }
@@ -333,6 +339,7 @@ export function usePlayRoom() {
     submitChoice,
     submit,
     pass,
+    skipTurn,
     syncExpiredTurn,
     nextQuestion,
     adjustQuestionResult,

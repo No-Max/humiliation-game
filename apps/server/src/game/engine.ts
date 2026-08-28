@@ -365,6 +365,41 @@ export class GameEngine {
     return this.passInternal(teamId);
   }
 
+  skipTurn(teamId: string): { ok: boolean; error?: string } {
+    const guard = this.ensurePlaying();
+    if (!guard.ok) return guard;
+    if (!this.canAct(teamId)) {
+      return { ok: false, error: 'Not your turn' };
+    }
+    if (this.state.passedTeamIds.has(teamId)) {
+      return { ok: false, error: 'Team has passed' };
+    }
+    if (!this.hasNextNonPassedTeam(teamId)) {
+      return { ok: false, error: 'No team to skip to' };
+    }
+
+    const question = this.getCurrentQuestion();
+    if (!question) return { ok: false, error: 'No active question' };
+
+    this.ensureStealRoundStarted();
+    this.turnNotice = undefined;
+    this.state.attemptedTeamIds.add(teamId);
+    this.advanceToNextTeam(teamId);
+    this.afterWrongAnswer(question);
+
+    if (this.allTeamsPassed()) {
+      this.clearTurnTimer();
+      this.state.phase = 'REVEAL';
+    } else if (this.getActiveTeamId()) {
+      this.state.phase = this.state.firstRoundComplete ? 'STEAL_ROUND' : 'QUESTION';
+      this.refreshTurnTimer();
+    } else {
+      this.clearTurnTimer();
+    }
+
+    return { ok: true };
+  }
+
   nextQuestion(teamId: string): { ok: boolean; error?: string } {
     const guard = this.ensurePlaying();
     if (!guard.ok) return guard;
@@ -729,6 +764,18 @@ export class GameEngine {
 
   private getActiveTeamIds(): string[] {
     return this.getRotatedTeamOrder().filter((id) => !this.state.passedTeamIds.has(id));
+  }
+
+  private hasNextNonPassedTeam(fromTeamId: string): boolean {
+    const rotated = this.getRotatedTeamOrder();
+    const startIdx = rotated.indexOf(fromTeamId);
+    if (startIdx === -1) return false;
+
+    for (let step = 1; step <= rotated.length; step += 1) {
+      const candidateId = rotated[(startIdx + step) % rotated.length];
+      if (!this.state.passedTeamIds.has(candidateId)) return true;
+    }
+    return false;
   }
 
   private advanceToNextTeam(fromTeamId?: string) {

@@ -47,12 +47,6 @@ function removeChoice(index: number) {
   choices.value = choices.value.filter((_, i) => i !== index);
 }
 
-function updateChoiceText(index: number, text: string) {
-  const next = [...choices.value];
-  next[index] = { ...next[index], text };
-  choices.value = next;
-}
-
 function removeChoiceImage(index: number) {
   const next = [...choices.value];
   next[index] = { text: next[index].text, imageUrl: undefined };
@@ -123,14 +117,13 @@ function onDraftKeydown(event: KeyboardEvent) {
     </p>
 
     <ul v-if="choices.length" class="choices-list">
-      <li v-for="(choice, index) in choices" :key="`${index}-${choice.text}`" class="choices-item">
+      <li v-for="(choice, index) in choices" :key="index" class="choices-item">
         <div class="choices-item-main">
           <input
-            :value="choice.text"
+            v-model="choices[index].text"
             class="input choices-text"
             type="text"
             placeholder="Текст варианта"
-            @input="updateChoiceText(index, ($event.target as HTMLInputElement).value)"
           />
 
           <div class="choices-media">

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import { getSeriesIdFromRoute, tourQuestionsRoute } from '../lib/tourNavigation';
 import AnswerMediaInput from '../components/AnswerMediaInput.vue';
+import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import type { QuestionChoice } from '@humiliation-game/shared';
 import { parseQuestionChoices, serializeQuestionChoices } from '@humiliation-game/shared';
 import ChoicesInput from '../components/ChoicesInput.vue';

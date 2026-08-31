@@ -98,6 +98,9 @@ const form = ref({
   answerExplanation: '',
 });
 
+const textCorrectAnswer = ref('');
+const choiceCorrectAnswer = ref('');
+
 const pageTitle = computed(() => 'Редактировать задание');
 
 const breadcrumbs = computed(() => {
@@ -163,8 +166,9 @@ async function load() {
       return;
     }
 
+    const answerType = normalizeAnswerType(foundQuestion.answerType);
     form.value = {
-      answerType: normalizeAnswerType(foundQuestion.answerType),
+      answerType,
       prompt: foundQuestion.prompt ?? '',
       mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
       audioUrl: foundQuestion.audioUrl ?? '',
@@ -178,6 +182,8 @@ async function load() {
       answerMedia: normalizeAnswerMedia(foundQuestion.answerMedia),
       answerExplanation: foundQuestion.answerExplanation ?? '',
     };
+    textCorrectAnswer.value = answerType === 'TEXT' ? foundQuestion.correctAnswer : '';
+    choiceCorrectAnswer.value = answerType === 'CHOICE' ? foundQuestion.correctAnswer : '';
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить данные';
   } finally {
@@ -199,14 +205,18 @@ watch(
 
 watch(
   () => form.value.answerType,
-  (type) => {
-    if (hydrating.value) return;
-    if (type === 'TEXT') {
-      form.value.choices = [];
+  (type, prevType) => {
+    if (hydrating.value || prevType === undefined) return;
+
+    if (prevType === 'TEXT') {
+      textCorrectAnswer.value = form.value.correctAnswer;
     } else {
-      form.value.acceptableAnswers = [];
+      choiceCorrectAnswer.value = form.value.correctAnswer;
     }
-    form.value.correctAnswer = '';
+
+    form.value.correctAnswer = type === 'TEXT'
+      ? textCorrectAnswer.value
+      : choiceCorrectAnswer.value;
   },
 );
 
@@ -244,9 +254,7 @@ function buildPayload() {
   const audioUrl = trimValue(form.value.audioUrl) || null;
   const contentType = mediaUrls.length > 0 ? 'IMAGE_TEXT' : 'TEXT';
   const answerType = form.value.answerType;
-  const choices = answerType === 'CHOICE'
-    ? serializeQuestionChoices(form.value.choices)
-    : [];
+  const choices = serializeQuestionChoices(form.value.choices);
 
   const answerMedia = form.value.answerMedia
     .map((item) => ({
@@ -262,9 +270,7 @@ function buildPayload() {
     audioUrl,
     correctAnswer: trimValue(form.value.correctAnswer),
     hints: form.value.hints.map((item) => trimValue(item)).filter(Boolean),
-    acceptableAnswers: answerType === 'TEXT'
-      ? form.value.acceptableAnswers.map((item) => trimValue(item)).filter(Boolean)
-      : [],
+    acceptableAnswers: form.value.acceptableAnswers.map((item) => trimValue(item)).filter(Boolean),
     points,
     timeLimitSec,
     answerType,
@@ -478,12 +484,22 @@ async function remove() {
         <h2 class="form-section-title">Ответ</h2>
 
         <div class="meta-field answer-type-field">
-          <label class="label" for="answer-type">Тип ответа</label>
-          <select id="answer-type" v-model="form.answerType" class="select">
-            <option v-for="option in ANSWER_TYPES" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+          <span class="label">Тип ответа</span>
+          <div class="answer-type-options" role="radiogroup" aria-label="Тип ответа">
+            <label
+              v-for="option in ANSWER_TYPES"
+              :key="option.value"
+              class="answer-type-option"
+            >
+              <input
+                v-model="form.answerType"
+                type="radio"
+                class="answer-type-radio"
+                :value="option.value"
+              />
+              <span><b>{{ option.label }}</b></span>
+            </label>
+          </div>
         </div>
 
         <template v-if="isChoiceAnswer">
@@ -606,8 +622,27 @@ async function remove() {
 }
 
 .answer-type-field {
-  max-width: 20rem;
   margin-bottom: 0.75rem;
+}
+
+.answer-type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.answer-type-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: #374151;
+}
+
+.answer-type-radio {
+  margin: 0;
+  accent-color: #4f46e5;
 }
 
 @media (max-width: 720px) {

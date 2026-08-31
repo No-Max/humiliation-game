@@ -61,6 +61,7 @@ const showQuestionCard = computed(
     state.value &&
     (state.value.questionPrompt ||
       state.value.mediaUrls?.length ||
+      state.value.audioUrl ||
       (state.value.answerType === 'CHOICE' && state.value.choices?.length)) &&
     isActiveQuestion.value,
 );

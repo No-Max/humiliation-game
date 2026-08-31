@@ -115,6 +115,86 @@ adminSeriesRouter.delete('/:seriesId/tours/:tourId', async (req, res) => {
   res.status(204).send();
 });
 
+adminSeriesRouter.post('/:seriesId/tours/:tourId/move', async (req, res) => {
+  const sourceSeriesId = req.params.seriesId;
+  const tourId = req.params.tourId;
+  const { targetSeriesId } = req.body as { targetSeriesId?: string };
+
+  if (!targetSeriesId) {
+    res.status(400).json({ error: 'targetSeriesId required' });
+    return;
+  }
+
+  if (targetSeriesId === sourceSeriesId) {
+    res.status(400).json({ error: 'Cannot move tour to the same series' });
+    return;
+  }
+
+  const sourceLink = await prisma.seriesTour.findUnique({
+    where: {
+      seriesId_tourId: { seriesId: sourceSeriesId, tourId },
+    },
+  });
+  if (!sourceLink) {
+    res.status(404).json({ error: 'Tour not linked to this series' });
+    return;
+  }
+
+  const targetSeries = await prisma.series.findUnique({ where: { id: targetSeriesId } });
+  if (!targetSeries) {
+    res.status(404).json({ error: 'Target series not found' });
+    return;
+  }
+
+  const existingInTarget = await prisma.seriesTour.findUnique({
+    where: {
+      seriesId_tourId: { seriesId: targetSeriesId, tourId },
+    },
+  });
+  if (existingInTarget) {
+    res.status(409).json({ error: 'Tour already exists in target series' });
+    return;
+  }
+
+  const targetCount = await prisma.seriesTour.count({
+    where: { seriesId: targetSeriesId },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.seriesTour.delete({
+      where: { seriesId_tourId: { seriesId: sourceSeriesId, tourId } },
+    });
+
+    await tx.seriesTour.create({
+      data: {
+        seriesId: targetSeriesId,
+        tourId,
+        sortOrder: targetCount,
+      },
+    });
+
+    await tx.question.updateMany({
+      where: { seriesId: sourceSeriesId, tourId },
+      data: { seriesId: targetSeriesId },
+    });
+
+    const remaining = await tx.seriesTour.findMany({
+      where: { seriesId: sourceSeriesId },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    for (let i = 0; i < remaining.length; i++) {
+      await tx.seriesTour.update({
+        where: { id: remaining[i].id },
+        data: { sortOrder: i },
+      });
+    }
+  });
+
+  const target = await loadSeriesWithTours({ id: targetSeriesId });
+  res.json(target);
+});
+
 adminSeriesRouter.put('/:seriesId/tours/order', async (req, res) => {
   const { tourIds } = req.body as { tourIds?: string[] };
   if (!Array.isArray(tourIds)) {

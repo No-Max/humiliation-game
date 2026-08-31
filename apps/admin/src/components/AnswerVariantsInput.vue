@@ -6,14 +6,17 @@ const variants = defineModel<string[]>({ default: () => [] });
 
 const draft = ref('');
 const duplicateHint = ref(false);
+const editErrors = ref<Record<number, string>>({});
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }
 
-function isDuplicate(value: string) {
+function isDuplicate(value: string, skipIndex?: number) {
   const normalized = normalize(value);
-  return variants.value.some((item) => normalize(item) === normalized);
+  return variants.value.some(
+    (item, index) => index !== skipIndex && normalize(item) === normalized,
+  );
 }
 
 function addVariant() {
@@ -33,6 +36,36 @@ function addVariant() {
 
 function removeVariant(index: number) {
   variants.value = variants.value.filter((_, i) => i !== index);
+  const nextErrors: Record<number, string> = {};
+  for (const [key, message] of Object.entries(editErrors.value)) {
+    const i = Number(key);
+    if (i < index) nextErrors[i] = message;
+    if (i > index) nextErrors[i - 1] = message;
+  }
+  editErrors.value = nextErrors;
+}
+
+function commitVariant(index: number) {
+  const trimmed = variants.value[index]?.trim() ?? '';
+  duplicateHint.value = false;
+
+  if (!trimmed) {
+    removeVariant(index);
+    return;
+  }
+
+  if (isDuplicate(trimmed, index)) {
+    editErrors.value = { ...editErrors.value, [index]: 'Такой вариант уже есть' };
+    return;
+  }
+
+  const next = [...variants.value];
+  next[index] = trimmed;
+  variants.value = next;
+
+  const nextErrors = { ...editErrors.value };
+  delete nextErrors[index];
+  editErrors.value = nextErrors;
 }
 
 function onDraftKeydown(event: KeyboardEvent) {
@@ -47,12 +80,23 @@ function onDraftKeydown(event: KeyboardEvent) {
   <div class="variants-input">
     <label class="label">Синонимы и альтернативные ответы</label>
     <p class="field-hint variants-hint">
-      Дополнительные формулировки, которые тоже засчитаются. Регистр и лишние пробелы не важны.
+      Дополнительные формулировки, которые тоже засчитаются. Можно редактировать текст прямо в списке.
+      Регистр и лишние пробелы не важны.
     </p>
 
     <ul v-if="variants.length" class="variants-list">
-      <li v-for="(variant, index) in variants" :key="`${variant}-${index}`" class="variants-item">
-        <span>{{ variant }}</span>
+      <li v-for="(variant, index) in variants" :key="index" class="variants-item">
+        <div class="variants-item-main">
+          <input
+            v-model="variants[index]"
+            class="input variants-text"
+            type="text"
+            placeholder="Альтернативный ответ"
+            @blur="commitVariant(index)"
+            @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
+          />
+          <p v-if="editErrors[index]" class="error variants-item-error">{{ editErrors[index] }}</p>
+        </div>
         <button
           class="variants-remove"
           type="button"
@@ -101,13 +145,28 @@ function onDraftKeydown(event: KeyboardEvent) {
 
 .variants-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   background: #f3f4f6;
   border-radius: 6px;
-  font-size: 0.9375rem;
+}
+
+.variants-item-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.variants-text {
+  margin-bottom: 0;
+}
+
+.variants-item-error {
+  margin: 0;
+  font-size: 0.8125rem;
 }
 
 .variants-remove {
@@ -118,6 +177,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   line-height: 1;
   cursor: pointer;
   padding: 0.125rem 0.25rem;
+  flex-shrink: 0;
 }
 
 .variants-remove:hover {

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { adminUpload } from '../lib/api';
 import { filesFromClipboard, focusPasteBlock } from '../lib/useClipboardFiles';
+import { useMediaDropZone } from '../lib/useMediaDropZone';
 import AdminIcon from './AdminIcon.vue';
 import MediaPickerModal from './MediaPickerModal.vue';
 import type { MediaLibraryItem } from '../lib/mediaLibrary';
@@ -79,20 +80,32 @@ function onGallerySelect(selected: MediaLibraryItem[]) {
   const newUrls = selected.map((item) => item.url);
   urls.value = [...urls.value, ...newUrls.filter((url) => !urls.value.includes(url))];
 }
+
+const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZone({
+  accept: (file) => file.type.startsWith('image/'),
+  onFiles: uploadFiles,
+  disabled: uploading,
+  root: rootRef,
+});
 </script>
 
 <template>
   <div
     ref="rootRef"
     class="media-input"
+    :class="{ 'media-input--drag-over': dragOver }"
     tabindex="0"
     @mousedown="focusBlock"
     @paste="onPaste"
+    @dragenter="onDragEnter"
+    @dragleave="onDragLeave"
+    @dragover="onDragOver"
+    @drop="onDrop"
   >
     <label class="label">Картинки</label>
     <p class="field-hint media-hint">
       Одна или несколько — в игре отобразятся в ряд.
-      Кликните по блоку и вставьте картинку из буфера (Ctrl/⌘+V).
+      Перетащите файлы сюда, кликните по блоку или вставьте картинку из буфера (Ctrl/⌘+V).
     </p>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -176,10 +189,15 @@ function onGallerySelect(selected: MediaLibraryItem[]) {
 }
 
 .media-input:focus,
-.media-input:focus-within {
+.media-input:focus-within,
+.media-input--drag-over {
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
   cursor: default;
+}
+
+.media-input--drag-over {
+  background: #f5f3ff;
 }
 
 .media-hint {

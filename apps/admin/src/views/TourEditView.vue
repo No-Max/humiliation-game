@@ -2,10 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
+import { buildDefaultQuestionCreateBody } from '../lib/questionDefaults';
 import {
   getSeriesIdFromRoute,
   tourQuestionEditRoute,
-  tourQuestionNewRoute,
 } from '../lib/tourNavigation';
 import AdminIcon from '../components/AdminIcon.vue';
 import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
@@ -43,6 +43,7 @@ const tour = ref<TourDetail | null>(null);
 const loading = ref(true);
 const loadError = ref('');
 const deletingId = ref<string | null>(null);
+const creatingQuestion = ref(false);
 const reordering = ref(false);
 const error = ref('');
 
@@ -88,13 +89,26 @@ watch(
   },
 );
 
-function openAddQuestion() {
+async function openAddQuestion() {
   if (!tour.value) return;
   if (!seriesId.value) {
-    loadError.value = 'Задания добавляются только из выпуска';
+    error.value = 'Задания добавляются только из выпуска';
     return;
   }
-  router.push(tourQuestionNewRoute(tour.value.id, seriesId.value));
+
+  creatingQuestion.value = true;
+  error.value = '';
+  try {
+    const created = await adminApi<{ id: string }>(`/tours/${tour.value.id}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(buildDefaultQuestionCreateBody(seriesId.value)),
+    });
+    router.push(tourQuestionEditRoute(tour.value.id, created.id, seriesId.value));
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось создать задание';
+  } finally {
+    creatingQuestion.value = false;
+  }
 }
 
 function openEditQuestion(question: Question) {
@@ -167,9 +181,9 @@ function formatTime(sec: number) {
           Список заданий
           <span class="question-count">· {{ formatQuestionCount(tour.questions.length) }}</span>
         </h2>
-        <button class="btn" type="button" @click="openAddQuestion">
+        <button class="btn" type="button" :disabled="creatingQuestion" @click="openAddQuestion">
           <AdminIcon name="plus-icon" />
-          Задание
+          {{ creatingQuestion ? 'Создание…' : 'Задание' }}
         </button>
       </div>
 

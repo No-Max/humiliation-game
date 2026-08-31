@@ -60,6 +60,7 @@ export interface RoomState {
   answerType?: AnswerType;
   choices?: QuestionChoice[];
   mediaUrls?: string[];
+  audioUrl?: string;
   correctAnswer?: string;
   answerExplanation?: string;
   answerMedia?: AnswerMediaItem[];

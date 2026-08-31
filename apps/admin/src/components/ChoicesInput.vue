@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onScopeDispose, ref } from 'vue';
 import type { QuestionChoice } from '@humiliation-game/shared';
 import { adminUpload } from '../lib/api';
 import AdminIcon from './AdminIcon.vue';
@@ -15,6 +15,86 @@ const uploadingIndex = ref<number | null>(null);
 const uploadError = ref('');
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const pendingUploadIndex = ref<number | null>(null);
+const dragOverIndex = ref<number | null>(null);
+
+async function uploadImageForChoice(index: number, file: File) {
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'Можно загружать только изображения';
+    return;
+  }
+
+  uploadingIndex.value = index;
+  uploadError.value = '';
+
+  try {
+    const result = await adminUpload(file);
+    const next = [...choices.value];
+    next[index] = { ...next[index], imageUrl: result.url };
+    choices.value = next;
+  } catch (e) {
+    uploadError.value = e instanceof Error ? e.message : 'Ошибка загрузки';
+  } finally {
+    uploadingIndex.value = null;
+  }
+}
+
+function onChoiceDragEnter(index: number, event: DragEvent) {
+  if (uploadingIndex.value != null) return;
+  if (!event.dataTransfer?.types.includes('Files')) return;
+  event.preventDefault();
+
+  const zone = event.currentTarget;
+  if (
+    zone instanceof HTMLElement
+    && event.relatedTarget instanceof Node
+    && zone.contains(event.relatedTarget)
+  ) {
+    return;
+  }
+
+  dragOverIndex.value = index;
+}
+
+function onChoiceDragLeave(index: number, event: DragEvent) {
+  event.preventDefault();
+  const currentTarget = event.currentTarget;
+  const related = event.relatedTarget;
+  if (
+    currentTarget instanceof HTMLElement
+    && related instanceof Node
+    && currentTarget.contains(related)
+  ) {
+    return;
+  }
+  if (dragOverIndex.value === index) dragOverIndex.value = null;
+}
+
+function onChoiceDragOver(event: DragEvent) {
+  if (!event.dataTransfer?.types.includes('Files')) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'copy';
+}
+
+async function onChoiceDrop(index: number, event: DragEvent) {
+  event.preventDefault();
+  dragOverIndex.value = null;
+  if (uploadingIndex.value != null) return;
+
+  const file = Array.from(event.dataTransfer?.files ?? []).find((item) =>
+    item.type.startsWith('image/'),
+  );
+  if (!file) return;
+  await uploadImageForChoice(index, file);
+}
+
+function clearChoiceDragOver() {
+  dragOverIndex.value = null;
+}
+
+document.addEventListener('dragend', clearChoiceDragOver);
+onScopeDispose(() => {
+  document.removeEventListener('dragend', clearChoiceDragOver);
+});
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
@@ -80,25 +160,7 @@ async function onFileSelected(event: Event) {
   const index = pendingUploadIndex.value;
   pendingUploadIndex.value = null;
   if (index == null || !file) return;
-
-  if (!file.type.startsWith('image/')) {
-    uploadError.value = 'Можно загружать только изображения';
-    return;
-  }
-
-  uploadingIndex.value = index;
-  uploadError.value = '';
-
-  try {
-    const result = await adminUpload(file);
-    const next = [...choices.value];
-    next[index] = { ...next[index], imageUrl: result.url };
-    choices.value = next;
-  } catch (e) {
-    uploadError.value = e instanceof Error ? e.message : 'Ошибка загрузки';
-  } finally {
-    uploadingIndex.value = null;
-  }
+  await uploadImageForChoice(index, file);
 }
 
 function onDraftKeydown(event: KeyboardEvent) {
@@ -113,7 +175,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   <div class="choices-input">
     <label class="label">Варианты ответов</label>
     <p class="field-hint choices-hint">
-      Минимум 2 варианта. Можно редактировать текст и добавить картинку к каждому варианту.
+      Минимум 2 варианта. Можно редактировать текст и добавить картинку к каждому варианту — перетащите файл в блок варианта.
     </p>
 
     <ul v-if="choices.length" class="choices-list">
@@ -126,7 +188,14 @@ function onDraftKeydown(event: KeyboardEvent) {
             placeholder="Текст варианта"
           />
 
-          <div class="choices-media">
+          <div
+            class="choices-media"
+            :class="{ 'choices-media--drag-over': dragOverIndex === index }"
+            @dragenter="onChoiceDragEnter(index, $event)"
+            @dragleave="onChoiceDragLeave(index, $event)"
+            @dragover="onChoiceDragOver"
+            @drop="onChoiceDrop(index, $event)"
+          >
             <img
               v-if="choice.imageUrl"
               :src="choice.imageUrl"
@@ -252,6 +321,15 @@ function onDraftKeydown(event: KeyboardEvent) {
 .choices-media {
   display: grid;
   gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px dashed transparent;
+  border-radius: 8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.choices-media--drag-over {
+  border-color: #4f46e5;
+  background: #f5f3ff;
 }
 
 .choices-preview {

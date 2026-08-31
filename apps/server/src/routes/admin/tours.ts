@@ -129,51 +129,59 @@ adminToursRouter.delete('/:id', requireAdmin(['ADMIN']), async (req, res) => {
 });
 
 adminToursRouter.post('/:tourId/questions', async (req, res) => {
-  const data = req.body;
-  const seriesId = typeof data.seriesId === 'string' ? data.seriesId : null;
-  if (!seriesId) {
-    res.status(400).json({ error: 'seriesId required' });
-    return;
-  }
+  try {
+    const data = req.body;
+    const seriesId = typeof data.seriesId === 'string' ? data.seriesId : null;
+    if (!seriesId) {
+      res.status(400).json({ error: 'seriesId required' });
+      return;
+    }
 
-  const linked = await prisma.seriesTour.findUnique({
-    where: {
-      seriesId_tourId: {
-        seriesId,
-        tourId: req.params.tourId,
+    const linked = await prisma.seriesTour.findUnique({
+      where: {
+        seriesId_tourId: {
+          seriesId,
+          tourId: req.params.tourId,
+        },
       },
-    },
-  });
-  if (!linked) {
-    res.status(400).json({ error: 'Tour is not linked to this series' });
-    return;
+    });
+    if (!linked) {
+      res.status(400).json({ error: 'Tour is not linked to this series' });
+      return;
+    }
+
+    const maxSort = await prisma.question.aggregate({
+      where: { tourId: req.params.tourId, seriesId },
+      _max: { sortOrder: true },
+    });
+
+    const question = await prisma.question.create({
+      data: {
+        tourId: req.params.tourId,
+        seriesId,
+        sortOrder: data.sortOrder ?? (maxSort._max.sortOrder ?? -1) + 1,
+        contentType: data.contentType ?? 'TEXT',
+        prompt: data.prompt,
+        mediaUrls: data.mediaUrls ?? [],
+        audioUrl: data.audioUrl ?? null,
+        answerType: data.answerType ?? 'TEXT',
+        choices: normalizeChoices(data.choices),
+        correctAnswer: data.correctAnswer,
+        answerExplanation: data.answerExplanation ?? null,
+        acceptableAnswers: data.acceptableAnswers ?? [],
+        hints: data.hints ?? [],
+        points: data.points,
+        timeLimitSec: data.timeLimitSec,
+        answerMedia: Array.isArray(data.answerMedia) ? data.answerMedia : [],
+      },
+    });
+    res.status(201).json(question);
+  } catch (e) {
+    console.error('Failed to create question', e);
+    res.status(500).json({
+      error: e instanceof Error ? e.message : 'Failed to create question',
+    });
   }
-
-  const maxSort = await prisma.question.aggregate({
-    where: { tourId: req.params.tourId, seriesId },
-    _max: { sortOrder: true },
-  });
-
-  const question = await prisma.question.create({
-    data: {
-      tourId: req.params.tourId,
-      seriesId,
-      sortOrder: data.sortOrder ?? (maxSort._max.sortOrder ?? -1) + 1,
-      contentType: data.contentType ?? 'TEXT',
-      prompt: data.prompt,
-      mediaUrls: data.mediaUrls ?? [],
-      answerType: data.answerType ?? 'TEXT',
-      choices: normalizeChoices(data.choices),
-      correctAnswer: data.correctAnswer,
-      answerExplanation: data.answerExplanation ?? null,
-      acceptableAnswers: data.acceptableAnswers ?? [],
-      hints: data.hints ?? [],
-      points: data.points,
-      timeLimitSec: data.timeLimitSec,
-      answerMedia: Array.isArray(data.answerMedia) ? data.answerMedia : [],
-    },
-  });
-  res.status(201).json(question);
 });
 
 adminToursRouter.put('/:tourId/questions/order', async (req, res) => {
@@ -247,6 +255,7 @@ adminToursRouter.put('/questions/:questionId', async (req, res) => {
       contentType: data.contentType,
       prompt: data.prompt,
       mediaUrls: data.mediaUrls,
+      audioUrl: data.audioUrl ?? null,
       answerType: data.answerType,
       choices: normalizeChoices(data.choices),
       correctAnswer: data.correctAnswer,

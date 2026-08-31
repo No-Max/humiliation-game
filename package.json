@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/server & npm run dev --workspace=apps/web & npm run dev --workspace=apps/admin",
-    "dev:server": "npm run dev --workspace=apps/server",
+    "dev:server": "npm run db:generate --workspace=apps/server && npm run dev --workspace=apps/server",
     "dev:web": "npm run build --workspace=packages/shared && npm run dev --workspace=apps/web",
     "dev:admin": "npm run build --workspace=packages/shared && npm run dev --workspace=apps/admin",
     "dev:public": "bash scripts/dev-public.sh",

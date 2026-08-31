@@ -4,6 +4,7 @@ import MediaImageRow from "./MediaImageRow.vue";
 defineProps<{
   prompt?: string;
   mediaUrls?: string[];
+  audioUrl?: string;
   large?: boolean;
 }>();
 </script>
@@ -11,6 +12,9 @@ defineProps<{
 <template>
   <div class="question-content" :class="{ large }">
     <MediaImageRow :media-urls="mediaUrls" :large="large" />
+    <div v-if="audioUrl" class="question-audio-wrap">
+      <audio class="question-audio" :src="audioUrl" controls preload="auto" />
+    </div>
     <div v-if="prompt" class="question-text rich-text-preview" v-html="prompt" />
   </div>
 </template>
@@ -25,6 +29,16 @@ defineProps<{
 
 .question-content>*+* {
   margin-top: 16px;
+}
+
+.question-audio-wrap {
+  text-align: center;
+}
+
+.question-audio {
+  display: block;
+  width: min(100%, 420px);
+  margin: 0 auto;
 }
 
 .question-text {

@@ -87,6 +87,7 @@ export interface Question {
   contentType: QuestionContentType;
   prompt?: string;
   mediaUrls: string[];
+  audioUrl?: string | null;
   answerType: AnswerType;
   choices?: QuestionChoice[];
   correctAnswer: string;

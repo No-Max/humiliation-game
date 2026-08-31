@@ -44,7 +44,8 @@ const showTurnActions = computed(
 
 <template>
   <div class="card">
-    <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" class="question-content" />
+    <QuestionContent :prompt="state.questionPrompt" :media-urls="state.mediaUrls" :audio-url="state.audioUrl"
+      class="question-content" />
     <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />
 
     <template v-if="isChoiceQuestion && state.choices?.length">

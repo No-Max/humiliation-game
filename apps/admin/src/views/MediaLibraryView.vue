@@ -13,6 +13,7 @@ import {
   type MediaLibraryPage,
 } from '../lib/mediaLibrary';
 import { formatMaxAnswerMediaSize, isAnswerMediaTooLarge } from '../lib/uploadLimits';
+import { useMediaDropZone } from '../lib/useMediaDropZone';
 
 type Filter = MediaKind | 'all';
 
@@ -148,6 +149,15 @@ function openPicker() {
   inputRef.value?.click();
 }
 
+const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZone({
+  accept: (file) =>
+    file.type.startsWith('image/')
+    || file.type.startsWith('audio/')
+    || file.type.startsWith('video/'),
+  onFiles: uploadFiles,
+  disabled: uploading,
+});
+
 function goPrevPage() {
   if (page.value <= 1) return;
   void load(page.value - 1);
@@ -171,8 +181,17 @@ function goNextPage() {
 
     <p class="field-hint media-page-hint">
       Все загруженные файлы сохраняются здесь. Их можно переиспользовать в заданиях и турах.
+      Перетащите файлы на страницу, чтобы загрузить.
     </p>
 
+    <div
+      class="media-drop-area"
+      :class="{ 'media-drop-area--drag-over': dragOver }"
+      @dragenter="onDragEnter"
+      @dragleave="onDragLeave"
+      @dragover="onDragOver"
+      @drop="onDrop"
+    >
     <div class="media-toolbar">
       <div class="media-filters">
         <button
@@ -229,6 +248,7 @@ function goNextPage() {
       multiple
       @change="onFilesSelected"
     />
+    </div>
   </div>
 </template>
 
@@ -244,6 +264,20 @@ function goNextPage() {
 
 .media-page-hint {
   margin-top: 0;
+}
+
+.media-drop-area {
+  min-height: 12rem;
+  padding: 0.75rem;
+  margin: 0 -0.75rem;
+  border: 2px dashed transparent;
+  border-radius: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.media-drop-area--drag-over {
+  border-color: #4f46e5;
+  background: #f5f3ff;
 }
 
 .media-toolbar {

@@ -2,7 +2,8 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
-import { getSeriesIdFromRoute, tourQuestionsRoute } from '../lib/tourNavigation';
+import { getSeriesIdFromRoute, tourQuestionEditRoute, tourQuestionsRoute } from '../lib/tourNavigation';
+import { buildDefaultQuestionCreateBody } from '../lib/questionDefaults';
 import AnswerMediaInput from '../components/AnswerMediaInput.vue';
 import AnswerVariantsInput from '../components/AnswerVariantsInput.vue';
 import type { QuestionChoice } from '@humiliation-game/shared';
@@ -10,6 +11,7 @@ import { parseQuestionChoices, serializeQuestionChoices } from '@humiliation-gam
 import ChoicesInput from '../components/ChoicesInput.vue';
 import HintsInput from '../components/HintsInput.vue';
 import MediaImagesInput from '../components/MediaImagesInput.vue';
+import QuestionAudioInput from '../components/QuestionAudioInput.vue';
 import RichTextEditor from '../components/RichTextEditor.vue';
 import AdminIcon from '../components/AdminIcon.vue';
 import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
@@ -39,6 +41,7 @@ interface Question {
   timeLimitSec?: number | null;
   contentType?: string;
   mediaUrls?: string[];
+  audioUrl?: string | null;
   answerType?: string;
   choices?: QuestionChoice[] | string[];
   answerMedia?: AnswerMediaItem[] | null;
@@ -64,10 +67,8 @@ const router = useRouter();
 const tourId = computed(() => String(route.params.tourId));
 const seriesId = computed(() => getSeriesIdFromRoute(route));
 const { seriesMeta } = useSeriesBreadcrumb(seriesId);
-const questionId = computed(() =>
-  route.params.questionId ? String(route.params.questionId) : null,
-);
-const isEdit = computed(() => !!questionId.value);
+const questionId = computed(() => String(route.params.questionId ?? ''));
+const isNewRoute = computed(() => route.path.endsWith('/questions/new'));
 
 const tour = ref<Tour | null>(null);
 const question = ref<Question | null>(null);
@@ -76,11 +77,17 @@ const hydrating = ref(false);
 const saving = ref(false);
 const error = ref('');
 const loadError = ref('');
+const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle');
+const lastSavedSnapshot = ref('');
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let savedIndicatorTimer: ReturnType<typeof setTimeout> | null = null;
 
 const form = ref({
   answerType: 'TEXT' as AnswerTypeOption,
   prompt: '',
   mediaUrls: [] as string[],
+  audioUrl: '',
   correctAnswer: '',
   choices: [] as QuestionChoice[],
   hints: [] as string[],
@@ -91,9 +98,7 @@ const form = ref({
   answerExplanation: '',
 });
 
-const pageTitle = computed(() =>
-  isEdit.value ? 'Редактировать задание' : 'Новое задание',
-);
+const pageTitle = computed(() => 'Редактировать задание');
 
 const breadcrumbs = computed(() => {
   const items = buildTourContextCrumbs(seriesId.value, seriesMeta.value);
@@ -135,55 +140,52 @@ async function load() {
       loadError.value = 'Задания редактируются только в контексте выпуска';
       return;
     }
+
+    if (isNewRoute.value) {
+      const created = await adminApi<Question>(`/tours/${tourId.value}/questions`, {
+        method: 'POST',
+        body: JSON.stringify(buildDefaultQuestionCreateBody(seriesId.value)),
+      });
+      await router.replace(tourQuestionEditRoute(tourId.value, created.id, seriesId.value));
+      return;
+    }
+
     const data = await adminApi<Tour>(
       `/tours/${tourId.value}?seriesId=${encodeURIComponent(seriesId.value)}`,
     );
     tour.value = data;
-    const foundTour = data;
 
-    if (isEdit.value) {
-      const foundQuestion =
-        foundTour.questions.find((item) => item.id === questionId.value) ?? null;
-      question.value = foundQuestion;
-      if (!foundQuestion) {
-        loadError.value = 'Задание не найдено';
-        return;
-      }
-      form.value = {
-        answerType: normalizeAnswerType(foundQuestion.answerType),
-        prompt: foundQuestion.prompt ?? '',
-        mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
-        correctAnswer: foundQuestion.correctAnswer,
-        choices: parseQuestionChoices(foundQuestion.choices),
-        hints: [...(foundQuestion.hints ?? [])],
-        acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
-        points: foundQuestion.points != null ? String(foundQuestion.points) : '',
-        timeLimitSec:
-          foundQuestion.timeLimitSec != null ? String(foundQuestion.timeLimitSec) : '',
-        answerMedia: normalizeAnswerMedia(foundQuestion.answerMedia),
-        answerExplanation: foundQuestion.answerExplanation ?? '',
-      };
-    } else {
-      form.value = {
-        answerType: 'TEXT',
-        prompt: '',
-        mediaUrls: [],
-        correctAnswer: '',
-        choices: [],
-        hints: [],
-        acceptableAnswers: [],
-        points: '',
-        timeLimitSec: '',
-        answerMedia: [],
-        answerExplanation: '',
-      };
+    const foundQuestion =
+      data.questions.find((item) => item.id === questionId.value) ?? null;
+    question.value = foundQuestion;
+    if (!foundQuestion) {
+      loadError.value = 'Задание не найдено';
+      return;
     }
+
+    form.value = {
+      answerType: normalizeAnswerType(foundQuestion.answerType),
+      prompt: foundQuestion.prompt ?? '',
+      mediaUrls: [...(foundQuestion.mediaUrls ?? [])],
+      audioUrl: foundQuestion.audioUrl ?? '',
+      correctAnswer: foundQuestion.correctAnswer,
+      choices: parseQuestionChoices(foundQuestion.choices),
+      hints: [...(foundQuestion.hints ?? [])],
+      acceptableAnswers: [...(foundQuestion.acceptableAnswers ?? [])],
+      points: foundQuestion.points != null ? String(foundQuestion.points) : '',
+      timeLimitSec:
+        foundQuestion.timeLimitSec != null ? String(foundQuestion.timeLimitSec) : '',
+      answerMedia: normalizeAnswerMedia(foundQuestion.answerMedia),
+      answerExplanation: foundQuestion.answerExplanation ?? '',
+    };
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Не удалось загрузить данные';
   } finally {
     loading.value = false;
     await nextTick();
     hydrating.value = false;
+    lastSavedSnapshot.value = isNewRoute.value ? '' : formSnapshot();
+    saveStatus.value = 'idle';
   }
 }
 
@@ -239,6 +241,7 @@ function buildPayload() {
   const points = parsePositiveInt(form.value.points, 1);
   const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
   const mediaUrls = form.value.mediaUrls;
+  const audioUrl = trimValue(form.value.audioUrl) || null;
   const contentType = mediaUrls.length > 0 ? 'IMAGE_TEXT' : 'TEXT';
   const answerType = form.value.answerType;
   const choices = answerType === 'CHOICE'
@@ -256,6 +259,7 @@ function buildPayload() {
     contentType,
     prompt: isEmptyRichText(form.value.prompt) ? null : form.value.prompt.trim(),
     mediaUrls: contentType === 'IMAGE_TEXT' ? mediaUrls : [],
+    audioUrl,
     correctAnswer: trimValue(form.value.correctAnswer),
     hints: form.value.hints.map((item) => trimValue(item)).filter(Boolean),
     acceptableAnswers: answerType === 'TEXT'
@@ -272,95 +276,124 @@ function buildPayload() {
   };
 }
 
-function validate(): boolean {
+function formSnapshot() {
+  return JSON.stringify(buildPayload());
+}
+
+function getValidationError(): string | null {
   if (isEmptyRichText(form.value.prompt)) {
-    error.value = 'Введите текст задания';
-    return false;
+    return 'Введите текст задания';
   }
   if (form.value.answerType === 'CHOICE') {
     const choices = serializeQuestionChoices(form.value.choices);
     if (choices.length < 2) {
-      error.value = 'Добавьте минимум 2 варианта ответа';
-      return false;
+      return 'Добавьте минимум 2 варианта ответа';
     }
     const correctAnswer = trimValue(form.value.correctAnswer);
     if (!correctAnswer) {
-      error.value = 'Выберите правильный вариант';
-      return false;
+      return 'Выберите правильный вариант';
     }
     if (!choices.some((choice) => choice.text === correctAnswer)) {
-      error.value = 'Правильный ответ должен быть одним из вариантов';
-      return false;
+      return 'Правильный ответ должен быть одним из вариантов';
     }
     const texts = choices.map((choice) => choice.text.trim().toLowerCase());
     if (new Set(texts).size !== texts.length) {
-      error.value = 'Варианты ответа не должны повторяться';
-      return false;
+      return 'Варианты ответа не должны повторяться';
     }
   } else if (!trimValue(form.value.correctAnswer)) {
-    error.value = 'Введите правильный ответ';
-    return false;
+    return 'Введите правильный ответ';
   }
   const points = parsePositiveInt(form.value.points, 1);
   if (Number.isNaN(points)) {
-    error.value = 'Укажите стоимость не менее 1 балла или оставьте пустым';
-    return false;
+    return 'Укажите стоимость не менее 1 балла или оставьте пустым';
   }
   const timeLimitSec = parsePositiveInt(form.value.timeLimitSec, 5);
   if (Number.isNaN(timeLimitSec)) {
-    error.value = 'Укажите время не менее 5 секунд или оставьте пустым';
-    return false;
+    return 'Укажите время не менее 5 секунд или оставьте пустым';
   }
-  return true;
+  return null;
 }
 
-function goBack() {
-  router.push(tourQuestionsRoute(tourId.value, seriesId.value));
+const isDirty = computed(() => formSnapshot() !== lastSavedSnapshot.value);
+
+const autosavePendingHint = computed(
+  () => isDirty.value && !!getValidationError() && saveStatus.value !== 'saving',
+);
+
+const saveStatusLabel = computed(() => {
+  if (saveStatus.value === 'saving') return 'Сохранение…';
+  if (saveStatus.value === 'saved') return 'Сохранено';
+  if (autosavePendingHint.value) return 'Заполните обязательные поля для автосохранения';
+  return '';
+});
+
+function scheduleAutoSave() {
+  if (hydrating.value || loading.value || saving.value) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    void autoSave();
+  }, 800);
 }
 
-async function save() {
-  if (!tour.value || !validate()) return;
-  if (!seriesId.value) {
-    error.value = 'Задания можно сохранять только внутри выпуска';
+async function autoSave() {
+  if (!tour.value || !seriesId.value || hydrating.value || loading.value || saving.value) {
     return;
   }
 
+  const validationError = getValidationError();
+  if (validationError) {
+    saveStatus.value = 'idle';
+    return;
+  }
+
+  const snapshot = formSnapshot();
+  if (snapshot === lastSavedSnapshot.value) return;
+
   saving.value = true;
+  saveStatus.value = 'saving';
   error.value = '';
 
   try {
     const payload = buildPayload();
 
-    if (isEdit.value && question.value) {
-      await adminApi(`/tours/questions/${question.value.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          ...question.value,
-          ...payload,
-        }),
-      });
-    } else {
-      await adminApi(`/tours/${tour.value.id}/questions`, {
-        method: 'POST',
-        body: JSON.stringify({
-          ...payload,
-          seriesId: seriesId.value,
-          points: payload.points ?? undefined,
-          timeLimitSec: payload.timeLimitSec ?? undefined,
-        }),
-      });
-    }
+    if (!question.value) return;
 
-    goBack();
+    await adminApi(`/tours/questions/${question.value.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        ...question.value,
+        ...payload,
+      }),
+    });
+
+    lastSavedSnapshot.value = snapshot;
+    saveStatus.value = 'saved';
+    if (savedIndicatorTimer) clearTimeout(savedIndicatorTimer);
+    savedIndicatorTimer = setTimeout(() => {
+      if (saveStatus.value === 'saved') saveStatus.value = 'idle';
+    }, 2000);
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Ошибка сохранения';
+    saveStatus.value = 'error';
   } finally {
     saving.value = false;
   }
 }
 
+watch(
+  form,
+  () => {
+    scheduleAutoSave();
+  },
+  { deep: true },
+);
+
+function goBack() {
+  router.push(tourQuestionsRoute(tourId.value, seriesId.value));
+}
+
 async function remove() {
-  if (!question.value || !isEdit.value) return;
+  if (!question.value) return;
   if (!window.confirm('Удалить это задание?')) return;
 
   saving.value = true;
@@ -387,8 +420,17 @@ async function remove() {
     <p v-if="loading" class="field-hint">Загрузка…</p>
     <p v-else-if="loadError" class="error">{{ loadError }}</p>
 
-    <form v-else-if="tour" class="card question-form" @submit.prevent="save">
-      <p class="field-hint" style="margin-top: 0">Тур «{{ tour.title }}»</p>
+    <div v-else-if="tour" class="card question-form">
+      <div class="question-form-header">
+        <p class="field-hint question-form-tour">Тур «{{ tour.title }}»</p>
+        <p
+          v-if="saveStatusLabel"
+          class="field-hint save-status"
+          :class="{ 'save-status--ok': saveStatus === 'saved' }"
+        >
+          {{ saveStatusLabel }}
+        </p>
+      </div>
 
       <p v-if="error" class="error">{{ error }}</p>
 
@@ -428,6 +470,8 @@ async function remove() {
         />
 
         <MediaImagesInput v-model="form.mediaUrls" />
+
+        <QuestionAudioInput v-model="form.audioUrl" />
       </section>
 
       <section class="form-section">
@@ -485,7 +529,6 @@ async function remove() {
 
       <div class="form-actions">
         <button
-          v-if="isEdit"
           class="btn btn-danger"
           type="button"
           :disabled="saving"
@@ -496,16 +539,12 @@ async function remove() {
         </button>
         <div class="form-actions-main">
           <button class="btn btn-secondary" type="button" :disabled="saving" @click="goBack">
-            <AdminIcon name="close-icon" />
-            Отмена
-          </button>
-          <button class="btn" type="submit" :disabled="saving">
-            <AdminIcon :name="isEdit ? 'check-icon' : 'plus-icon'" />
-            {{ saving ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать' }}
+            <AdminIcon name="arrow-left-icon" />
+            К списку заданий
           </button>
         </div>
       </div>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -514,6 +553,27 @@ async function remove() {
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.question-form-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.question-form-tour {
+  margin: 0;
+}
+
+.save-status {
+  margin: 0;
+}
+
+.save-status--ok {
+  color: #059669;
 }
 
 .form-section {

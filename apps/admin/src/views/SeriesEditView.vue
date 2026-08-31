@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { formatQuestionCount } from '@humiliation-game/shared';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
@@ -38,10 +38,21 @@ interface TourLibraryItem {
   defaultTimeLimitSec: number;
 }
 
+interface SeriesListItem {
+  id: string;
+  title: string;
+  number: number;
+  status: string;
+}
+
 const route = useRoute();
+const router = useRouter();
 const series = ref<SeriesDetail | null>(null);
 const libraryTours = ref<TourLibraryItem[]>([]);
+const allSeries = ref<SeriesListItem[]>([]);
 const showPickModal = ref(false);
+const showMoveModal = ref(false);
+const tourToMove = ref<Tour | null>(null);
 const saving = ref(false);
 const error = ref('');
 const loading = ref(true);
@@ -119,6 +130,55 @@ async function addTour(tourId: string) {
     closePickModal();
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось добавить тур';
+  } finally {
+    saving.value = false;
+  }
+}
+
+const otherSeries = computed(() =>
+  allSeries.value.filter((item) => item.id !== series.value?.id),
+);
+
+async function openMoveModal(tour: Tour) {
+  allSeries.value = await adminApi('/series');
+  tourToMove.value = tour;
+  error.value = '';
+  showMoveModal.value = true;
+}
+
+function closeMoveModal() {
+  showMoveModal.value = false;
+  tourToMove.value = null;
+  error.value = '';
+}
+
+async function moveTourToSeries(targetSeriesId: string) {
+  if (!series.value || !tourToMove.value) return;
+
+  const target = allSeries.value.find((item) => item.id === targetSeriesId);
+  if (!target) return;
+
+  const questionCount = tourToMove.value.questions.length;
+  const questionLabel = formatQuestionCount(questionCount);
+  if (
+    !window.confirm(
+      `Переместить тур «${tourToMove.value.title}» (${questionLabel}) в выпуск ${target.number}: «${target.title}»?`,
+    )
+  ) {
+    return;
+  }
+
+  saving.value = true;
+  error.value = '';
+  try {
+    await adminApi(`/series/${series.value.id}/tours/${tourToMove.value.id}/move`, {
+      method: 'POST',
+      body: JSON.stringify({ targetSeriesId }),
+    });
+    closeMoveModal();
+    await router.push(`/series/${targetSeriesId}`);
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Не удалось переместить тур';
   } finally {
     saving.value = false;
   }
@@ -336,7 +396,7 @@ const breadcrumbs = computed(() => {
       </div>
     </div>
 
-    <p v-if="error && !showPickModal" class="error">{{ error }}</p>
+    <p v-if="error && !showPickModal && !showMoveModal" class="error">{{ error }}</p>
 
     <div v-if="!series.tours.length" class="card">
       <p style="color: #6b7280; margin: 0">
@@ -374,6 +434,10 @@ const breadcrumbs = computed(() => {
           >
             <AdminIcon name="arrow-down-icon" />
           </button>
+          <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="openMoveModal(tour)">
+            <AdminIcon name="arrow-right-icon" />
+            Переместить
+          </button>
           <button class="btn btn-danger btn-sm" type="button" :disabled="saving" @click="removeTour(tour)">
             <AdminIcon name="trash-icon" />
             Удалить
@@ -385,6 +449,38 @@ const breadcrumbs = computed(() => {
         </div>
       </div>
     </div>
+
+    <AdminModal
+      :open="showMoveModal"
+      :title="tourToMove ? `Переместить «${tourToMove.title}»` : 'Переместить тур'"
+      hide-submit
+      :loading="saving"
+      @close="closeMoveModal"
+      @submit="closeMoveModal"
+    >
+      <p v-if="error" class="error">{{ error }}</p>
+      <p class="field-hint" style="margin-top: 0">
+        Выберите выпуск, в который нужно перенести тур вместе с его заданиями.
+      </p>
+
+      <div v-if="!otherSeries.length" class="empty-pick">
+        <p>Нет других выпусков для перемещения.</p>
+      </div>
+
+      <ul v-else class="pick-list">
+        <li v-for="item in otherSeries" :key="item.id">
+          <button
+            class="pick-item"
+            type="button"
+            :disabled="saving"
+            @click="moveTourToSeries(item.id)"
+          >
+            <strong>Выпуск {{ item.number }}: {{ item.title }}</strong>
+            <span>{{ item.status === 'PUBLISHED' ? 'Опубликован' : 'Черновик' }}</span>
+          </button>
+        </li>
+      </ul>
+    </AdminModal>
 
     <AdminModal
       :open="showPickModal"

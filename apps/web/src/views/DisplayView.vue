@@ -142,12 +142,14 @@ onUnmounted(() => cleanup?.());
       state &&
       (state.questionPrompt ||
         state.mediaUrls?.length ||
+        state.audioUrl ||
         (state.answerType === 'CHOICE' && state.choices?.length))
     " class="question-stack">
       <QuestionMetaCard :state="state" />
       <div class="card">
         <QuestionContent large :prompt="state.questionPrompt"
-          :media-urls="isActiveQuestion ? state.mediaUrls : undefined" />
+          :media-urls="isActiveQuestion ? state.mediaUrls : undefined"
+          :audio-url="isActiveQuestion ? state.audioUrl : undefined" />
         <QuestionChoices v-if="state.answerType === 'CHOICE' && state.choices?.length" large readonly
           :choices="state.choices" />
         <QuestionHints :hints="state.hints" :hints-total="state.hintsTotal" />

@@ -116,6 +116,7 @@ model Question {
   contentType        QuestionContentType @default(TEXT)
   prompt             String?
   mediaUrls          String[]            @default([])
+  audioUrl           String?
   answerType         AnswerType          @default(TEXT)
   choices            Json                @default("[]")
   correctAnswer      String

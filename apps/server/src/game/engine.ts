@@ -254,6 +254,7 @@ export class GameEngine {
         : this.state.phase === 'TOUR_INTRO' && tour?.mediaUrls?.length
           ? tour.mediaUrls
           : undefined,
+      audioUrl: tourStarted && question?.audioUrl ? question.audioUrl : undefined,
       tourRules: this.state.phase === 'TOUR_INTRO' ? tour?.rules ?? undefined : undefined,
       correctAnswer: showAnswer ? question?.correctAnswer : undefined,
       answerExplanation: showAnswer ? question?.answerExplanation ?? undefined : undefined,

@@ -420,6 +420,7 @@ const breadcrumbs = computed(() => {
             class="btn btn-secondary btn-sm btn-icon"
             type="button"
             aria-label="Поднять выше"
+            title="Поднять выше"
             :disabled="index === 0 || saving"
             @click="moveTour(tour, -1)"
           >
@@ -431,16 +432,15 @@ const breadcrumbs = computed(() => {
             aria-label="Опустить ниже"
             :disabled="index === series.tours.length - 1 || saving"
             @click="moveTour(tour, 1)"
+            title="Опустить ниже"
           >
             <AdminIcon name="arrow-down-icon" />
           </button>
-          <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="openMoveModal(tour)">
-            <AdminIcon name="arrow-right-icon" />
-            Переместить
-          </button>
-          <button class="btn btn-danger btn-sm" type="button" :disabled="saving" @click="removeTour(tour)">
+          <button class="btn btn-danger btn-sm" type="button" :disabled="saving" @click="removeTour(tour)" aria-label="Удалить" title="Удалить">
             <AdminIcon name="trash-icon" />
-            Удалить
+          </button>
+          <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="openMoveModal(tour)" aria-label="Переместить" title="Переместить">
+            <AdminIcon name="arrow-right-icon" />
           </button>
           <RouterLink :to="tourQuestionsRoute(tour.id, series.id)" class="btn btn-secondary btn-sm">
             <AdminIcon name="pencil-icon" />

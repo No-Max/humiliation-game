@@ -210,6 +210,7 @@ function formatTime(sec: number) {
                 class="btn btn-secondary btn-sm btn-icon"
                 type="button"
                 aria-label="Поднять выше"
+                title="Поднять выше"
                 :disabled="index === 0 || reordering || deletingId !== null"
                 @click="moveQuestion(q, -1)"
               >
@@ -221,8 +222,20 @@ function formatTime(sec: number) {
                 aria-label="Опустить ниже"
                 :disabled="index === tour.questions.length - 1 || reordering || deletingId !== null"
                 @click="moveQuestion(q, 1)"
+                title="Опустить ниже"
               >
                 <AdminIcon name="arrow-down-icon" />
+              </button>
+              <button
+                class="btn btn-danger btn-sm"
+                type="button"
+                :disabled="deletingId === q.id || reordering"
+                @click="removeQuestion(q)"
+                aria-label="Удалить"
+                title="Удалить"
+              >
+                <AdminIcon name="trash-icon" />
+                {{ deletingId === q.id ? 'Удаление…' : '' }}
               </button>
               <button
                 class="btn btn-secondary btn-sm"
@@ -231,16 +244,7 @@ function formatTime(sec: number) {
                 @click="openEditQuestion(q)"
               >
                 <AdminIcon name="pencil-icon" />
-                Изменить
-              </button>
-              <button
-                class="btn btn-danger btn-sm"
-                type="button"
-                :disabled="deletingId === q.id || reordering"
-                @click="removeQuestion(q)"
-              >
-                <AdminIcon name="trash-icon" />
-                {{ deletingId === q.id ? 'Удаление…' : 'Удалить' }}
+                Редактировать
               </button>
             </div>
           </li>

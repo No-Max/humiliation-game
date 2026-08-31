@@ -1,100 +1,14 @@
 <script setup lang="ts">
-import { onScopeDispose, ref } from 'vue';
+import { ref } from 'vue';
 import type { QuestionChoice } from '@humiliation-game/shared';
-import { adminUpload } from '../lib/api';
 import AdminIcon from './AdminIcon.vue';
-import MediaPickerModal from './MediaPickerModal.vue';
-import type { MediaLibraryItem } from '../lib/mediaLibrary';
+import ChoiceImageInput from './ChoiceImageInput.vue';
 
 const choices = defineModel<QuestionChoice[]>({ default: () => [] });
 
 const draft = ref('');
 const duplicateHint = ref(false);
-const galleryIndex = ref<number | null>(null);
-const uploadingIndex = ref<number | null>(null);
-const uploadError = ref('');
-const fileInputRef = ref<HTMLInputElement | null>(null);
-const pendingUploadIndex = ref<number | null>(null);
-const dragOverIndex = ref<number | null>(null);
-
-async function uploadImageForChoice(index: number, file: File) {
-  if (!file.type.startsWith('image/')) {
-    uploadError.value = 'Можно загружать только изображения';
-    return;
-  }
-
-  uploadingIndex.value = index;
-  uploadError.value = '';
-
-  try {
-    const result = await adminUpload(file);
-    const next = [...choices.value];
-    next[index] = { ...next[index], imageUrl: result.url };
-    choices.value = next;
-  } catch (e) {
-    uploadError.value = e instanceof Error ? e.message : 'Ошибка загрузки';
-  } finally {
-    uploadingIndex.value = null;
-  }
-}
-
-function onChoiceDragEnter(index: number, event: DragEvent) {
-  if (uploadingIndex.value != null) return;
-  if (!event.dataTransfer?.types.includes('Files')) return;
-  event.preventDefault();
-
-  const zone = event.currentTarget;
-  if (
-    zone instanceof HTMLElement
-    && event.relatedTarget instanceof Node
-    && zone.contains(event.relatedTarget)
-  ) {
-    return;
-  }
-
-  dragOverIndex.value = index;
-}
-
-function onChoiceDragLeave(index: number, event: DragEvent) {
-  event.preventDefault();
-  const currentTarget = event.currentTarget;
-  const related = event.relatedTarget;
-  if (
-    currentTarget instanceof HTMLElement
-    && related instanceof Node
-    && currentTarget.contains(related)
-  ) {
-    return;
-  }
-  if (dragOverIndex.value === index) dragOverIndex.value = null;
-}
-
-function onChoiceDragOver(event: DragEvent) {
-  if (!event.dataTransfer?.types.includes('Files')) return;
-  event.preventDefault();
-  event.dataTransfer.dropEffect = 'copy';
-}
-
-async function onChoiceDrop(index: number, event: DragEvent) {
-  event.preventDefault();
-  dragOverIndex.value = null;
-  if (uploadingIndex.value != null) return;
-
-  const file = Array.from(event.dataTransfer?.files ?? []).find((item) =>
-    item.type.startsWith('image/'),
-  );
-  if (!file) return;
-  await uploadImageForChoice(index, file);
-}
-
-function clearChoiceDragOver() {
-  dragOverIndex.value = null;
-}
-
-document.addEventListener('dragend', clearChoiceDragOver);
-onScopeDispose(() => {
-  document.removeEventListener('dragend', clearChoiceDragOver);
-});
+const DEFAULT_CHOICE_PREFIX = 'Вариант ';
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
@@ -107,12 +21,17 @@ function isDuplicate(value: string, skipIndex?: number) {
   );
 }
 
-function addChoice() {
-  const value = draft.value.trim();
-  duplicateHint.value = false;
-  uploadError.value = '';
+function nextDefaultChoiceText() {
+  let number = 1;
+  while (isDuplicate(`${DEFAULT_CHOICE_PREFIX}${number}`)) {
+    number += 1;
+  }
+  return `${DEFAULT_CHOICE_PREFIX}${number}`;
+}
 
-  if (!value) return;
+function addChoice() {
+  duplicateHint.value = false;
+  const value = draft.value.trim() || nextDefaultChoiceText();
 
   if (isDuplicate(value)) {
     duplicateHint.value = true;
@@ -127,42 +46,6 @@ function removeChoice(index: number) {
   choices.value = choices.value.filter((_, i) => i !== index);
 }
 
-function removeChoiceImage(index: number) {
-  const next = [...choices.value];
-  next[index] = { text: next[index].text, imageUrl: undefined };
-  choices.value = next;
-}
-
-function openGallery(index: number) {
-  galleryIndex.value = index;
-}
-
-function onGallerySelect(items: MediaLibraryItem[]) {
-  const index = galleryIndex.value;
-  galleryIndex.value = null;
-  if (index == null || !items.length) return;
-
-  const next = [...choices.value];
-  next[index] = { ...next[index], imageUrl: items[0].url };
-  choices.value = next;
-}
-
-function openUpload(index: number) {
-  pendingUploadIndex.value = index;
-  fileInputRef.value?.click();
-}
-
-async function onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = '';
-
-  const index = pendingUploadIndex.value;
-  pendingUploadIndex.value = null;
-  if (index == null || !file) return;
-  await uploadImageForChoice(index, file);
-}
-
 function onDraftKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -175,7 +58,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   <div class="choices-input">
     <label class="label">Варианты ответов</label>
     <p class="field-hint choices-hint">
-      Минимум 2 варианта. Можно редактировать текст и добавить картинку к каждому варианту — перетащите файл в блок варианта.
+      Минимум 2 варианта. Можно добавить без текста — подставится «Вариант 1», «Вариант 2» и т.д.
     </p>
 
     <ul v-if="choices.length" class="choices-list">
@@ -188,50 +71,7 @@ function onDraftKeydown(event: KeyboardEvent) {
             placeholder="Текст варианта"
           />
 
-          <div
-            class="choices-media"
-            :class="{ 'choices-media--drag-over': dragOverIndex === index }"
-            @dragenter="onChoiceDragEnter(index, $event)"
-            @dragleave="onChoiceDragLeave(index, $event)"
-            @dragover="onChoiceDragOver"
-            @drop="onChoiceDrop(index, $event)"
-          >
-            <img
-              v-if="choice.imageUrl"
-              :src="choice.imageUrl"
-              alt=""
-              class="choices-preview"
-            />
-            <div class="choices-media-actions">
-              <button
-                class="btn btn-secondary btn-small"
-                type="button"
-                :disabled="uploadingIndex === index"
-                @click="openGallery(index)"
-              >
-                <AdminIcon name="layers-icon" />
-                {{ choice.imageUrl ? 'Заменить' : 'Из галереи' }}
-              </button>
-              <button
-                class="btn btn-secondary btn-small"
-                type="button"
-                :disabled="uploadingIndex === index"
-                @click="openUpload(index)"
-              >
-                <AdminIcon name="publish-icon" />
-                {{ uploadingIndex === index ? 'Загрузка…' : 'Загрузить' }}
-              </button>
-              <button
-                v-if="choice.imageUrl"
-                class="btn btn-secondary btn-small"
-                type="button"
-                @click="removeChoiceImage(index)"
-              >
-                <AdminIcon name="close-icon" />
-                Убрать картинку
-              </button>
-            </div>
-          </div>
+          <ChoiceImageInput v-model="choices[index].imageUrl" />
         </div>
 
         <button
@@ -250,7 +90,7 @@ function onDraftKeydown(event: KeyboardEvent) {
         v-model="draft"
         class="input choices-draft"
         type="text"
-        placeholder="Например: Бильбо"
+        placeholder="Текст или пусто — «Вариант N»"
         @keydown="onDraftKeydown"
       />
       <button class="btn btn-secondary" type="button" @click="addChoice">
@@ -259,24 +99,7 @@ function onDraftKeydown(event: KeyboardEvent) {
       </button>
     </div>
 
-    <input
-      ref="fileInputRef"
-      type="file"
-      accept="image/*"
-      hidden
-      @change="onFileSelected"
-    />
-
-    <MediaPickerModal
-      :open="galleryIndex != null"
-      :multiple="false"
-      filter="image"
-      @close="galleryIndex = null"
-      @select="onGallerySelect"
-    />
-
     <p v-if="duplicateHint" class="error choices-error">Такой вариант уже есть</p>
-    <p v-if="uploadError" class="error choices-error">{{ uploadError }}</p>
   </div>
 </template>
 
@@ -316,41 +139,6 @@ function onDraftKeydown(event: KeyboardEvent) {
 
 .choices-text {
   margin-bottom: 0;
-}
-
-.choices-media {
-  display: grid;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border: 1px dashed transparent;
-  border-radius: 8px;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.choices-media--drag-over {
-  border-color: #4f46e5;
-  background: #f5f3ff;
-}
-
-.choices-preview {
-  display: block;
-  width: 120px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-}
-
-.choices-media-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.btn-small {
-  padding: 0.35rem 0.65rem;
-  font-size: 0.8125rem;
 }
 
 .choices-remove {

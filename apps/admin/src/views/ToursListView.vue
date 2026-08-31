@@ -94,9 +94,11 @@ async function removeTour(tour: TourRow) {
                 type="button"
                 :disabled="deletingId === tour.id"
                 @click="removeTour(tour)"
+                aria-label="Удалить"
+                title="Удалить"
               >
                 <AdminIcon name="trash-icon" />
-                {{ deletingId === tour.id ? 'Удаление…' : 'Удалить' }}
+                {{ deletingId === tour.id ? 'Удаление…' : '' }}
               </button>
               <RouterLink :to="tourSettingsRoute(tour.id)" class="btn btn-secondary btn-sm">
                 <AdminIcon name="pencil-icon" />

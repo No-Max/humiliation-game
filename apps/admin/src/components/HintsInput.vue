@@ -5,10 +5,26 @@ import AdminIcon from './AdminIcon.vue';
 const hints = defineModel<string[]>({ default: () => [] });
 
 const draft = ref('');
+const duplicateHint = ref(false);
+const editErrors = ref<Record<number, string>>({});
+
+function isDuplicate(value: string, skipIndex?: number) {
+  const normalized = value.trim().toLowerCase();
+  return hints.value.some(
+    (item, index) => index !== skipIndex && item.trim().toLowerCase() === normalized,
+  );
+}
 
 function addHint() {
   const value = draft.value.trim();
+  duplicateHint.value = false;
+
   if (!value) return;
+
+  if (isDuplicate(value)) {
+    duplicateHint.value = true;
+    return;
+  }
 
   hints.value = [...hints.value, value];
   draft.value = '';
@@ -16,6 +32,36 @@ function addHint() {
 
 function removeHint(index: number) {
   hints.value = hints.value.filter((_, i) => i !== index);
+  const nextErrors: Record<number, string> = {};
+  for (const [key, message] of Object.entries(editErrors.value)) {
+    const i = Number(key);
+    if (i < index) nextErrors[i] = message;
+    if (i > index) nextErrors[i - 1] = message;
+  }
+  editErrors.value = nextErrors;
+}
+
+function commitHint(index: number) {
+  const trimmed = hints.value[index]?.trim() ?? '';
+  duplicateHint.value = false;
+
+  if (!trimmed) {
+    removeHint(index);
+    return;
+  }
+
+  if (isDuplicate(trimmed, index)) {
+    editErrors.value = { ...editErrors.value, [index]: 'Такая подсказка уже есть' };
+    return;
+  }
+
+  const next = [...hints.value];
+  next[index] = trimmed;
+  hints.value = next;
+
+  const nextErrors = { ...editErrors.value };
+  delete nextErrors[index];
+  editErrors.value = nextErrors;
 }
 
 function moveHint(index: number, direction: -1 | 1) {
@@ -25,6 +71,15 @@ function moveHint(index: number, direction: -1 | 1) {
   const next = [...hints.value];
   [next[index], next[target]] = [next[target], next[index]];
   hints.value = next;
+
+  const nextErrors: Record<number, string> = {};
+  for (const [key, message] of Object.entries(editErrors.value)) {
+    const i = Number(key);
+    if (i === index) nextErrors[target] = message;
+    else if (i === target) nextErrors[index] = message;
+    else nextErrors[i] = message;
+  }
+  editErrors.value = nextErrors;
 }
 
 function onDraftKeydown(event: KeyboardEvent) {
@@ -39,13 +94,23 @@ function onDraftKeydown(event: KeyboardEvent) {
   <div class="variants-input">
     <label class="label">Подсказки</label>
     <p class="field-hint variants-hint">
-      Подсказка после каждого круга ответов.
+      Подсказка после каждого круга ответов. Можно редактировать текст прямо в списке.
     </p>
 
     <ul v-if="hints.length" class="variants-list">
-      <li v-for="(hint, index) in hints" :key="`${hint}-${index}`" class="variants-item">
+      <li v-for="(hint, index) in hints" :key="index" class="variants-item">
         <span class="hint-order">{{ index + 1 }}</span>
-        <span class="hint-text">{{ hint }}</span>
+        <div class="hint-item-main">
+          <input
+            v-model="hints[index]"
+            class="input hint-text"
+            type="text"
+            placeholder="Текст подсказки"
+            @blur="commitHint(index)"
+            @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
+          />
+          <p v-if="editErrors[index]" class="error hint-item-error">{{ editErrors[index] }}</p>
+        </div>
         <div class="hint-actions">
           <button
             class="variants-move"
@@ -90,6 +155,8 @@ function onDraftKeydown(event: KeyboardEvent) {
         Добавить
       </button>
     </div>
+
+    <p v-if="duplicateHint" class="error variants-error">Такая подсказка уже есть</p>
   </div>
 </template>
 
@@ -112,7 +179,7 @@ function onDraftKeydown(event: KeyboardEvent) {
 
 .variants-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: #fef3c7;
@@ -126,6 +193,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
+  margin-top: 0.35rem;
   border-radius: 999px;
   background: #fde68a;
   color: #92400e;
@@ -134,15 +202,27 @@ function onDraftKeydown(event: KeyboardEvent) {
   flex-shrink: 0;
 }
 
-.hint-text {
+.hint-item-main {
   flex: 1;
   min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.hint-text {
+  margin-bottom: 0;
+}
+
+.hint-item-error {
+  margin: 0;
+  font-size: 0.8125rem;
 }
 
 .hint-actions {
   display: flex;
   gap: 0.125rem;
   flex-shrink: 0;
+  margin-top: 0.25rem;
 }
 
 .variants-move,
@@ -174,5 +254,10 @@ function onDraftKeydown(event: KeyboardEvent) {
 .variants-draft {
   margin-bottom: 0;
   flex: 1;
+}
+
+.variants-error {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
 }
 </style>

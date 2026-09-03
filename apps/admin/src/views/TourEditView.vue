@@ -270,6 +270,9 @@ function formatTime(sec: number) {
   justify-content: space-between;
   padding: 0.75rem 0;
   border-top: 1px solid #e5e7eb;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .question-item:first-child {

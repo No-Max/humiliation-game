@@ -22,6 +22,10 @@
   padding: 1.25rem;
   margin-bottom: 1rem;
   box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 }
 
 .btn {
@@ -192,8 +196,13 @@ a.btn.btn-success:visited {
   min-height: 80px;
 }
 
+.card:has(> .table) {
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
 }
 
@@ -201,6 +210,10 @@ a.btn.btn-success:visited {
   text-align: left;
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
+
+  @media (max-width: 768px) {
+    padding: 0.325rem;
+  }
 }
 
 .table th:last-child,

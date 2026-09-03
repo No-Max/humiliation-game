@@ -9,3 +9,11 @@ defineProps<{
     <use :href="`/icons.svg#${name}`" />
   </svg>
 </template>
+
+<style scoped>
+.icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+</style>

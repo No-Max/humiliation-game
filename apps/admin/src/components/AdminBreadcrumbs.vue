@@ -24,3 +24,46 @@ defineProps<{
     </ol>
   </nav>
 </template>
+
+<style scoped>
+.breadcrumbs {
+  margin-bottom: 0.75rem;
+}
+
+.breadcrumbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.breadcrumbs-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.breadcrumbs-link {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumbs-link:hover {
+  color: #4338ca;
+}
+
+.breadcrumbs-current {
+  color: #6b7280;
+}
+
+.breadcrumbs-sep {
+  color: #9ca3af;
+  user-select: none;
+}
+</style>

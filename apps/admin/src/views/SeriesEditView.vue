@@ -64,6 +64,7 @@ const detailsOpen = ref(false);
 
 const detailsForm = ref({
   title: '',
+  number: '',
   description: '',
 });
 
@@ -71,6 +72,7 @@ function syncDetailsForm() {
   if (!series.value) return;
   detailsForm.value = {
     title: series.value.title,
+    number: String(series.value.number),
     description: series.value.description ?? '',
   };
 }
@@ -226,11 +228,24 @@ function statusLabel(status: string) {
   return status === 'PUBLISHED' ? 'Опубликован' : 'Черновик';
 }
 
+function validateDetailsForm(): string | null {
+  const title = detailsForm.value.title.trim();
+  if (!title) return 'Введите название выпуска';
+
+  const number = Number.parseInt(detailsForm.value.number, 10);
+  if (!Number.isFinite(number) || number < 1) {
+    return 'Укажите корректный номер выпуска';
+  }
+
+  return null;
+}
+
 function buildDetailsPayload(status: string) {
   const title = detailsForm.value.title.trim();
+  const number = Number.parseInt(detailsForm.value.number, 10);
   return {
     title,
-    number: series.value!.number,
+    number,
     description: isEmptyRichText(detailsForm.value.description)
       ? null
       : detailsForm.value.description.trim(),
@@ -241,9 +256,9 @@ function buildDetailsPayload(status: string) {
 async function saveDetails() {
   if (!series.value) return;
 
-  const title = detailsForm.value.title.trim();
-  if (!title) {
-    detailsError.value = 'Введите название выпуска';
+  const validationError = validateDetailsForm();
+  if (validationError) {
+    detailsError.value = validationError;
     detailsOpen.value = true;
     return;
   }
@@ -266,12 +281,14 @@ async function saveDetails() {
 async function updateStatus(status: 'DRAFT' | 'PUBLISHED') {
   if (!series.value) return;
 
-  const title = detailsForm.value.title.trim();
-  if (!title) {
-    detailsError.value = 'Введите название выпуска';
+  const validationError = validateDetailsForm();
+  if (validationError) {
+    detailsError.value = validationError;
     detailsOpen.value = true;
     return;
   }
+
+  const title = detailsForm.value.title.trim();
   if (status === 'DRAFT' && !window.confirm(`Снять выпуск «${title}» с публикации?`)) return;
 
   statusUpdating.value = true;
@@ -338,6 +355,16 @@ const breadcrumbs = computed(() => {
         v-model="detailsForm.title"
         class="input"
         placeholder="Название выпуска"
+      />
+
+      <label class="label" for="series-edit-number">Номер выпуска</label>
+      <input
+        id="series-edit-number"
+        v-model="detailsForm.number"
+        class="input series-number-input"
+        type="number"
+        min="1"
+        placeholder="1"
       />
 
       <label class="label" for="series-edit-description">Описание</label>
@@ -535,6 +562,10 @@ const breadcrumbs = computed(() => {
 
 .series-details-card {
   margin-bottom: 1rem;
+}
+
+.series-number-input {
+  max-width: 8rem;
 }
 
 .pick-list {

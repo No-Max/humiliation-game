@@ -312,6 +312,11 @@ function formatTime(sec: number) {
   return s ? `${m} мин ${s} сек` : `${m} мин`;
 }
 
+function openTour(tour: Tour) {
+  if (!series.value) return;
+  void router.push(tourQuestionsRoute(tour.id, series.value.id));
+}
+
 const breadcrumbs = computed(() => {
   const items = [crumbSeriesList()];
   if (series.value) {
@@ -412,13 +417,25 @@ const breadcrumbs = computed(() => {
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0">
       <h2>Туры в выпуске</h2>
       <div class="actions-cell">
-        <RouterLink :to="tourSettingsNewRoute(series.id)" class="btn btn-secondary">
+        <RouterLink
+          :to="tourSettingsNewRoute(series.id)"
+          class="btn btn-secondary"
+          aria-label="Новый тур"
+          title="Новый тур"
+        >
           <AdminIcon name="plus-icon" />
-          Новый тур
+          <span class="btn-label">Новый тур</span>
         </RouterLink>
-        <button class="btn" type="button" :disabled="saving" @click="openPickModal">
+        <button
+          class="btn"
+          type="button"
+          aria-label="Из библиотеки"
+          title="Из библиотеки"
+          :disabled="saving"
+          @click="openPickModal"
+        >
           <AdminIcon name="plus-icon" />
-          Из библиотеки
+          <span class="btn-label">Из библиотеки</span>
         </button>
       </div>
     </div>
@@ -433,8 +450,15 @@ const breadcrumbs = computed(() => {
       </p>
     </div>
 
-    <div v-for="(tour, index) in series.tours" :key="tour.id" class="card">
-      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between">
+    <div
+      v-for="(tour, index) in series.tours"
+      :key="tour.id"
+      class="card tour-row-clickable"
+      tabindex="0"
+      @click="openTour(tour)"
+      @keydown.enter="openTour(tour)"
+    >
+      <div class="tour-row-main">
         <div>
           <h3 style="margin: 0">{{ tour.title }}</h3>
           <p style="color: #6b7280; margin: 0.35rem 0 0; font-size: 0.875rem">
@@ -442,7 +466,7 @@ const breadcrumbs = computed(() => {
             · {{ formatQuestionCount(tour.questions.length) }}
           </p>
         </div>
-        <div class="actions-cell">
+        <div class="actions-cell" @click.stop>
           <button
             class="btn btn-secondary btn-sm btn-icon"
             type="button"
@@ -469,9 +493,14 @@ const breadcrumbs = computed(() => {
           <button class="btn btn-secondary btn-sm" type="button" :disabled="saving" @click="openMoveModal(tour)" aria-label="Переместить" title="Переместить">
             <AdminIcon name="arrow-right-icon" />
           </button>
-          <RouterLink :to="tourQuestionsRoute(tour.id, series.id)" class="btn btn-secondary btn-sm">
+          <RouterLink
+            :to="tourQuestionsRoute(tour.id, series.id)"
+            class="btn btn-secondary btn-sm"
+            aria-label="Редактировать"
+            title="Редактировать"
+          >
             <AdminIcon name="pencil-icon" />
-            Редактировать
+            <span class="btn-label">Редактировать</span>
           </RouterLink>
         </div>
       </div>
@@ -562,6 +591,27 @@ const breadcrumbs = computed(() => {
 
 .series-details-card {
   margin-bottom: 1rem;
+}
+
+.tour-row-clickable {
+  cursor: pointer;
+}
+
+.tour-row-clickable:hover {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+}
+
+.tour-row-clickable:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.tour-row-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .series-number-input {

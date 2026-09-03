@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import AdminModal from '../components/AdminModal.vue';
 import AdminIcon from '../components/AdminIcon.vue';
@@ -15,6 +15,7 @@ interface SeriesRow {
 
 const series = ref<SeriesRow[]>([]);
 const loading = ref(true);
+const router = useRouter();
 const showCreateModal = ref(false);
 const saving = ref(false);
 const statusUpdatingId = ref<string | null>(null);
@@ -72,6 +73,10 @@ function closeCreateModal() {
   error.value = '';
 }
 
+function openSeries(item: SeriesRow) {
+  void router.push(`/series/${item.id}`);
+}
+
 async function submitCreate() {
   const title = form.value.title.trim();
   const number = Number.parseInt(form.value.number, 10);
@@ -127,35 +132,51 @@ async function submitCreate() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in series" :key="item.id">
+          <tr
+            v-for="item in series"
+            :key="item.id"
+            class="table-row-clickable"
+            tabindex="0"
+            @click="openSeries(item)"
+            @keydown.enter="openSeries(item)"
+          >
             <td>{{ item.number }}</td>
             <td>{{ item.title }}</td>
             <td>{{ statusLabel(item.status) }}</td>
             <td>{{ item._count.tours }}</td>
-            <td class="actions-cell">
+            <td class="actions-cell" @click.stop>
               <button
                 v-if="item.status !== 'PUBLISHED'"
                 class="btn btn-success btn-sm"
                 type="button"
+                aria-label="Опубликовать"
+                title="Опубликовать"
                 :disabled="statusUpdatingId === item.id"
                 @click="updateStatus(item, 'PUBLISHED')"
               >
                 <AdminIcon name="publish-icon" />
-                {{ statusUpdatingId === item.id ? 'Сохранение…' : 'Опубликовать' }}
+                <span class="btn-label">{{ statusUpdatingId === item.id ? 'Сохранение…' : 'Опубликовать' }}</span>
               </button>
               <button
                 v-else
                 class="btn btn-warning btn-sm"
                 type="button"
+                aria-label="Снять с публикации"
+                title="Снять с публикации"
                 :disabled="statusUpdatingId === item.id"
                 @click="updateStatus(item, 'DRAFT')"
               >
                 <AdminIcon name="unpublish-icon" />
-                {{ statusUpdatingId === item.id ? 'Сохранение…' : 'Снять с публикации' }}
+                <span class="btn-label">{{ statusUpdatingId === item.id ? 'Сохранение…' : 'Снять с публикации' }}</span>
               </button>
-              <RouterLink :to="`/series/${item.id}`" class="btn btn-secondary btn-sm">
+              <RouterLink
+                :to="`/series/${item.id}`"
+                class="btn btn-secondary btn-sm"
+                aria-label="Редактировать"
+                title="Редактировать"
+              >
                 <AdminIcon name="pencil-icon" />
-                Редактировать
+                <span class="btn-label">Редактировать</span>
               </RouterLink>
             </td>
           </tr>

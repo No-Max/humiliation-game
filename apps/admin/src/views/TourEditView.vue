@@ -10,7 +10,7 @@ import {
 import AdminIcon from '../components/AdminIcon.vue';
 import AdminBreadcrumbs from '../components/AdminBreadcrumbs.vue';
 import { formatQuestionCount } from '@humiliation-game/shared';
-import { stripHtml } from '../lib/htmlText';
+import { htmlToPreviewText, stripHtml } from '../lib/htmlText';
 import { buildTourContextCrumbs, useSeriesBreadcrumb } from '../lib/adminBreadcrumbs';
 
 interface Question {
@@ -159,6 +159,10 @@ async function moveQuestion(question: Question, direction: -1 | 1) {
   }
 }
 
+function formatQuestionPreview(prompt?: string) {
+  return htmlToPreviewText(prompt ?? '', 100);
+}
+
 function formatTime(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
@@ -191,9 +195,16 @@ function formatTime(sec: number) {
 
       <div class="card">
         <ul v-if="tour.questions.length" class="question-list">
-          <li v-for="(q, index) in tour.questions" :key="q.id" class="question-item">
+          <li
+            v-for="(q, index) in tour.questions"
+            :key="q.id"
+            class="question-item question-item--clickable"
+            tabindex="0"
+            @click="openEditQuestion(q)"
+            @keydown.enter="openEditQuestion(q)"
+          >
             <div class="question-content">
-              <div>{{ stripHtml(q.prompt ?? '') }}</div>
+              <div class="question-preview">{{ formatQuestionPreview(q.prompt) }}</div>
               <div class="question-meta">
                 <span v-if="q.contentType === 'IMAGE_TEXT'">🖼 · </span>
                 <span v-if="q.answerType === 'CHOICE'">🔘 · </span>
@@ -205,7 +216,7 @@ function formatTime(sec: number) {
                 <span> · ⏱ {{ formatTime(q.timeLimitSec ?? tour.defaultTimeLimitSec) }}</span>
               </div>
             </div>
-            <div class="question-actions">
+            <div class="question-actions" @click.stop>
               <button
                 class="btn btn-secondary btn-sm btn-icon"
                 type="button"
@@ -235,16 +246,18 @@ function formatTime(sec: number) {
                 title="Удалить"
               >
                 <AdminIcon name="trash-icon" />
-                {{ deletingId === q.id ? 'Удаление…' : '' }}
+                <span v-if="deletingId === q.id" class="btn-label">Удаление…</span>
               </button>
               <button
                 class="btn btn-secondary btn-sm"
                 type="button"
+                aria-label="Редактировать"
+                title="Редактировать"
                 :disabled="reordering || deletingId !== null"
                 @click="openEditQuestion(q)"
               >
                 <AdminIcon name="pencil-icon" />
-                Редактировать
+                <span class="btn-label">Редактировать</span>
               </button>
             </div>
           </li>
@@ -275,6 +288,23 @@ function formatTime(sec: number) {
   }
 }
 
+.question-item--clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 0 -0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.question-item--clickable:hover {
+  background: #f9fafb;
+}
+
+.question-item--clickable:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
 .question-item:first-child {
   border-top: none;
   padding-top: 0;
@@ -283,6 +313,10 @@ function formatTime(sec: number) {
 .question-content {
   flex: 1;
   min-width: 0;
+}
+
+.question-preview {
+  white-space: pre-line;
 }
 
 .question-actions {

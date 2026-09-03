@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import { adminApi } from '../lib/api';
 import { tourSettingsRoute, tourSettingsNewRoute } from '../lib/tourNavigation';
 import AdminIcon from '../components/AdminIcon.vue';
@@ -15,6 +15,7 @@ interface TourRow {
 
 const tours = ref<TourRow[]>([]);
 const loading = ref(true);
+const router = useRouter();
 const deletingId = ref<string | null>(null);
 const error = ref('');
 
@@ -33,6 +34,10 @@ function formatTime(sec: number) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return s ? `${m} мин ${s} сек` : `${m} мин`;
+}
+
+function openTour(tour: TourRow) {
+  void router.push(tourSettingsRoute(tour.id));
 }
 
 async function removeTour(tour: TourRow) {
@@ -83,12 +88,19 @@ async function removeTour(tour: TourRow) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="tour in tours" :key="tour.id">
+          <tr
+            v-for="tour in tours"
+            :key="tour.id"
+            class="table-row-clickable"
+            tabindex="0"
+            @click="openTour(tour)"
+            @keydown.enter="openTour(tour)"
+          >
             <td><strong>{{ tour.title }}</strong></td>
             <td>{{ tour.defaultPoints }} б.</td>
             <td>{{ formatTime(tour.defaultTimeLimitSec) }}</td>
             <td>{{ tour._count.seriesTours }}</td>
-            <td class="actions-cell">
+            <td class="actions-cell" @click.stop>
               <button
                 class="btn btn-danger btn-sm"
                 type="button"
@@ -98,11 +110,16 @@ async function removeTour(tour: TourRow) {
                 title="Удалить"
               >
                 <AdminIcon name="trash-icon" />
-                {{ deletingId === tour.id ? 'Удаление…' : '' }}
+                <span v-if="deletingId === tour.id" class="btn-label">Удаление…</span>
               </button>
-              <RouterLink :to="tourSettingsRoute(tour.id)" class="btn btn-secondary btn-sm">
+              <RouterLink
+                :to="tourSettingsRoute(tour.id)"
+                class="btn btn-secondary btn-sm"
+                aria-label="Редактировать"
+                title="Редактировать"
+              >
                 <AdminIcon name="pencil-icon" />
-                Редактировать
+                <span class="btn-label">Редактировать</span>
               </RouterLink>
             </td>
           </tr>

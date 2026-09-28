@@ -40,6 +40,27 @@ npm run dev:public   # API + web + https://….trycloudflare.com
 
 Нужен `cloudflared` (`brew install cloudflared`).
 
+## Прод-база с локальной машины
+
+PostgreSQL на VPS слушает только `localhost`; доступ — через SSH-туннель (те же ключи, что у `deploy/deploy-from-local.sh`).
+
+```bash
+npm run db:prod:env      # один раз: .env.prod.local с URL на localhost:5433
+npm run db:prod:tunnel   # отдельный терминал, держать открытым
+npm run db:prod:studio   # Prisma Studio к прод-данным
+```
+
+Другой порт туннеля: `PROD_DB_LOCAL_PORT=5434 npm run db:prod:env` и снова `db:prod:tunnel`.
+
+Не запускайте на проде `db:migrate`, `db:seed` и `prisma migrate dev` — только просмотр/ручные правки через Studio или осознанные `prisma db execute`.
+
+Скопировать прод в локальный Docker для тестов:
+
+```bash
+npm run db:up              # если postgres ещё не запущен
+npm run db:prod:to-local   # pg_dump на VPS → restore в localhost:5432, копия в backups/
+```
+
 ## Учётки (seed)
 
 | Роль | Email | Пароль |

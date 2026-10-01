@@ -6,20 +6,27 @@ import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
 import Button from './Button.vue';
 import Input from './Input.vue';
-import Icon from './Icon.vue';
 import {
-  getDisplayUrl,
   getJoinUrl,
   getTeamSlotUrl,
 } from '../lib/teamSession';
 
-const props = defineProps<{
-  roomCode: string;
-  teamId: string;
-  teamName: string;
-  state: RoomState | null;
-  introText?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    roomCode: string;
+    teamId: string;
+    teamName: string;
+    state: RoomState | null;
+    introText?: string;
+    /** Для лобби: только блок участников. */
+    section?: 'teams' | 'all';
+  }>(),
+  { section: 'all' },
+);
+
+const showTeams = computed(() => props.section === 'teams' || props.section === 'all');
+const collapseOwnTeamLink = computed(() => props.section === 'teams');
+const showOwnTeamTransfer = ref(false);
 
 const emit = defineEmits<{
   'update:teamName': [name: string];
@@ -27,13 +34,11 @@ const emit = defineEmits<{
 }>();
 
 const connectionMessage = ref('');
-const showAddTeamLink = ref(false);
 const renamingTeam = ref(false);
 const renameDraft = ref('');
 const renameError = ref('');
 const renameLoading = ref(false);
 
-const displayUrl = computed(() => getDisplayUrl(props.roomCode));
 const joinUrl = computed(() => getJoinUrl(props.roomCode));
 const mySlotUrl = computed(() =>
   props.teamId ? getTeamSlotUrl(props.roomCode, props.teamId) : '',
@@ -45,15 +50,6 @@ const canAddTeam = computed(
 
 function onLinkCopied(label: string) {
   connectionMessage.value = `${label} скопирована`;
-}
-
-async function copyRoomCode() {
-  await navigator.clipboard.writeText(props.roomCode);
-  onLinkCopied('Код комнаты');
-}
-
-function addTeam() {
-  showAddTeamLink.value = true;
 }
 
 function startRenameTeam() {
@@ -95,11 +91,15 @@ function saveRenameTeam() {
   });
 }
 
+function revealOwnTeamTransfer() {
+  showOwnTeamTransfer.value = true;
+}
+
 function reset() {
   connectionMessage.value = '';
   renamingTeam.value = false;
   renameError.value = '';
-  showAddTeamLink.value = false;
+  showOwnTeamTransfer.value = false;
 }
 
 defineExpose({ reset });
@@ -109,36 +109,8 @@ defineExpose({ reset });
   <div>
     <p v-if="introText" class="connection-intro text-muted-sm">{{ introText }}</p>
 
-    <div class="link-block">
-      <strong class="link-block-title">
-        <Icon name="display" :size="18" />
-        Экран
-      </strong>
-      <p class="link-desc text-muted-sm">
-        TV, ноут, планшет — только показ. Можно открыть на нескольких устройствах.
-      </p>
-      <div v-if="roomCode" class="room-code-row">
-        <div class="room-code-value-wrap">
-          <span class="room-code-label text-muted-sm">Код комнаты: &nbsp;</span>
-          <span class="room-code-value">{{ roomCode }}</span>
-        </div>
-        <Button variant="secondary" icon="copy" @click="copyRoomCode" class="room-code-copy" compact />
-      </div>
-      <p v-if="roomCode" class="link-desc room-code-hint text-muted-sm">
-        Или введите код на экране через «Подключиться к игре» в шапке сайта.
-      </p>
-      <LinkCopyField :url="displayUrl" label="Ссылка экрана" @copied="onLinkCopied" />
-    </div>
-
-    <div v-if="state?.teamSlots?.length || mySlotUrl" class="link-block">
-      <strong class="link-block-title">
-        <Icon name="phone" :size="18" />
-        Команды
-      </strong>
-      <p class="link-desc text-muted-sm">
-        Джойстик команды. Любой телефон команды может подключиться —
-        предыдущее устройство отключится.
-      </p>
+    <div v-if="showTeams && (state?.teamSlots?.length || mySlotUrl)" class="link-block">
+      <strong class="connection-section-heading">Ваша команда</strong>
 
       <template v-if="state?.teamSlots?.length">
         <div v-for="slot in state.teamSlots" :key="slot.teamId" class="team-slot-row">
@@ -164,9 +136,18 @@ defineExpose({ reset });
           </template>
           <span v-else class="team-slot-name">{{ slot.name }}</span>
 
-          <LinkCopyField :url="getTeamSlotUrl(roomCode, slot.teamId)"
+          <template v-if="slot.teamId === teamId && collapseOwnTeamLink && !showOwnTeamTransfer">
+            <Button variant="secondary" block class="transfer-control-btn" @click="revealOwnTeamTransfer">
+              Передать управление
+            </Button>
+          </template>
+          <LinkCopyField
+            v-else-if="!(slot.teamId === teamId && collapseOwnTeamLink && !showOwnTeamTransfer)"
+            :url="getTeamSlotUrl(roomCode, slot.teamId)"
             :label="slot.teamId === teamId ? 'Ссылка слота' : `Ссылка «${slot.name}»`"
-            :highlight="slot.teamId === teamId" @copied="onLinkCopied" />
+            :highlight="slot.teamId === teamId"
+            @copied="onLinkCopied"
+          />
         </div>
       </template>
 
@@ -190,21 +171,34 @@ defineExpose({ reset });
           <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
         </div>
 
-        <LinkCopyField :url="mySlotUrl" label="Ссылка слота" highlight @copied="onLinkCopied" />
+        <Button
+          v-if="collapseOwnTeamLink && !showOwnTeamTransfer"
+          variant="secondary"
+          block
+          class="transfer-control-btn"
+          @click="revealOwnTeamTransfer"
+        >
+          Передать управление
+        </Button>
+        <LinkCopyField
+          v-else
+          :url="mySlotUrl"
+          label="Ссылка слота"
+          highlight
+          @copied="onLinkCopied"
+        />
       </div>
 
-      <Button v-if="canAddTeam && !showAddTeamLink" variant="secondary" block class="add-team-btn" @click="addTeam">
-        Добавить команду
-      </Button>
-      <p v-else-if="!canAddTeam" class="teams-limit-notice">
-        Достигнут лимит — в комнате максимум {{ MAX_ROOM_TEAMS }} команды.
-      </p>
-      <div v-else class="add-team-link">
+      <div v-if="canAddTeam" class="add-team-section">
+        <strong class="connection-section-heading">Добавить соперника</strong>
         <p class="link-desc text-muted-sm">
-          Чтобы добавить команду, откройте ссылку на другом устройстве или отсканируйте QR-код.
+          Чтобы добавить соперника, откройте ссылку на другом устройстве или отсканируйте QR-код (сканнер доступен в шапке).
         </p>
         <LinkCopyField :url="joinUrl" label="Ссылка для новой команды" @copied="onLinkCopied" />
       </div>
+      <p v-else class="teams-limit-notice">
+        Достигнут лимит — в комнате максимум {{ MAX_ROOM_TEAMS }} команды.
+      </p>
     </div>
 
     <p v-if="connectionMessage" class="connection-copy-message">
@@ -220,13 +214,6 @@ defineExpose({ reset });
 
 .link-block:last-child {
   margin-bottom: 0;
-}
-
-.link-block-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
 }
 
 .link-desc {
@@ -246,45 +233,6 @@ defineExpose({ reset });
   font-size: 14px;
   font-weight: bold;
   margin-bottom: 5.6px;
-}
-
-.room-code-row {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.room-code-row::after {
-  content: '';
-  display: table;
-  clear: both;
-}
-
-.room-code-row>div:first-child {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.room-code-copy {
-  margin-left: 12px;
-}
-
-.room-code-label {
-  display: inline-block;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.room-code-value {
-  font-size: 26px;
-  font-weight: bold;
-  letter-spacing: 0.2em;
-  font-variant-numeric: tabular-nums;
-  color: #1a1a2e;
-}
-
-.room-code-hint {
-  margin-top: 0;
-  margin-bottom: 12px;
 }
 
 .connection-intro {
@@ -354,15 +302,23 @@ defineExpose({ reset });
   font-weight: normal;
 }
 
-.add-team-btn {
+.add-team-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.connection-section-heading {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.transfer-control-btn {
   margin-top: 12px;
 }
 
 .teams-limit-notice {
-  margin-top: 12px;
-}
-
-.add-team-link {
   margin-top: 12px;
 }
 </style>

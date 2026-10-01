@@ -25,6 +25,10 @@ let cleanup: (() => void) | undefined;
 
 const roomCreated = computed(() => Boolean(roomCode.value));
 
+type SetupStep = 'teams' | 'display';
+const setupStep = ref<SetupStep>('teams');
+const roomCodeCopyMessage = ref('');
+
 onMounted(async () => {
   teamName.value = getPreferredTeamName();
   if (teamName.value.trim()) {
@@ -53,6 +57,7 @@ function beginSetup(
   seriesTitle.value = title;
   teamName.value = name;
   joined.value = false;
+  setupStep.value = 'teams';
 
   connectSocket();
   cleanup = onRoomState((state) => {
@@ -110,6 +115,12 @@ async function createRoom() {
 function startGame() {
   router.push(getTeamSlotPath(roomCode.value, hostTeamId.value));
 }
+
+async function copyRoomCode() {
+  if (!roomCode.value) return;
+  await navigator.clipboard.writeText(roomCode.value);
+  roomCodeCopyMessage.value = 'Код комнаты скопирован';
+}
 </script>
 
 <template>
@@ -138,30 +149,75 @@ function startGame() {
       </template>
 
       <template v-else>
-        <p class="hint setup-hint">
-          Пригласите другие команды и откройте экран — когда все будут готовы, начните игру.
+        <p class="setup-step-label">
+          Шаг {{ setupStep === 'teams' ? '1' : '2' }} из 2 —
+          {{ setupStep === 'teams' ? 'Участники' : 'Экран' }}
         </p>
+        <p v-if="setupStep === 'teams'" class="hint setup-hint">
+          Пригласите соперников и раздайте ссылки на джойстики команд.
+        </p>
+        <div v-else class="setup-instruction">
+          <p class="setup-instruction-title">Как подключить экран</p>
+          <ol class="setup-instruction-list">
+            <li>На TV, ноуте или планшете откройте сайт ingame.by</li>
+            <li>Нажмите кнопку «Смотреть» в шапке и введите код комнаты.</li>
+          </ol>
+          <div v-if="roomCode" class="setup-room-code-block">
+            <span class="setup-room-code-label">Код комнаты:</span>
+            <span class="setup-room-code-value">{{ roomCode }}</span>
+            <Button
+              variant="secondary"
+              icon="copy"
+              class="setup-room-code-copy"
+              compact
+              aria-label="Скопировать код комнаты"
+              @click="copyRoomCode"
+            />
+            <p v-if="roomCodeCopyMessage" class="room-code-copy-message">{{ roomCodeCopyMessage }}</p>
+          </div>
+        </div>
         <p v-if="error" class="error">{{ error }}</p>
 
         <GameConnectionPanel
-          v-if="joined"
+          v-if="joined && setupStep === 'teams'"
           :room-code="roomCode"
           :team-id="hostTeamId"
           v-model:team-name="teamName"
           :state="roomState"
-          intro-text="Ссылки активны до конца игры"
+          section="teams"
           @team-renamed="onTeamRenamed"
         />
-        <p v-else class="hint">Подключение к комнате…</p>
+        <div v-else-if="!joined && roomCode && setupStep === 'teams'" class="room-code-row">
+          <span class="room-code-label">Код комнаты:</span>
+          <span class="room-code-value">{{ roomCode }}</span>
+          <Button
+            variant="secondary"
+            icon="copy"
+            class="room-code-copy"
+            compact
+            aria-label="Скопировать код комнаты"
+            @click="copyRoomCode"
+          />
+          <p v-if="roomCodeCopyMessage" class="room-code-copy-message">{{ roomCodeCopyMessage }}</p>
+        </div>
 
         <Button
+          v-if="setupStep === 'teams'"
           block
-          class="start-game-btn"
+          class="setup-next-btn"
           :disabled="!joined"
-          @click="startGame"
+          @click="setupStep = 'display'"
         >
-          Начать игру
+          Далее
         </Button>
+        <template v-else>
+          <Button variant="secondary" block class="setup-back-btn" @click="setupStep = 'teams'">
+            Назад
+          </Button>
+          <Button block class="start-game-btn" :disabled="!joined" @click="startGame">
+            Начать игру
+          </Button>
+        </template>
       </template>
     </div>
   </div>
@@ -178,8 +234,107 @@ function startGame() {
   margin-bottom: 12px;
 }
 
+.setup-step-label {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #4f46e5;
+}
+
 .setup-hint {
   margin-top: 0;
+}
+
+.setup-instruction {
+  margin: 0 0 12px;
+}
+
+.setup-instruction-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.setup-instruction-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.setup-instruction-list li + li {
+  margin-top: 6px;
+}
+
+.setup-room-code-block {
+  margin-top: 16px;
+  font-size: 0;
+}
+
+.setup-room-code-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #374151;
+}
+
+.setup-room-code-value {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.setup-room-code-copy {
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.room-code-row {
+  margin: 0 0 12px;
+  font-size: 0;
+}
+
+.room-code-label {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 14px;
+  font-weight: bold;
+  color: #374151;
+  margin-right: 8px;
+}
+
+.room-code-value {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.room-code-copy {
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.room-code-copy-message {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #059669;
+  font-weight: bold;
+}
+
+.setup-next-btn,
+.setup-back-btn {
+  margin-top: 12px;
 }
 
 .error {
@@ -188,6 +343,6 @@ function startGame() {
 }
 
 .start-game-btn {
-  margin-top: 20px;
+  margin-top: 12px;
 }
 </style>

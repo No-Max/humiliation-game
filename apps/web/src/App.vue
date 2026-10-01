@@ -3,9 +3,11 @@ import { computed, ref } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import Button from "./components/Button.vue";
 import ConnectToGameModal from "./components/ConnectToGameModal.vue";
+import RoomCodeQrScannerModal from "./components/RoomCodeQrScannerModal.vue";
 import UnfinishedGamesBanner from "./components/UnfinishedGamesBanner.vue";
 
 const showConnectModal = ref(false);
+const showQrScanner = ref(false);
 const route = useRoute();
 const isDisplayLayout = computed(() => route.path.startsWith("/display/"));
 const isGameLayout = computed(
@@ -24,7 +26,17 @@ const isGameLayout = computed(
         <RouterLink to="/">Главная</RouterLink>
         <RouterLink to="/rules">Правила</RouterLink>
         <RouterLink to="/series">Выпуски</RouterLink>
-        <Button @click="showConnectModal = true"> Подключиться к игре </Button>
+        <div class="header-buttons">
+          <Button
+            variant="secondary"
+            icon="scan"
+            aria-label="Сканировать QR-код"
+            @click="showQrScanner = true"
+          >
+            QR
+          </Button>
+          <Button icon="tv" @click="showConnectModal = true"> Смотреть </Button>
+        </div>
       </nav>
     </header>
     <main class="main" :class="{ 'main--display': isDisplayLayout, 'main--game': isGameLayout }">
@@ -35,6 +47,7 @@ const isGameLayout = computed(
       <p>© {{ new Date().getFullYear() }} Игра на унижение</p>
     </footer>
     <ConnectToGameModal :open="showConnectModal" @close="showConnectModal = false" />
+    <RoomCodeQrScannerModal :open="showQrScanner" @close="showQrScanner = false" />
   </div>
 </template>
 
@@ -123,6 +136,13 @@ const isGameLayout = computed(
   padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
   color: #6b7280;
   font-size: 14px;
+}
+
+.header-buttons {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: right;
+  float: right;
 }
 
 @media (max-width: 768px) {

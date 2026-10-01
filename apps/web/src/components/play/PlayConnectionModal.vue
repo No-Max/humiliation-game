@@ -29,7 +29,6 @@ defineEmits<{
       :team-id="teamId"
       v-model:team-name="teamName"
       :state="state"
-      intro-text="Ссылки активны до конца игры"
       @team-renamed="$emit('teamRenamed', $event)"
     />
   </ModalShell>

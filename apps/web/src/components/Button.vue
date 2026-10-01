@@ -167,15 +167,23 @@ const iconHref = computed(() => {
 }
 
 .btn--text.btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 12px 20px;
+  line-height: 1;
 }
 
 .btn--text.btn--icon .btn__text {
-  padding-left: 8px;
+  padding-left: 0;
+  line-height: 1;
 }
 
 .btn--text.btn--icon .btn__icon {
-  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .btn--icon {

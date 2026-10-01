@@ -1,10 +1,6 @@
 import { getGameSession, removeGameSession, saveGameSession } from './gameStorage';
 import { setPreferredTeamName } from './teamPreferences';
 
-export function getDisplayUrl(roomCode: string): string {
-  return `${window.location.origin}/display/${roomCode}`;
-}
-
 export function getJoinUrl(roomCode: string): string {
   return `${window.location.origin}/join/${roomCode}`;
 }

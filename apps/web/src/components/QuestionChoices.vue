@@ -120,15 +120,7 @@ const emit = defineEmits<{
 .choice-image {
   height: 100%;
   flex-shrink: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translateY(-50%) translateX(-50%);
   border-radius: 6px;
-}
-
-.question-choices-large .choice-image {
-  width: 64px;
 }
 
 .choice-content-inner {
@@ -137,10 +129,9 @@ const emit = defineEmits<{
 
 .choice-image-container {
   display: inline-block;
-  width: 120px;
-  height: 150px;
   overflow: hidden;
   position: relative;
+  height: 150px;
   border-radius: 6px;
   margin-left: 36px;
   margin-top: 4px;
@@ -155,10 +146,7 @@ const emit = defineEmits<{
 @media screen and (max-width: 768px) {
   .question-choice {
     max-width: 100%;
-  }
-
-  .choice-image-container {
-    margin-left: 0;
+    width: 100%;
   }
 }
 </style>

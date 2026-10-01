@@ -58,7 +58,7 @@ function saveAdjustResult(scoringTeamId: string | null) {
     <div class="answer-result-actions">
       <Button
         v-if="showNextQuestion !== false"
-        class="answer-result-btn"
+        class="answer-result-btn answer-result-btn-next"
         @click="emit('nextQuestion')"
       >
         Следующий вопрос
@@ -66,10 +66,10 @@ function saveAdjustResult(scoringTeamId: string | null) {
       <Button
         class="answer-result-btn"
         variant="secondary"
+        icon="pencil"
+        aria-label="Изменить результат"
         @click="openAdjustModal"
-      >
-        Изменить
-      </Button>
+      />
     </div>
 
     <PlayAdjustResultModal
@@ -121,5 +121,9 @@ function saveAdjustResult(scoringTeamId: string | null) {
 
 .answer-result-actions > :deep(*:last-child) {
   margin-right: 0;
+}
+
+.answer-result-btn-next {
+  width: calc(100% - 53px);
 }
 </style>

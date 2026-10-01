@@ -36,7 +36,7 @@ defineProps<{
 
 .media-image-container {
   display: inline-block;
-  height: 250px;
+  height: 300px;
   margin: 16px 8px 0 8px;
   vertical-align: top;
   border-radius: 8px;

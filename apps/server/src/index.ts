@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { createServer } from 'http';
+import { resolveUploadDir } from './lib/paths.js';
 import { Server } from 'socket.io';
 import type { ClientToServerEvents, ServerToClientEvents } from '@humiliation-game/shared';
 import { publicRouter } from './routes/public.js';
@@ -13,7 +14,7 @@ import { adminMediaRouter } from './routes/admin/media.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
 const PORT = Number(process.env.PORT ?? 3200);
-const uploadDir = process.env.UPLOAD_DIR ?? 'uploads';
+const uploadDir = resolveUploadDir();
 const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:3210,http://localhost:3220')
   .split(',')
   .map((s) => s.trim());

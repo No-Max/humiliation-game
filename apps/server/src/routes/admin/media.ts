@@ -3,9 +3,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { prisma } from '../../lib/prisma.js';
+import { resolveUploadDir } from '../../lib/paths.js';
 import { requireAdmin } from '../../middleware/auth.js';
 
-const uploadDir = process.env.UPLOAD_DIR ?? 'uploads';
+const uploadDir = resolveUploadDir();
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const MAX_UPLOAD_SIZE = Number(process.env.MAX_UPLOAD_SIZE ?? 10485760);

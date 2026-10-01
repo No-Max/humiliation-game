@@ -23,7 +23,8 @@
     "db:prod:tunnel": "bash scripts/db-prod-tunnel.sh",
     "db:prod:studio": "bash scripts/with-prod-db.sh npx prisma studio",
     "db:prod:pull": "bash scripts/with-prod-db.sh npx prisma db pull",
-    "db:prod:to-local": "bash scripts/db-prod-to-local.sh"
+    "db:prod:to-local": "bash scripts/db-prod-to-local.sh",
+    "db:prod:uploads": "bash scripts/sync-prod-uploads.sh"
   },
   "overrides": {
     "typescript": "6.0.3",

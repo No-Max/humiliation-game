@@ -42,6 +42,10 @@ defineEmits<{
 </template>
 
 <style scoped>
+.pause-banner {
+  margin-top: 16px;
+}
+
 .card{
   margin-top: 16px;
 }

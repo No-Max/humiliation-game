@@ -58,8 +58,11 @@ npm run db:prod:studio   # Prisma Studio к прод-данным
 
 ```bash
 npm run db:up              # если postgres ещё не запущен
-npm run db:prod:to-local   # pg_dump на VPS → restore в localhost:5432, копия в backups/
+npm run db:prod:to-local   # pg_dump на VPS → restore в localhost:5432 + rsync uploads/
+npm run db:prod:uploads    # только картинки с VPS → apps/server/uploads/
 ```
+
+Без файлов в `apps/server/uploads` картинки из прод-базы локально не откроются (в БД только пути `/uploads/...`).
 
 ## Учётки (seed)
 

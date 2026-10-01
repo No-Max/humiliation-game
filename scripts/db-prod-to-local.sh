@@ -43,5 +43,10 @@ sed -e '/^SET transaction_timeout/d' \
   -e '/^\\unrestrict /d' \
   "$DUMP_FILE" | docker compose exec -T postgres psql -U "$LOCAL_USER" -d "$LOCAL_DB" -v ON_ERROR_STOP=1
 
+if [[ "${SYNC_UPLOADS:-1}" != "0" ]]; then
+  echo "==> Media files (uploads)"
+  SYNC_UPLOADS=1 "$ROOT/scripts/sync-prod-uploads.sh"
+fi
+
 echo "==> Done. apps/server/.env should use:"
 echo "DATABASE_URL=\"postgresql://${LOCAL_USER}:${LOCAL_PASS}@${LOCAL_HOST}:${LOCAL_PORT}/${LOCAL_DB}\""

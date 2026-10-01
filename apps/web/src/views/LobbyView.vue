@@ -8,6 +8,7 @@ import { getPreferredTeamName } from '../lib/teamPreferences';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
+import DisplayConnectionHelp from '../components/DisplayConnectionHelp.vue';
 import GameConnectionPanel from '../components/GameConnectionPanel.vue';
 
 const route = useRoute();
@@ -156,26 +157,7 @@ async function copyRoomCode() {
         <p v-if="setupStep === 'teams'" class="hint setup-hint">
           Пригласите соперников и раздайте ссылки на джойстики команд.
         </p>
-        <div v-else class="setup-instruction">
-          <p class="setup-instruction-title">Как подключить экран</p>
-          <ol class="setup-instruction-list">
-            <li>На TV, ноуте или планшете откройте сайт ingame.by</li>
-            <li>Нажмите кнопку «Смотреть» в шапке и введите код комнаты.</li>
-          </ol>
-          <div v-if="roomCode" class="setup-room-code-block">
-            <span class="setup-room-code-label">Код комнаты:</span>
-            <span class="setup-room-code-value">{{ roomCode }}</span>
-            <Button
-              variant="secondary"
-              icon="copy"
-              class="setup-room-code-copy"
-              compact
-              aria-label="Скопировать код комнаты"
-              @click="copyRoomCode"
-            />
-            <p v-if="roomCodeCopyMessage" class="room-code-copy-message">{{ roomCodeCopyMessage }}</p>
-          </div>
-        </div>
+        <DisplayConnectionHelp v-else :room-code="roomCode" />
         <p v-if="error" class="error">{{ error }}</p>
 
         <GameConnectionPanel
@@ -243,57 +225,6 @@ async function copyRoomCode() {
 
 .setup-hint {
   margin-top: 0;
-}
-
-.setup-instruction {
-  margin: 0 0 12px;
-}
-
-.setup-instruction-title {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.setup-instruction-list {
-  margin: 0;
-  padding-left: 20px;
-  color: #6b7280;
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.setup-instruction-list li + li {
-  margin-top: 6px;
-}
-
-.setup-room-code-block {
-  margin-top: 16px;
-  font-size: 0;
-}
-
-.setup-room-code-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 15px;
-  font-weight: bold;
-  color: #374151;
-}
-
-.setup-room-code-value {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 32px;
-  font-weight: bold;
-  letter-spacing: 0.2em;
-  font-variant-numeric: tabular-nums;
-  color: #1a1a2e;
-}
-
-.setup-room-code-copy {
-  margin-left: 12px;
-  vertical-align: middle;
 }
 
 .room-code-row {

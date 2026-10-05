@@ -135,14 +135,14 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   margin-bottom: 0.75rem;
   padding: 0.75rem;
   border: 1px dashed #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   outline: none;
 }
 
 .question-audio--drag-over {
-  border-color: #4f46e5;
-  background: #f5f3ff;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
 }
 
 .media-hint {
@@ -157,7 +157,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   padding: 0.5rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   max-width: 420px;
 }
 

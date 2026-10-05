@@ -110,7 +110,7 @@ function selectAll(event: FocusEvent) {
   width: 240px;
   height: 240px;
   margin: 0 auto;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .qr-loading {

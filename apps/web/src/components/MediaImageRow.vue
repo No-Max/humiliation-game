@@ -39,14 +39,14 @@ defineProps<{
   height: 300px;
   margin: 16px 8px 0 8px;
   vertical-align: top;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid #e5e7eb;
   background: #f3f4f6;
 }
 
 .media-image {
   height: 100%;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 @media (max-width: 768px) {

@@ -82,7 +82,7 @@ function teamPoints(result: GameQuestionResult, teamId: string): string {
   margin-top: 16px;
   overflow-x: auto;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -113,19 +113,19 @@ function teamPoints(result: GameQuestionResult, teamId: string): string {
 }
 
 .game-results-table thead tr:first-child th:first-child {
-  border-top-left-radius: 8px;
+  border-top-left-radius: 0;
 }
 
 .game-results-table thead tr:first-child th:last-child {
-  border-top-right-radius: 8px;
+  border-top-right-radius: 0;
 }
 
 .game-results-table tbody tr.game-results-last-row td:first-child {
-  border-bottom-left-radius: 8px;
+  border-bottom-left-radius: 0;
 }
 
 .game-results-table tbody tr.game-results-last-row td:last-child {
-  border-bottom-right-radius: 8px;
+  border-bottom-right-radius: 0;
 }
 
 .game-results-table th {
@@ -134,8 +134,8 @@ function teamPoints(result: GameQuestionResult, teamId: string): string {
 }
 
 .game-results-tour-row td {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--color-accent-muted);
+  color: var(--color-accent-emphasis);
   font-weight: 600;
 }
 

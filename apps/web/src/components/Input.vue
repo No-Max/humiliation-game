@@ -98,10 +98,10 @@ const passthroughAttrs = computed(() => {
 
 .input--copy:focus {
   border-color: #a5b4fc;
-  box-shadow: 0 0 0 2px rgb(79 70 229 / 15%);
+  box-shadow: 0 0 0 2px var(--color-accent-ring);
 }
 
 .input--copy.input--highlight {
-  color: #4f46e5;
+  color: var(--color-accent);
 }
 </style>

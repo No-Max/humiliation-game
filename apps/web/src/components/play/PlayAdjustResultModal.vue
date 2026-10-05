@@ -102,13 +102,13 @@ function save() {
   gap: 10px;
   padding: 10px 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
 }
 
 .adjust-result-option:has(input:checked) {
-  border-color: #4f46e5;
-  background: #eef2ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
 
 .adjust-result-option input {

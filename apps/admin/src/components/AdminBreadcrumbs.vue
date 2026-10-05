@@ -49,13 +49,13 @@ defineProps<{
 }
 
 .breadcrumbs-link {
-  color: #4f46e5;
+  color: var(--color-accent);
   text-decoration: none;
   font-weight: 500;
 }
 
 .breadcrumbs-link:hover {
-  color: #4338ca;
+  color: var(--color-accent-hover);
 }
 
 .breadcrumbs-current {

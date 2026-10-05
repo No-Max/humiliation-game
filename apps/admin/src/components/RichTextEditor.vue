@@ -120,7 +120,7 @@ function isActive(name: string, attrs?: Record<string, unknown>) {
 <style scoped>
 .rich-text-editor {
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: 0;
   margin-bottom: 0.75rem;
   background: #fff;
 }
@@ -132,7 +132,7 @@ function isActive(name: string, attrs?: Record<string, unknown>) {
   padding: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
-  border-radius: 6px 6px 0 0;
+  border-radius: 0;
 }
 
 .rich-text-editor__btn {
@@ -140,7 +140,7 @@ function isActive(name: string, attrs?: Record<string, unknown>) {
   height: 2rem;
   padding: 0 0.5rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border-radius: 0;
   background: #fff;
   color: #374151;
   font: inherit;

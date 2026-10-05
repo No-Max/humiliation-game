@@ -290,7 +290,7 @@ function formatTime(sec: number) {
 
 .question-item--clickable {
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 0;
   margin: 0 -0.5rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -301,7 +301,7 @@ function formatTime(sec: number) {
 }
 
 .question-item--clickable:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 

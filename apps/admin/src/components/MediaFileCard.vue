@@ -178,7 +178,7 @@ async function copyUrl() {
   height: 100%;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
 }
@@ -188,12 +188,12 @@ async function copyUrl() {
 }
 
 .media-card-selectable:hover {
-  border-color: #4f46e5;
+  border-color: var(--color-accent);
 }
 
 .media-card-selected {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-ring-strong);
 }
 
 .media-card-check {
@@ -209,10 +209,10 @@ async function copyUrl() {
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgb(255 255 255 / 92%);
-  border: 2px solid #4f46e5;
-  color: #4f46e5;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
   font-size: 0.875rem;
   font-weight: 700;
 }

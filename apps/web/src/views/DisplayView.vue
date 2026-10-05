@@ -226,7 +226,7 @@ onUnmounted(() => cleanup?.());
   background: #fef3c7;
   color: #92400e;
   padding: 32px 48px;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .pause-overlay-label {

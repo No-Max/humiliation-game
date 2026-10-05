@@ -29,7 +29,7 @@ defineEmits<{
 .offline-notice {
   background: #fef3c7;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 0;
   margin: 16px 0 0;
 }
 </style>

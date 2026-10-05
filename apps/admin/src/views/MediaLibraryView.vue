@@ -271,13 +271,13 @@ function goNextPage() {
   padding: 0.75rem;
   margin: 0 -0.75rem;
   border: 2px dashed transparent;
-  border-radius: 12px;
+  border-radius: 0;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .media-drop-area--drag-over {
-  border-color: #4f46e5;
-  background: #f5f3ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
 
 .media-toolbar {
@@ -296,9 +296,9 @@ function goNextPage() {
 }
 
 .filter-active {
-  background: #eef2ff;
-  border-color: #4f46e5;
-  color: #4338ca;
+  background: var(--color-accent-muted);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
 }
 
 .media-grid {

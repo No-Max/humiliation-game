@@ -141,7 +141,7 @@ onUnmounted(() => {
 .qr-scanner-viewport {
   position: relative;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 0;
   background: #111827;
   min-height: 280px;
 }
@@ -151,7 +151,7 @@ onUnmounted(() => {
 }
 
 .qr-scanner-mount :deep(video) {
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .qr-scanner-status {

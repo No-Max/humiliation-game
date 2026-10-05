@@ -51,7 +51,7 @@ const caption = computed(() => {
 .hint {
   background: #fef3c7;
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 0;
   margin: 8px 0 0;
 }
 

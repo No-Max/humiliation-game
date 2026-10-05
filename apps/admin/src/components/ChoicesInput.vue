@@ -127,7 +127,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   gap: 0.75rem;
   padding: 0.75rem;
   background: #f3f4f6;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .choices-item-main {

@@ -183,7 +183,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: #fef3c7;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 0.9375rem;
 }
 
@@ -194,7 +194,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   width: 1.5rem;
   height: 1.5rem;
   margin-top: 0.35rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: #fde68a;
   color: #92400e;
   font-size: 0.75rem;

@@ -46,7 +46,7 @@ defineEmits<{ close: [] }>();
   text-align: left;
   font-size: 16px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0;
   width: 100%;
   max-width: 480px;
   max-height: 90vh;

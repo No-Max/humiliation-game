@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import Button from '../components/Button.vue';
+import heroUrl from '../assets/hero.svg';
 </script>
 
 <template>
   <div>
-    <h1 class="page-title">Добро пожаловать!</h1>
-    <div class="card intro-card">
-      <p class="intro-text">
-        Собирайтесь с друзьями, запускайте нашу игру, улыбайтесь и получайте удовольствие от ваших знаний.
-      </p>
-      <Button class="intro-btn" to="/series">Выбрать выпуск</Button>
-    </div>
-
+    <img
+      :src="heroUrl"
+      alt="Игра на унижение — квиз для друзей, позоримся вместе"
+      class="home-hero"
+      width="1516"
+      height="872"
+    />
     <div class="card steps-card">
       <h2 class="section-heading">Как начать играть</h2>
       <div class="steps">
@@ -38,10 +38,29 @@ import Button from '../components/Button.vue';
         </div>
       </div>
     </div>
+
+    <div class="card intro-card">
+      <p class="intro-text">
+        Игра на унижение — это очень простая интелектуальная игра не требующая глубоких знаний. Игра состоит из нескольких туров наполненных забавными вопросами и заданиями.
+      </p>
+      <p class="intro-text">
+        Собирайтесь с друзьями, выбирайте выпуск, смейтесь и получайте удовольствие от игры и от ваших знаний.
+      </p>
+      <p class="intro-text">Удачи!</p>
+      <Button class="intro-btn" to="/series">Выбрать выпуск</Button>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.home-hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+
 .intro-card {
   margin-top: 16px;
 }
@@ -73,8 +92,8 @@ import Button from '../components/Button.vue';
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #4f46e5;
-  color: #fff;
+  background: #fec31b;
+  color: #1a1a2e;
   text-align: center;
   line-height: 32px;
   font-weight: bold;
@@ -85,5 +104,13 @@ import Button from '../components/Button.vue';
   vertical-align: top;
   width: calc(100% - 48px);
   margin-left: 16px;
+}
+
+.intro-text {
+  margin-bottom: 8px;
+}
+
+.intro-text:last-child {
+  margin-bottom: 0;
 }
 </style>

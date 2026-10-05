@@ -150,7 +150,7 @@ function onDraftKeydown(event: KeyboardEvent) {
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   background: #f3f4f6;
-  border-radius: 6px;
+  border-radius: 0;
 }
 
 .variants-item-main {

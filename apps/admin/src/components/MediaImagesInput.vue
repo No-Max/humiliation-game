@@ -183,7 +183,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   margin-bottom: 0.75rem;
   padding: 0.75rem;
   border: 1px dashed #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   outline: none;
   cursor: pointer;
 }
@@ -191,13 +191,13 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
 .media-input:focus,
 .media-input:focus-within,
 .media-input--drag-over {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
   cursor: default;
 }
 
 .media-input--drag-over {
-  background: #f5f3ff;
+  background: var(--color-accent-muted);
 }
 
 .media-hint {
@@ -218,7 +218,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   width: 140px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 

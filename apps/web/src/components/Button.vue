@@ -113,8 +113,8 @@ const iconHref = computed(() => {
   text-align: center;
   padding: 12px 20px;
   border: none;
-  border-radius: 8px;
-  background: #4f46e5;
+  border-radius: 0;
+  background: var(--color-accent);
   color: #fff;
   font-size: 16px;
   font-family: inherit;
@@ -125,6 +125,12 @@ const iconHref = computed(() => {
   height: 44px;
   line-height: 0;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+
+.btn--close,
+.btn--ghost {
+  box-shadow: none;
 }
 
 .btn:disabled {
@@ -135,6 +141,7 @@ const iconHref = computed(() => {
 .btn--secondary {
   background: #e5e7eb;
   color: #1a1a2e;
+  box-shadow: none;
 }
 
 .btn--close {
@@ -163,7 +170,7 @@ const iconHref = computed(() => {
 
 .btn--ghost:not(:disabled):hover {
   background: #f3f4f6;
-  color: #4f46e5;
+  color: var(--color-accent);
 }
 
 .btn--text.btn--icon {
@@ -212,7 +219,7 @@ const iconHref = computed(() => {
   display: block;
   text-align: left;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 0;
   font-size: 16px;
   line-height: 1.35;
   border: 2px solid #e5e7eb;
@@ -224,13 +231,13 @@ const iconHref = computed(() => {
 }
 
 .btn--choice:not(:disabled):hover {
-  border-color: #c7d2fe;
-  background: #eef2ff;
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-muted);
 }
 
 .btn--choice.btn--selected {
-  border-color: #4f46e5;
-  background: #eef2ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
 
 .btn--choice.btn--large {
@@ -246,6 +253,6 @@ const iconHref = computed(() => {
 }
 
 .btn--compact .btn__text {
-  line-height: 18px;
+  line-height: 20px;
 }
 </style>

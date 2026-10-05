@@ -68,7 +68,7 @@ onUnmounted(() => {
   height: 20px;
   font-weight: bold;
   font-variant-numeric: tabular-nums;
-  color: #4f46e5;
+  color: var(--color-accent);
   margin: 0;
 }
 

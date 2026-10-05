@@ -312,13 +312,13 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   padding: 0.25rem;
   margin: -0.25rem;
   border: 2px dashed transparent;
-  border-radius: 10px;
+  border-radius: 0;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .picker-drop-area--drag-over {
-  border-color: #4f46e5;
-  background: #f5f3ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
 
 .picker-grid {

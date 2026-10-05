@@ -166,7 +166,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
 .choice-image-input {
   padding: 0.75rem;
   border: 1px dashed #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   outline: none;
   cursor: pointer;
 }
@@ -174,13 +174,13 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
 .choice-image-input:focus,
 .choice-image-input:focus-within,
 .choice-image-input--drag-over {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
   cursor: default;
 }
 
 .choice-image-input--drag-over {
-  background: #f5f3ff;
+  background: var(--color-accent-muted);
 }
 
 .choice-image-hint {
@@ -193,7 +193,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   height: 100px;
   margin-bottom: 0.75rem;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
 }

@@ -73,7 +73,7 @@ const emit = defineEmits<{
   display: block;
   text-align: left;
   padding: 16px 8px 0 8px;
-  border-radius: 10px;
+  border-radius: 0;
   font-size: 16px;
   line-height: 1.35;
   box-sizing: border-box;
@@ -95,7 +95,7 @@ const emit = defineEmits<{
   vertical-align: middle;
   text-align: center;
   line-height: 28px;
-  border-radius: 999px;
+  border-radius: 0;
   background: #e5e7eb;
   font-weight: bold;
   font-size: 14px;
@@ -103,7 +103,7 @@ const emit = defineEmits<{
 }
 
 .btn--selected .choice-label {
-  background: #4f46e5;
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -120,7 +120,7 @@ const emit = defineEmits<{
 .choice-image {
   height: 100%;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 0;
 }
 
 .choice-content-inner {
@@ -132,7 +132,7 @@ const emit = defineEmits<{
   overflow: hidden;
   position: relative;
   height: 150px;
-  border-radius: 6px;
+  border-radius: 0;
   margin-left: 36px;
   margin-top: 4px;
 }

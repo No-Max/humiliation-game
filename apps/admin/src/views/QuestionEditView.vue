@@ -642,7 +642,7 @@ async function remove() {
 
 .answer-type-radio {
   margin: 0;
-  accent-color: #4f46e5;
+  accent-color: var(--color-accent);
 }
 
 @media (max-width: 720px) {

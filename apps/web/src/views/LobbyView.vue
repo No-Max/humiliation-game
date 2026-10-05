@@ -220,7 +220,7 @@ async function copyRoomCode() {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: bold;
-  color: #4f46e5;
+  color: var(--color-accent);
 }
 
 .setup-hint {

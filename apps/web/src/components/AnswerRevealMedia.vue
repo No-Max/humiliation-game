@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
 .answer-video {
   max-height: 360px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 0;
   background: #111827;
 }
 

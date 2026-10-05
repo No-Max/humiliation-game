@@ -602,7 +602,7 @@ const breadcrumbs = computed(() => {
 }
 
 .tour-row-clickable:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
@@ -630,7 +630,7 @@ const breadcrumbs = computed(() => {
   width: 100%;
   text-align: left;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
   background: #fff;
   padding: 0.75rem 1rem;
   cursor: pointer;
@@ -639,8 +639,8 @@ const breadcrumbs = computed(() => {
 }
 
 .pick-item:hover:not(:disabled) {
-  border-color: #4f46e5;
-  background: #f5f3ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-muted);
 }
 
 .pick-item:disabled {

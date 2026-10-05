@@ -6,11 +6,13 @@ import LobbyView from '../views/LobbyView.vue';
 import JoinView from '../views/JoinView.vue';
 import DisplayView from '../views/DisplayView.vue';
 import PlayView from '../views/PlayView.vue';
+import GamesView from '../views/GamesView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: HomeView },
+    { path: '/games', component: GamesView },
     { path: '/rules', component: RulesView },
     { path: '/series', component: SeriesView },
     { path: '/lobby/:seriesId', component: LobbyView },

@@ -284,7 +284,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   margin-bottom: 0.75rem;
   padding: 0.75rem;
   border: 1px dashed #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   outline: none;
   cursor: pointer;
 }
@@ -292,13 +292,13 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
 .answer-media-field:focus,
 .answer-media-field:focus-within,
 .answer-media-field--drag-over {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
   cursor: default;
 }
 
 .answer-media-field--drag-over {
-  background: #f5f3ff;
+  background: var(--color-accent-muted);
 }
 
 .media-hint {
@@ -329,7 +329,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   padding: 0.5rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .media-item--image {
@@ -361,7 +361,7 @@ const { dragOver, onDragEnter, onDragLeave, onDragOver, onDrop } = useMediaDropZ
   width: min(100%, 240px);
   height: 72px;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: 0;
   background: #111827;
   flex-shrink: 0;
 }

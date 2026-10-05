@@ -78,11 +78,11 @@ const emit = defineEmits<{
   padding: 8px;
   outline: 2px solid #ccc;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .active .team-score-card  {
-  outline: 3px solid #4f46e5;
+  outline: 3px solid var(--color-accent);
 }
 
 .team-score-name-row {

@@ -295,7 +295,7 @@ defineExpose({ reset });
 .team-name {
   font-size: 15px;
   font-weight: bold;
-  color: #4f46e5;
+  color: var(--color-accent);
 }
 
 .team-you {

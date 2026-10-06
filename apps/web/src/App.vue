@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import Button from "./components/Button.vue";
 import ConnectToGameModal from "./components/ConnectToGameModal.vue";
 import RoomCodeQrScannerModal from "./components/RoomCodeQrScannerModal.vue";
 import UnfinishedGamesPrompt from "./components/UnfinishedGamesPrompt.vue";
 import { useUnfinishedGames } from "./composables/useUnfinishedGames";
+import LogoAnimation from "./components/LogoAnimation.vue";
 import logoUrl from "./assets/logo.svg";
 
 const showConnectModal = ref(false);
 const showQrScanner = ref(false);
+const menuOpen = ref(false);
+const headerEl = ref<HTMLElement | null>(null);
 const route = useRoute();
 const { hasUnfinished, refresh: refreshUnfinishedGames } = useUnfinishedGames();
 
@@ -21,35 +24,101 @@ const isGameLayout = computed(
     route.path.startsWith("/play/") ||
     route.path.startsWith("/team/")
 );
+
+function closeMenu() {
+  menuOpen.value = false;
+}
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
+}
+
+function openConnectModal() {
+  closeMenu();
+  showConnectModal.value = true;
+}
+
+function openQrScanner() {
+  closeMenu();
+  showQrScanner.value = true;
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    closeMenu();
+  },
+);
+
+watch(menuOpen, (open) => {
+  if (!open) return;
+
+  const onPointerDown = (event: PointerEvent) => {
+    const target = event.target as Node | null;
+    if (!target) return;
+    if (headerEl.value?.contains(target)) return;
+    closeMenu();
+  };
+
+  nextTick(() => {
+    document.addEventListener("pointerdown", onPointerDown, true);
+  });
+
+  return () => {
+    document.removeEventListener("pointerdown", onPointerDown, true);
+  };
+});
 </script>
 
 <template>
   <div class="app" :class="{ 'app--game': isGameLayout }">
     <div class="app-shell">
-      <header v-if="!isGameLayout" class="header">
-        <RouterLink to="/" class="logo">
-          <img :src="logoUrl" alt="" class="logo__img" width="31" height="31" />
+      <header
+        v-if="!isGameLayout"
+        ref="headerEl"
+        class="header"
+        :class="{ 'header--menu-open': menuOpen }"
+      >
+        <RouterLink to="/" class="logo" @click="closeMenu">
+          <LogoAnimation class="logo__img" />
           <span class="logo__name">Игра<br />на унижение</span>
         </RouterLink>
-        <div class="header-buttons">
-          <Button
-            class="header-qr-btn"
-            icon="scan"
-            aria-label="Сканировать QR-код"
-            @click="showQrScanner = true"
-          >
-            QR
-          </Button>
-          <Button class="header-watch-btn" icon="tv" @click="showConnectModal = true">
-            Смотреть
-          </Button>
+        <button
+          type="button"
+          class="burger"
+          :aria-expanded="menuOpen"
+          aria-controls="header-menu"
+          aria-label="Меню"
+          @click="toggleMenu"
+        >
+          <span class="burger-line" />
+          <span class="burger-line" />
+          <span class="burger-line" />
+        </button>
+        <div id="header-menu" class="header-panel" :class="{ 'header-panel--open': menuOpen }">
+          <nav>
+            <RouterLink to="/">Главная</RouterLink>
+            <RouterLink to="/rules">Правила</RouterLink>
+            <RouterLink to="/series">Выпуски</RouterLink>
+            <RouterLink to="/about">О нас</RouterLink>
+          </nav>
+          <div class="header-buttons">
+            <Button
+              class="header-qr-btn"
+              icon="scan"
+              aria-label="Сканировать QR-код"
+              @click="openQrScanner"
+            >
+              QR
+            </Button>
+            <Button class="header-play-btn" to="/series" icon="play" @click="closeMenu">
+              Играть
+            </Button>
+            <Button class="header-watch-btn" icon="tv" @click="openConnectModal">
+              Смотреть
+            </Button>
+          </div>
         </div>
-        <nav>
-          <RouterLink to="/">Главная</RouterLink>
-          <RouterLink to="/rules">Правила</RouterLink>
-          <RouterLink to="/series">Выпуски</RouterLink>
-          <RouterLink to="/about">О нас</RouterLink>
-        </nav>
       </header>
       <main class="main" :class="{ 'main--display': isDisplayLayout, 'main--game': isGameLayout }">
         <UnfinishedGamesPrompt v-if="!isGameLayout" />
@@ -58,7 +127,7 @@ const isGameLayout = computed(
       <footer v-if="!isGameLayout" class="footer">
         <div class="footer-inner">
           <RouterLink to="/" class="footer-brand">
-            <img :src="logoUrl" alt="" class="footer-brand__img" width="31" height="31" />
+            <img :src="logoUrl" alt="" class="footer-brand__img" width="32" height="32" />
             <span class="footer-brand__name">Игра на унижение</span>
           </RouterLink>
           <nav class="footer-nav" aria-label="Навигация в подвале">
@@ -103,6 +172,7 @@ const isGameLayout = computed(
   background: #fff;
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
   position: relative;
+  z-index: 40;
 }
 
 .header::after {
@@ -119,6 +189,8 @@ const isGameLayout = computed(
   font-weight: 600;
   font-size: 15px;
   line-height: 1.2;
+  position: relative;
+  z-index: 2;
 }
 
 .logo:hover {
@@ -128,15 +200,71 @@ const isGameLayout = computed(
 .logo__img {
   display: inline-block;
   vertical-align: middle;
-  height: 36px;
-  width: auto;
+  width: 32px;
+  height: 32px;
   margin-right: 10px;
+  object-fit: contain;
 }
 
 .logo__name {
   display: inline-block;
   vertical-align: middle;
   text-transform: uppercase;
+}
+
+.burger {
+  display: none;
+  float: right;
+  position: relative;
+  z-index: 2;
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: #fec31b;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.burger-line {
+  display: block;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 3px;
+  margin: 0;
+  background: #1a1a2e;
+  top: 50%;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.burger-line:nth-child(1) {
+  transform: translateY(-9px);
+}
+
+.burger-line:nth-child(2) {
+  transform: translateY(-1.5px);
+}
+
+.burger-line:nth-child(3) {
+  transform: translateY(6px);
+}
+
+.header--menu-open .burger-line:nth-child(1) {
+  transform: translateY(-1.5px) rotate(45deg);
+}
+
+.header--menu-open .burger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.header--menu-open .burger-line:nth-child(3) {
+  transform: translateY(-1.5px) rotate(-45deg);
+}
+
+.header-panel {
+  display: block;
 }
 
 .header nav {
@@ -178,6 +306,15 @@ const isGameLayout = computed(
   padding-left: 0;
 }
 
+.header-buttons {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: right;
+  float: right;
+  position: relative;
+  z-index: 2;
+}
+
 .header :deep(.btn) {
   margin-left: 8px;
 }
@@ -190,6 +327,19 @@ const isGameLayout = computed(
 .header :deep(.header-watch-btn.btn:not(:disabled):hover),
 .header :deep(.header-qr-btn.btn:not(:disabled):hover) {
   background: #3a9a6a;
+}
+
+.header :deep(.header-play-btn.btn) {
+  background: var(--color-accent);
+}
+
+.header :deep(.header-play-btn.btn:not(:disabled):hover) {
+  background: var(--color-accent-hover);
+}
+
+.header :deep(.header-qr-btn),
+.header :deep(.header-play-btn) {
+  display: none;
 }
 
 .main {
@@ -256,9 +406,10 @@ const isGameLayout = computed(
 .footer-brand__img {
   display: inline-block;
   vertical-align: middle;
-  height: 28px;
-  width: auto;
+  width: 32px;
+  height: 32px;
   margin-right: 10px;
+  object-fit: contain;
 }
 
 .footer-brand__name {
@@ -302,23 +453,66 @@ const isGameLayout = computed(
   border-top: 1px solid #e5e7eb;
 }
 
-.header-buttons {
-  display: inline-block;
-  vertical-align: middle;
-  text-align: right;
-  float: right;
-}
-
-.header :deep(.header-qr-btn) {
-  display: none;
-}
-
 @media (max-width: 768px) {
   .header {
-    padding: 16px;
+    padding: 12px 16px;
   }
 
-  .header :deep(.header-qr-btn) {
+  .burger {
+    display: inline-block;
+  }
+
+  .header-panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    width: auto;
+    margin: 0;
+    padding: 16px;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+    box-shadow: 0 8px 16px rgb(0 0 0 / 10%);
+    z-index: 3;
+  }
+
+  .header-panel--open {
+    display: block;
+  }
+
+  .header nav {
+    position: static;
+    width: 100%;
+    text-align: left;
+    padding: 0;
+    float: none;
+  }
+
+  .header nav > a {
+    display: block;
+    padding: 12px 0;
+    font-size: 15px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .header nav > a:first-child {
+    padding-left: 0;
+  }
+
+  .header-buttons {
+    float: none;
+    display: block;
+    text-align: left;
+    margin-top: 16px;
+  }
+
+  .header :deep(.btn) {
+    margin: 0 8px 8px 0;
+  }
+
+  .header :deep(.header-qr-btn),
+  .header :deep(.header-play-btn) {
     display: inline-block;
   }
 
@@ -326,18 +520,14 @@ const isGameLayout = computed(
     display: none;
   }
 
-  .header nav {
-    position: static;
-    width: 100%;
-    text-align: right;
-    padding: 0;
-    float: right;
+  .footer-nav {
+    text-align: left;
   }
 
-  .header nav a {
-    font-size: 15px;
-    padding-bottom: 4px;
-    padding-top: 16px;
+  .footer-nav > a {
+    font-size: 13px;
+    padding: 6px 12px 6px 0;
+    margin-right: 0;
   }
 
   .main {

@@ -97,9 +97,7 @@ function save() {
 }
 
 .adjust-result-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: block;
   padding: 10px 12px;
   border: 1px solid #e5e7eb;
   border-radius: 0;
@@ -112,7 +110,8 @@ function save() {
 }
 
 .adjust-result-option input {
-  margin: 0;
+  float: left;
+  margin: 2px 10px 0 0;
 }
 
 .modal-actions {

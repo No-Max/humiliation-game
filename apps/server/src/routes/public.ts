@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { parseQuestionChoices } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { generateUniqueRoomCode } from '../lib/roomCode.js';
 import { buildFinishedRoomState } from '../lib/gameResults.js';
@@ -87,17 +88,105 @@ publicRouter.get('/series/:id', async (req, res) => {
   });
   const countMap = new Map(counts.map((item) => [item.tourId, item._count._all]));
 
+  const sampleQuestions = await prisma.question.findMany({
+    where: { seriesId: series.id },
+    orderBy: { sortOrder: 'asc' },
+    select: {
+      id: true,
+      tourId: true,
+      prompt: true,
+      mediaUrls: true,
+      audioUrl: true,
+      answerType: true,
+      choices: true,
+    },
+  });
+  const sampleByTour = new Map<string, (typeof sampleQuestions)[number]>();
+  for (const question of sampleQuestions) {
+    if (!sampleByTour.has(question.tourId)) {
+      sampleByTour.set(question.tourId, question);
+    }
+  }
+
   const { seriesTours, ...rest } = series;
   res.json({
     ...rest,
-    tours: seriesTours.map(({ sortOrder, tour }) => ({
-      ...tour,
-      sortOrder,
-      _count: {
-        questions: countMap.get(tour.id) ?? 0,
-      },
-    })),
+    tours: seriesTours.map(({ sortOrder, tour }) => {
+      const sample = sampleByTour.get(tour.id);
+      return {
+        ...tour,
+        sortOrder,
+        _count: {
+          questions: countMap.get(tour.id) ?? 0,
+        },
+        sampleQuestion: sample
+          ? {
+              id: sample.id,
+              prompt: sample.prompt,
+              mediaUrls: sample.mediaUrls,
+              audioUrl: sample.audioUrl,
+              answerType: sample.answerType,
+              choices:
+                sample.answerType === 'CHOICE' ? parseQuestionChoices(sample.choices) : [],
+            }
+          : null,
+      };
+    }),
   });
+});
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+publicRouter.get('/sitemap.xml', async (_req, res) => {
+  const siteUrl = (process.env.PUBLIC_SITE_URL ?? 'https://ingame.by').replace(/\/$/, '');
+  const published = await prisma.series.findMany({
+    where: { status: 'PUBLISHED' },
+    select: { id: true, updatedAt: true },
+    orderBy: { number: 'desc' },
+  });
+
+  type SitemapUrl = {
+    loc: string;
+    changefreq: string;
+    priority: string;
+    lastmod?: string;
+  };
+
+  const urls: SitemapUrl[] = [
+    { loc: `${siteUrl}/`, changefreq: 'weekly', priority: '1.0' },
+    { loc: `${siteUrl}/series`, changefreq: 'weekly', priority: '0.9' },
+    { loc: `${siteUrl}/rules`, changefreq: 'monthly', priority: '0.7' },
+    { loc: `${siteUrl}/about`, changefreq: 'monthly', priority: '0.6' },
+    ...published.map((item) => ({
+      loc: `${siteUrl}/series/${item.id}`,
+      lastmod: item.updatedAt.toISOString().slice(0, 10),
+      changefreq: 'weekly',
+      priority: '0.8',
+    })),
+  ];
+
+  const urlEntries = urls
+    .map(
+      (entry) => `  <url>
+    <loc>${escapeXml(entry.loc)}</loc>${entry.lastmod ? `\n    <lastmod>${entry.lastmod}</lastmod>` : ''}
+    <changefreq>${entry.changefreq}</changefreq>
+    <priority>${entry.priority}</priority>
+  </url>`,
+    )
+    .join('\n');
+
+  res.type('application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlEntries}
+</urlset>
+`);
 });
 
 publicRouter.post('/rooms', async (req, res) => {

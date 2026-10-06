@@ -1,2 +1,13 @@
 User-agent: *
-Disallow: /
+Allow: /
+Allow: /rules
+Allow: /series
+Allow: /series/
+Disallow: /games
+Disallow: /lobby/
+Disallow: /join/
+Disallow: /display/
+Disallow: /team/
+Disallow: /play/
+
+Sitemap: https://ingame.by/sitemap.xml

@@ -97,4 +97,24 @@ function continueGame(session: SavedGameSession) {
 .unfinished-actions > *:first-child {
   margin-left: 0;
 }
+
+@media (max-width: 500px) {
+  .unfinished-item,
+  .unfinished-item:last-child {
+    position: relative;
+    padding-bottom: 56px;
+  }
+
+  .unfinished-item-content {
+    width: 100%;
+  }
+
+  .unfinished-actions {
+    float: none;
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+    top: auto;
+  }
+}
 </style>

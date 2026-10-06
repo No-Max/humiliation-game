@@ -39,13 +39,15 @@ const caption = computed(() => {
 }
 
 .hints-caption {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
   font-size: 12px;
   color: #92400e;
   font-weight: bold;
   margin-top: 16px;
+}
+
+.hints-caption :deep(.icon) {
+  margin-right: 6px;
 }
 
 .hint {

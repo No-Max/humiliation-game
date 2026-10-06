@@ -32,6 +32,5 @@ const href = computed(() => {
 .icon {
   display: inline-block;
   vertical-align: middle;
-  flex-shrink: 0;
 }
 </style>

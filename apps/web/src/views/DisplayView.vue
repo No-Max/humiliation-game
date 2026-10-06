@@ -212,29 +212,39 @@ onUnmounted(() => cleanup?.());
   inset: 0;
   background: rgb(0 0 0 / 55%);
   z-index: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   text-align: center;
 }
 
+.pause-overlay::before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
 .pause-overlay-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
   background: #fef3c7;
   color: #92400e;
   padding: 32px 48px;
   border-radius: 0;
 }
 
+.pause-overlay-panel > * + * {
+  margin-top: 24px;
+}
+
 .pause-overlay-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
+  display: block;
   font-size: 40px;
   font-weight: bold;
+  line-height: 1.2;
+}
+
+.pause-overlay-label :deep(.icon) {
+  margin-right: 16px;
 }
 
 @media (max-width: 1023px) {

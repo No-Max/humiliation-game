@@ -33,8 +33,8 @@ const emit = defineEmits<{
       <div v-else class="choice-readonly">
         <span class="choice-content">
           <span class="choice-content-inner">
-            <span>{{ choice.text }}</span>
             <span class="choice-label">{{ String.fromCharCode(65 + index) }}</span>
+            <span>{{ choice.text }}</span>
           </span>
           <span v-if="choice.imageUrl" class="choice-image-container">
             <img :src="choice.imageUrl" alt="" class="choice-image" />
@@ -72,7 +72,7 @@ const emit = defineEmits<{
   min-width: 0;
   display: block;
   text-align: left;
-  padding: 16px 8px 0 8px;
+  padding: 16px 8px;
   border-radius: 0;
   font-size: 16px;
   line-height: 1.35;
@@ -89,10 +89,9 @@ const emit = defineEmits<{
 .choice-button {}
 
 .choice-label {
+  float: left;
   width: 28px;
   height: 28px;
-  display: inline-block;
-  vertical-align: middle;
   text-align: center;
   line-height: 28px;
   border-radius: 0;
@@ -109,8 +108,6 @@ const emit = defineEmits<{
 
 .choice-content {
   display: inline-block;
-  align-items: center;
-  gap: 10px;
   vertical-align: middle;
   min-width: 0;
   width: 100%;
@@ -119,12 +116,18 @@ const emit = defineEmits<{
 
 .choice-image {
   height: 100%;
-  flex-shrink: 0;
   border-radius: 0;
 }
 
 .choice-content-inner {
   display: block;
+  overflow: hidden;
+}
+
+.choice-content-inner::after {
+  content: '';
+  display: table;
+  clear: both;
 }
 
 .choice-image-container {

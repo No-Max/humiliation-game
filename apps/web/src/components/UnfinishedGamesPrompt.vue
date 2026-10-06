@@ -64,4 +64,22 @@ watch(
 .unfinished-prompt-btn {
   float: right;
 }
+
+@media (max-width: 500px) {
+  .unfinished-games-prompt {
+    position: relative;
+    padding-bottom: 56px;
+  }
+
+  .unfinished-prompt-body {
+    width: 100%;
+  }
+
+  .unfinished-prompt-btn {
+    float: none;
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+  }
+}
 </style>

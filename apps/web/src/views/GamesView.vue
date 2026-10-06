@@ -30,6 +30,7 @@ onMounted(refresh);
 <style scoped>
 .unfinished-games-card {
   border-left: 4px solid var(--color-accent);
+  margin-top: 16px;
 }
 
 .unfinished-title {

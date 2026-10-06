@@ -235,6 +235,15 @@ export function usePlayRoom() {
   }
 
   function syncExpiredTurn() {
+    // Текстовый ответ: если не успели нажать «Ответить», отправляем введённое значение
+    if (
+      isMyTurn.value &&
+      !isChoiceQuestion.value &&
+      answer.value.trim().length > 0
+    ) {
+      submit();
+      return;
+    }
     connectSocket().emit('syncExpiredTurn', () => {});
   }
 

@@ -47,27 +47,6 @@ onMounted(async () => {
       height="872"
     />
 
-    <div v-if="latestSeries" class="card latest-series-card">
-      <p class="latest-series-eyebrow text-muted-sm">Новый выпуск</p>
-      <h2 class="latest-series-title">
-        <RouterLink :to="`/series/${latestSeries.id}`">
-          #{{ latestSeries.number }}: {{ latestSeries.title }}
-        </RouterLink>
-      </h2>
-      <p v-if="publishedLabel" class="latest-series-date text-muted-sm">{{ publishedLabel }}</p>
-      <p v-if="latestSeries.description" class="latest-series-teaser">
-        {{ plainTextFromHtml(latestSeries.description, 200) }}
-      </p>
-      <p v-if="latestSeries.tours.length" class="latest-series-meta text-muted-sm">
-        {{ latestSeries.tours.length }} {{ toursCountLabel(latestSeries.tours.length) }},
-        {{ formatQuestionCount(questionsTotal) }}
-      </p>
-      <div class="latest-series-actions">
-        <Button :to="`/lobby/${latestSeries.id}`" icon="play">Играть</Button>
-        <Button :to="`/series/${latestSeries.id}`" variant="secondary">Подробнее</Button>
-      </div>
-    </div>
-
     <div class="card steps-card">
       <h2 class="section-heading">Как начать играть</h2>
       <div class="steps">
@@ -104,6 +83,27 @@ onMounted(async () => {
       </p>
       <p class="intro-text">Удачи!</p>
       <Button class="intro-btn" to="/series">Выбрать выпуск</Button>
+    </div>
+
+    <div v-if="latestSeries" class="card latest-series-card">
+      <p class="latest-series-eyebrow text-muted-sm">Новый выпуск</p>
+      <h2 class="latest-series-title">
+        <RouterLink :to="`/series/${latestSeries.id}`">
+          #{{ latestSeries.number }}: {{ latestSeries.title }}
+        </RouterLink>
+      </h2>
+      <p v-if="publishedLabel" class="latest-series-date text-muted-sm">{{ publishedLabel }}</p>
+      <p v-if="latestSeries.description" class="latest-series-teaser">
+        {{ plainTextFromHtml(latestSeries.description, 200) }}
+      </p>
+      <p v-if="latestSeries.tours.length" class="latest-series-meta text-muted-sm">
+        {{ latestSeries.tours.length }} {{ toursCountLabel(latestSeries.tours.length) }},
+        {{ formatQuestionCount(questionsTotal) }}
+      </p>
+      <div class="latest-series-actions">
+        <Button :to="`/lobby/${latestSeries.id}`" icon="play">Играть</Button>
+        <Button :to="`/series/${latestSeries.id}`" variant="secondary">Подробнее</Button>
+      </div>
     </div>
   </div>
 </template>

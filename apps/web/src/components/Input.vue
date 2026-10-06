@@ -58,7 +58,7 @@ const passthroughAttrs = computed(() => {
   height: 44px;
   padding: 0 12px;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 16px;
   font-family: inherit;
   margin-bottom: 12px;
@@ -90,7 +90,7 @@ const passthroughAttrs = computed(() => {
 .input--copy {
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 0 40px 0 12px;
   color: #374151;
   margin-bottom: 0;

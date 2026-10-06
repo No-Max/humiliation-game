@@ -84,10 +84,6 @@ const showTurnActions = computed(
   font-size: 0;
 }
 
-.question-content {
-  margin-top: -16px;
-}
-
 .card-actions> :deep(*) {
   display: inline-block;
   vertical-align: middle;

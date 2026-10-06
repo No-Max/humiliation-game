@@ -16,6 +16,8 @@ type SeriesWithContent = Series & {
 };
 
 const ANSWER_MEDIA_TYPES = new Set<AnswerMediaType>(['IMAGE', 'AUDIO', 'VIDEO']);
+/** Пауза после UI-дедлайна: успеть принять ответ, который команда не успела отправить кнопкой */
+const TURN_TIMEOUT_GRACE_MS = 500;
 
 function parseAnswerMedia(value: unknown): AnswerMediaItem[] {
   if (!Array.isArray(value)) return [];
@@ -520,7 +522,12 @@ export class GameEngine {
 
   private checkAnswerDeadline(): boolean {
     if (this.paused || this.isGameFinished()) return false;
-    if (!this.answerDeadlineAt || Date.now() < this.answerDeadlineAt) return false;
+    if (
+      !this.answerDeadlineAt ||
+      Date.now() < this.answerDeadlineAt + TURN_TIMEOUT_GRACE_MS
+    ) {
+      return false;
+    }
     this.handleTurnTimeout();
     return true;
   }
@@ -624,7 +631,10 @@ export class GameEngine {
       const remaining = this.turnRemainingMs;
       this.turnRemainingMs = null;
       this.answerDeadlineAt = Date.now() + remaining;
-      this.turnTimer = setTimeout(() => this.handleTurnTimeout(), remaining);
+      this.turnTimer = setTimeout(
+        () => this.handleTurnTimeout(),
+        remaining + TURN_TIMEOUT_GRACE_MS,
+      );
       return;
     }
     this.refreshTurnTimer();
@@ -636,7 +646,10 @@ export class GameEngine {
 
     const limitMs = this.getTimeLimitSec() * 1000;
     this.answerDeadlineAt = Date.now() + limitMs;
-    this.turnTimer = setTimeout(() => this.handleTurnTimeout(), limitMs);
+    this.turnTimer = setTimeout(
+      () => this.handleTurnTimeout(),
+      limitMs + TURN_TIMEOUT_GRACE_MS,
+    );
   }
 
   private canAct(teamId: string): boolean {

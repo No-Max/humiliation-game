@@ -13,6 +13,7 @@ import { adminSeriesRouter } from './routes/admin/series.js';
 import { adminToursRouter } from './routes/admin/tours.js';
 import { adminMediaRouter } from './routes/admin/media.js';
 import { adminReviewsRouter } from './routes/admin/reviews.js';
+import { adminCommentsRouter } from './routes/admin/comments.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
 const PORT = Number(process.env.PORT ?? 3200);
@@ -48,6 +49,7 @@ app.use('/api/admin/series', adminSeriesRouter);
 app.use('/api/admin/tours', adminToursRouter);
 app.use('/api/admin/media', adminMediaRouter);
 app.use('/api/admin/reviews', adminReviewsRouter);
+app.use('/api/admin/comments', adminCommentsRouter);
 
 setupSocketHandlers(io);
 

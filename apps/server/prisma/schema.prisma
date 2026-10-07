@@ -121,12 +121,13 @@ model SeriesComment {
   telegramName String
   teamName     String?
   teamLogoUrl  String?
+  hidden       Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
-  @@index([seriesId, createdAt])
+  @@index([seriesId, hidden, createdAt])
   @@index([playerId, createdAt])
 }
 

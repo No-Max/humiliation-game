@@ -9,6 +9,7 @@ import QuestionEditView from '../views/QuestionEditView.vue';
 import MediaLibraryView from '../views/MediaLibraryView.vue';
 import ReviewsListView from '../views/ReviewsListView.vue';
 import ReviewEditView from '../views/ReviewEditView.vue';
+import CommentsListView from '../views/CommentsListView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -38,6 +39,11 @@ export const router = createRouter({
     {
       path: '/reviews/:id',
       component: ReviewEditView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/comments',
+      component: CommentsListView,
       meta: { requiresAuth: true },
     },
     {

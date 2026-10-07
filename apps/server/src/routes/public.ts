@@ -70,7 +70,7 @@ publicRouter.get('/series', async (_req, res) => {
   const commentCounts = seriesIds.length
     ? await prisma.seriesComment.groupBy({
         by: ['seriesId'],
-        where: { seriesId: { in: seriesIds } },
+        where: { seriesId: { in: seriesIds }, hidden: false },
         _count: { _all: true },
       })
     : [];
@@ -184,7 +184,7 @@ publicRouter.get('/series/:id/comments', async (req, res) => {
   }
 
   const comments = await prisma.seriesComment.findMany({
-    where: { seriesId },
+    where: { seriesId, hidden: false },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

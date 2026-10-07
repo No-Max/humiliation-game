@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Button from './Button.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import TelegramLoginModal from './TelegramLoginModal.vue';
@@ -13,6 +13,8 @@ import {
 import { formatPublishedAt } from '../lib/dates';
 import { plainTextFromHtml } from '../lib/seo';
 
+const SUCCESS_HIDE_MS = 5000;
+
 const { isAuthenticated, ready } = useAuth();
 
 const reviews = ref<PublicReview[]>([]);
@@ -23,6 +25,22 @@ const formError = ref('');
 const formSuccess = ref('');
 const submitting = ref(false);
 const showLogin = ref(false);
+let successHideTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearSuccessHideTimer() {
+  if (successHideTimer == null) return;
+  clearTimeout(successHideTimer);
+  successHideTimer = null;
+}
+
+function showSuccessTemporarily(text: string) {
+  clearSuccessHideTimer();
+  formSuccess.value = text;
+  successHideTimer = setTimeout(() => {
+    formSuccess.value = '';
+    successHideTimer = null;
+  }, SUCCESS_HIDE_MS);
+}
 
 const canSubmit = computed(() => {
   if (!isAuthenticated.value) return false;
@@ -76,12 +94,14 @@ async function loadMine() {
 async function onSubmit() {
   if (!canSubmit.value) return;
   formError.value = '';
+  clearSuccessHideTimer();
   formSuccess.value = '';
   submitting.value = true;
   try {
-    await submitReview(message.value);
-    formSuccess.value = 'Отзыв отправлен на модерацию';
-    await loadMine();
+    const data = await submitReview(message.value);
+    myReview.value = data.review;
+    message.value = '';
+    showSuccessTemporarily('Отзыв отправлен на модерацию');
   } catch (e) {
     formError.value = e instanceof Error ? e.message : 'Не удалось отправить';
   } finally {
@@ -93,6 +113,10 @@ async function onLoginSuccess() {
   showLogin.value = false;
   await loadMine();
 }
+
+onBeforeUnmount(() => {
+  clearSuccessHideTimer();
+});
 </script>
 
 <template>

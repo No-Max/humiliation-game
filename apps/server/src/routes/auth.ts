@@ -12,6 +12,11 @@ import {
 } from '../lib/playerSession.js';
 import { type TelegramLoginData, verifyTelegramLogin } from '../lib/telegramAuth.js';
 import {
+  COMMENT_COOLDOWN_MS,
+  commentCooldownRemainingMs,
+  normalizeCommentMessage,
+} from '../lib/comments.js';
+import {
   REVIEWS_PER_MONTH_LIMIT,
   normalizeReviewMessage,
   plainTextFromReviewHtml,
@@ -381,6 +386,74 @@ authRouter.post('/reviews', async (req, res) => {
       published: review.published,
       createdAt: review.createdAt.toISOString(),
       updatedAt: review.updatedAt.toISOString(),
+    },
+  });
+});
+
+authRouter.post('/series/:seriesId/comments', async (req, res) => {
+  const playerId = getSessionPlayerId(req);
+  if (!playerId) {
+    res.status(401).json({ error: 'Нужно войти' });
+    return;
+  }
+
+  const seriesId = String(req.params.seriesId);
+  const message = normalizeCommentMessage((req.body as { message?: string }).message);
+  if (!message) {
+    res.status(400).json({ error: 'Введите текст комментария' });
+    return;
+  }
+
+  const series = await prisma.series.findFirst({
+    where: { id: seriesId, status: 'PUBLISHED' },
+    select: { id: true },
+  });
+  if (!series) {
+    res.status(404).json({ error: 'Выпуск не найден' });
+    return;
+  }
+
+  const player = await prisma.player.findUnique({ where: { id: playerId } });
+  if (!player) {
+    clearSessionCookie(res);
+    res.status(401).json({ error: 'Нужно войти' });
+    return;
+  }
+
+  const last = await prisma.seriesComment.findFirst({
+    where: { playerId },
+    orderBy: { createdAt: 'desc' },
+    select: { createdAt: true },
+  });
+  const remainingMs = commentCooldownRemainingMs(last?.createdAt);
+  if (remainingMs > 0) {
+    res.status(429).json({
+      error: 'Подождите перед следующим комментарием',
+      retryAfterSeconds: Math.ceil(remainingMs / 1000),
+      cooldownMs: COMMENT_COOLDOWN_MS,
+    });
+    return;
+  }
+
+  const comment = await prisma.seriesComment.create({
+    data: {
+      seriesId,
+      playerId,
+      message,
+      telegramName: telegramAuthorLabel(player),
+      teamName: player.teamName,
+      teamLogoUrl: player.teamLogoUrl,
+    },
+  });
+
+  res.status(201).json({
+    comment: {
+      id: comment.id,
+      message: comment.message,
+      telegramName: comment.telegramName,
+      teamName: comment.teamName,
+      teamLogoUrl: comment.teamLogoUrl,
+      createdAt: comment.createdAt.toISOString(),
     },
   });
 });

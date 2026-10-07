@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { MAX_TEAM_NAME_LENGTH, parseQuestionChoices } from '@humiliation-game/shared';
+import { commentCooldownRemainingMs } from '../lib/comments.js';
 import { prisma } from '../lib/prisma.js';
+import { getSessionPlayerId } from '../lib/playerSession.js';
 import { generateUniqueRoomCode } from '../lib/roomCode.js';
 import { buildFinishedRoomState } from '../lib/gameResults.js';
 
@@ -52,10 +54,12 @@ publicRouter.get('/series', async (_req, res) => {
     },
   });
 
+  const seriesIds = series.map((item) => item.id);
+
   const counts = await prisma.question.groupBy({
     by: ['seriesId', 'tourId'],
     where: {
-      seriesId: { in: series.map((item) => item.id) },
+      seriesId: { in: seriesIds },
     },
     _count: { _all: true },
   });
@@ -63,9 +67,21 @@ publicRouter.get('/series', async (_req, res) => {
     counts.map((item) => [`${item.seriesId}:${item.tourId}`, item._count._all]),
   );
 
+  const commentCounts = seriesIds.length
+    ? await prisma.seriesComment.groupBy({
+        by: ['seriesId'],
+        where: { seriesId: { in: seriesIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const commentCountMap = new Map(
+    commentCounts.map((item) => [item.seriesId, item._count._all]),
+  );
+
   res.json(
     series.map(({ seriesTours, ...item }) => ({
       ...item,
+      commentsCount: commentCountMap.get(item.id) ?? 0,
       tours: seriesTours.map(({ sortOrder, tour }) => ({
         ...tour,
         sortOrder,
@@ -153,6 +169,54 @@ publicRouter.get('/series/:id', async (req, res) => {
           : null,
       };
     }),
+  });
+});
+
+publicRouter.get('/series/:id/comments', async (req, res) => {
+  const seriesId = String(req.params.id);
+  const series = await prisma.series.findFirst({
+    where: { id: seriesId, status: 'PUBLISHED' },
+    select: { id: true },
+  });
+  if (!series) {
+    res.status(404).json({ error: 'Series not found' });
+    return;
+  }
+
+  const comments = await prisma.seriesComment.findMany({
+    where: { seriesId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      message: true,
+      telegramName: true,
+      teamName: true,
+      teamLogoUrl: true,
+      createdAt: true,
+    },
+  });
+
+  const playerId = getSessionPlayerId(req);
+  let canComment = false;
+  let retryAfterSeconds = 0;
+  if (playerId) {
+    const last = await prisma.seriesComment.findFirst({
+      where: { playerId },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+    const remainingMs = commentCooldownRemainingMs(last?.createdAt);
+    canComment = remainingMs === 0;
+    retryAfterSeconds = Math.ceil(remainingMs / 1000);
+  }
+
+  res.json({
+    comments: comments.map((c) => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+    })),
+    canComment,
+    retryAfterSeconds,
   });
 });
 

@@ -23,5 +23,6 @@ export interface PublicSeries {
   number: number;
   description?: string;
   publishedAt?: string | null;
+  commentsCount?: number;
   tours: PublicSeriesTour[];
 }

@@ -9,6 +9,7 @@ import type { PublicSeries } from '../types/series';
 import Button from '../components/Button.vue';
 import QuestionChoices from '../components/QuestionChoices.vue';
 import QuestionContent from '../components/QuestionContent.vue';
+import SeriesCommentsSection from '../components/SeriesCommentsSection.vue';
 
 const route = useRoute();
 const series = ref<PublicSeries | null>(null);
@@ -112,6 +113,8 @@ watch(seriesId, load);
           />
         </div>
       </section>
+
+      <SeriesCommentsSection :series-id="series.id" />
     </template>
   </div>
 </template>

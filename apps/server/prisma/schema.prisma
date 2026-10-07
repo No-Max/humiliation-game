@@ -73,6 +73,7 @@ model Player {
 
   gameTeams GameTeam[]
   reviews   PlayerReview[]
+  comments  SeriesComment[]
 }
 
 model PlayerReview {
@@ -107,8 +108,26 @@ model Series {
   seriesTours SeriesTour[]
   questions   Question[]
   rooms       GameRoom[]
+  comments    SeriesComment[]
 
   @@unique([number])
+}
+
+model SeriesComment {
+  id           String   @id @default(cuid())
+  seriesId     String
+  playerId     String
+  message      String
+  telegramName String
+  teamName     String?
+  teamLogoUrl  String?
+  createdAt    DateTime @default(now())
+
+  series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([seriesId, createdAt])
+  @@index([playerId, createdAt])
 }
 
 model SeriesTour {

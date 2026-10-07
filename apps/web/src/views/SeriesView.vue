@@ -24,6 +24,14 @@ function questionsTotal(item: PublicSeries): number {
   return item.tours.reduce((sum, tour) => sum + tour._count.questions, 0);
 }
 
+function commentsCountLabel(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${count} комментарий`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${count} комментария`;
+  return `${count} комментариев`;
+}
+
 onMounted(async () => {
   try {
     series.value = await api('/series');
@@ -54,15 +62,27 @@ onMounted(async () => {
         </p>
         <p v-if="item.description" class="series-teaser">
           {{ plainTextFromHtml(item.description, 200) }}
+        </p>
+        <div class="series-card-footer">
           <RouterLink :to="`/series/${item.id}`" class="series-more-link">Подробнее</RouterLink>
-        </p>
-        <p v-else class="series-teaser">
-          <RouterLink :to="`/series/${item.id}`" class="series-more-link">Подробнее</RouterLink>
-        </p>
-        <p v-if="item.tours.length" class="series-tours-summary text-muted-sm">
-          {{ item.tours.length }} {{ toursCountLabel(item.tours.length) }},
-          {{ formatQuestionCount(questionsTotal(item)) }}
-        </p>
+          <p class="series-tours-summary text-muted-sm">
+            <template v-if="item.tours.length">
+              {{ item.tours.length }} {{ toursCountLabel(item.tours.length) }},
+              {{ formatQuestionCount(questionsTotal(item)) }}
+              <span class="series-summary-sep">·</span>
+            </template>
+            <RouterLink
+              :to="`/series/${item.id}#comments`"
+              class="series-reviews-link"
+            >
+              {{
+                (item.commentsCount ?? 0) > 0
+                  ? commentsCountLabel(item.commentsCount ?? 0)
+                  : 'Оставить комментарий'
+              }}
+            </RouterLink>
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -91,12 +111,39 @@ onMounted(async () => {
   margin: 0 0 8px;
 }
 
+.series-card-footer {
+  margin: 0;
+}
+
+.series-card-footer::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
 .series-more-link {
+  float: right;
+  margin-left: 12px;
+  font-weight: bold;
   white-space: nowrap;
 }
 
 .series-tours-summary {
   margin: 0;
+}
+
+.series-summary-sep {
+  margin: 0 0.35em;
+}
+
+.series-reviews-link {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.series-reviews-link:hover {
+  color: var(--color-accent);
 }
 
 .series-card-actions {
@@ -122,6 +169,10 @@ onMounted(async () => {
   .series-list .card {
     position: relative;
     padding-bottom: 64px;
+  }
+
+  .series-more-link {
+    display: none;
   }
 
   .series-card-actions {

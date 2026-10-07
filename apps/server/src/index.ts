@@ -12,6 +12,7 @@ import { adminAuthRouter } from './routes/admin/auth.js';
 import { adminSeriesRouter } from './routes/admin/series.js';
 import { adminToursRouter } from './routes/admin/tours.js';
 import { adminMediaRouter } from './routes/admin/media.js';
+import { adminReviewsRouter } from './routes/admin/reviews.js';
 import { setupSocketHandlers } from './socket/handlers.js';
 
 const PORT = Number(process.env.PORT ?? 3200);
@@ -46,6 +47,7 @@ app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/series', adminSeriesRouter);
 app.use('/api/admin/tours', adminToursRouter);
 app.use('/api/admin/media', adminMediaRouter);
+app.use('/api/admin/reviews', adminReviewsRouter);
 
 setupSocketHandlers(io);
 

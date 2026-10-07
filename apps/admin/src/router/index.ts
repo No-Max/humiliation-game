@@ -7,6 +7,8 @@ import TourSettingsView from '../views/TourSettingsView.vue';
 import TourEditView from '../views/TourEditView.vue';
 import QuestionEditView from '../views/QuestionEditView.vue';
 import MediaLibraryView from '../views/MediaLibraryView.vue';
+import ReviewsListView from '../views/ReviewsListView.vue';
+import ReviewEditView from '../views/ReviewEditView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +28,16 @@ export const router = createRouter({
     {
       path: '/media',
       component: MediaLibraryView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reviews',
+      component: ReviewsListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reviews/:id',
+      component: ReviewEditView,
       meta: { requiresAuth: true },
     },
     {

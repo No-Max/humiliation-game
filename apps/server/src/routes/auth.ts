@@ -11,6 +11,11 @@ import {
   setSessionCookie,
 } from '../lib/playerSession.js';
 import { type TelegramLoginData, verifyTelegramLogin } from '../lib/telegramAuth.js';
+import {
+  normalizeReviewMessage,
+  plainTextFromReviewHtml,
+  telegramAuthorLabel,
+} from '../lib/reviews.js';
 
 export const authRouter = Router();
 
@@ -262,5 +267,83 @@ authRouter.get('/games', async (req, res) => {
       myScore: team.score,
       teams: team.room.teams,
     })),
+  });
+});
+
+authRouter.get('/reviews/mine', async (req, res) => {
+  const playerId = getSessionPlayerId(req);
+  if (!playerId) {
+    res.status(401).json({ error: 'Нужно войти' });
+    return;
+  }
+
+  const review = await prisma.playerReview.findUnique({ where: { playerId } });
+  if (!review) {
+    res.json({ review: null });
+    return;
+  }
+
+  res.json({
+    review: {
+      id: review.id,
+      message: review.message,
+      published: review.published,
+      createdAt: review.createdAt.toISOString(),
+      updatedAt: review.updatedAt.toISOString(),
+    },
+  });
+});
+
+authRouter.post('/reviews', async (req, res) => {
+  const playerId = getSessionPlayerId(req);
+  if (!playerId) {
+    res.status(401).json({ error: 'Нужно войти' });
+    return;
+  }
+
+  const message = normalizeReviewMessage((req.body as { message?: string }).message);
+  if (!message || !plainTextFromReviewHtml(message)) {
+    res.status(400).json({ error: 'Введите текст отзыва' });
+    return;
+  }
+
+  const player = await prisma.player.findUnique({ where: { id: playerId } });
+  if (!player) {
+    clearSessionCookie(res);
+    res.status(401).json({ error: 'Нужно войти' });
+    return;
+  }
+
+  const existing = await prisma.playerReview.findUnique({ where: { playerId } });
+  if (existing?.published) {
+    res.status(409).json({ error: 'Ваш отзыв уже опубликован' });
+    return;
+  }
+
+  const snapshot = {
+    message,
+    telegramName: telegramAuthorLabel(player),
+    teamName: player.teamName,
+    teamLogoUrl: player.teamLogoUrl,
+    published: false,
+  };
+
+  const review = existing
+    ? await prisma.playerReview.update({
+        where: { id: existing.id },
+        data: snapshot,
+      })
+    : await prisma.playerReview.create({
+        data: { playerId, ...snapshot },
+      });
+
+  res.status(existing ? 200 : 201).json({
+    review: {
+      id: review.id,
+      message: review.message,
+      published: review.published,
+      createdAt: review.createdAt.toISOString(),
+      updatedAt: review.updatedAt.toISOString(),
+    },
   });
 });

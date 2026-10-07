@@ -10,6 +10,27 @@ publicRouter.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+publicRouter.get('/reviews', async (_req, res) => {
+  const reviews = await prisma.playerReview.findMany({
+    where: { published: true },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      message: true,
+      telegramName: true,
+      teamName: true,
+      teamLogoUrl: true,
+      createdAt: true,
+    },
+  });
+  res.json({
+    reviews: reviews.map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  });
+});
+
 publicRouter.get('/series', async (_req, res) => {
   const series = await prisma.series.findMany({
     where: { status: 'PUBLISHED' },

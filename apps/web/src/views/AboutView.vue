@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AboutReviewsSection from '../components/AboutReviewsSection.vue';
 import teamPhotoUrl from '../assets/about-team.jpg';
 import teamPhoto2Url from '../assets/about-team-2.jpg';
 </script>
@@ -49,6 +50,8 @@ import teamPhoto2Url from '../assets/about-team-2.jpg';
         устраивайте свой вечер унижения.
       </p>
     </div>
+
+    <AboutReviewsSection />
   </div>
 </template>
 

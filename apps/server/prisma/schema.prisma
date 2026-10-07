@@ -72,6 +72,23 @@ model Player {
   updatedAt   DateTime @updatedAt
 
   gameTeams GameTeam[]
+  review    PlayerReview?
+}
+
+model PlayerReview {
+  id           String   @id @default(cuid())
+  playerId     String   @unique
+  message      String
+  telegramName String
+  teamName     String?
+  teamLogoUrl  String?
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([published, createdAt])
 }
 
 model Series {

@@ -5,8 +5,11 @@ import { MAX_ROOM_TEAMS, MAX_TEAM_NAME_LENGTH } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import { getPreferredTeamName } from '../lib/teamPreferences';
+import { useAuth } from '../composables/useAuth';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
+
+const { user } = useAuth();
 
 interface RoomTeam {
   id: string;
@@ -68,7 +71,12 @@ async function joinNew() {
   }
 
   joinRoom(
-    { roomCode: code, role: 'team', teamName: teamName.value.trim() },
+    {
+      roomCode: code,
+      role: 'team',
+      teamName: teamName.value.trim(),
+      logoUrl: user.value?.teamLogoUrl || undefined,
+    },
     (result) => {
       loading.value = false;
       if (!result.ok) {

@@ -33,6 +33,7 @@ export interface JoinRoomPayload {
   role: JoinRole;
   teamId?: string;
   teamName?: string;
+  logoUrl?: string;
   /** Переподключиться к существующей команде по названию */
   reconnectTeamName?: string;
 }

@@ -178,10 +178,15 @@ export function setupSocketHandlers(io: GameServer) {
             return;
           }
 
+          const logoUrl =
+            typeof payload.logoUrl === 'string' && payload.logoUrl.trim()
+              ? payload.logoUrl.trim()
+              : undefined;
           const newTeam = await prisma.gameTeam.create({
             data: {
               roomId: room.id,
               name: payload.teamName.trim().slice(0, MAX_TEAM_NAME_LENGTH),
+              logoUrl,
               sortOrder: room.teams.length,
             },
           });

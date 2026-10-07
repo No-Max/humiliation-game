@@ -42,7 +42,7 @@ const formHint = computed(() => {
       mins > 0 ? `${mins} мин ${secs.toString().padStart(2, '0')} сек` : `${secs} сек`;
     return `Следующий комментарий можно отправить через ${wait}.`;
   }
-  return 'Не больше одного комментария раз в 5 минут.';
+  return '';
 });
 
 function clearCooldownTimer() {
@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="comment-form-block">
-      <p class="text-muted-sm comment-form-hint">{{ formHint }}</p>
+      <p v-if="formHint" class="text-muted-sm comment-form-hint">{{ formHint }}</p>
 
       <template v-if="isAuthenticated">
         <textarea

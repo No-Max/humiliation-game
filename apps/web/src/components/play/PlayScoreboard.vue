@@ -90,9 +90,6 @@ const emit = defineEmits<{
   box-sizing: border-box;
   border-radius: 0;
   font-size: 0;
-}
-
-.team-score-card--logo {
   text-align: left;
 }
 
@@ -111,6 +108,7 @@ const emit = defineEmits<{
   vertical-align: middle;
   max-width: calc(100% - 48px);
   font-size: 14px;
+  text-align: left;
 }
 
 .team-score-card:not(.team-score-card--logo) .team-score-body {
@@ -123,7 +121,7 @@ const emit = defineEmits<{
 }
 
 .team-score-name-row {
-  text-align: center;
+  text-align: left;
   font-size: 14px;
   font-weight: bold;
   line-height: 20px;
@@ -167,5 +165,11 @@ const emit = defineEmits<{
 
 .team-score-status-row {
   line-height: 0;
+}
+
+@media screen and (max-width: 400px) {
+  .team-score {
+    width: 100% !important;
+  }
 }
 </style>

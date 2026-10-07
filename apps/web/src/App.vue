@@ -18,7 +18,7 @@ const menuOpen = ref(false);
 const headerEl = ref<HTMLElement | null>(null);
 const route = useRoute();
 const { hasUnfinished, refresh: refreshUnfinishedGames } = useUnfinishedGames();
-const { isAuthenticated, displayName } = useAuth();
+const { isAuthenticated, displayName, avatarUrl } = useAuth();
 
 onMounted(refreshUnfinishedGames);
 const isDisplayLayout = computed(() => route.path.startsWith("/display/"));
@@ -144,8 +144,23 @@ watch(menuOpen, (open) => {
           </nav>
           <div class="footer-auth">
             <template v-if="isAuthenticated">
-              <Button class="footer-auth-btn" to="/profile" variant="secondary" compact>
-                {{ displayName }}
+              <Button
+                class="footer-auth-btn"
+                :class="{ 'footer-auth-btn--avatar': !!avatarUrl }"
+                to="/profile"
+                variant="secondary"
+                :icon="avatarUrl ? undefined : 'user'"
+                compact
+              >
+                <img
+                  v-if="avatarUrl"
+                  :src="avatarUrl"
+                  alt=""
+                  class="footer-auth-avatar"
+                  width="24"
+                  height="24"
+                />
+                <span class="footer-auth-name">{{ displayName }}</span>
               </Button>
             </template>
             <template v-else>
@@ -481,6 +496,21 @@ watch(menuOpen, (open) => {
   display: inline-block;
   vertical-align: middle;
   margin-right: 12px;
+}
+
+.footer-auth-avatar {
+  display: inline-block;
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  object-fit: cover;
+  background: #d1d5db;
+}
+
+.footer-auth-name {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .footer-auth-hint {

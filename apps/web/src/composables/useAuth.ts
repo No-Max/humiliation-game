@@ -90,6 +90,11 @@ export function useAuth() {
       if (!u) return '';
       return u.teamName || u.username || u.firstName || 'Профиль';
     }),
+    avatarUrl: computed(() => {
+      const u = user.value;
+      if (!u) return null;
+      return u.teamLogoUrl || u.photoUrl || null;
+    }),
     refresh,
     loginTelegram,
     logout,

@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRouter } from 'vue-router';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
+import UnfinishedGamesList from '../components/UnfinishedGamesList.vue';
 import { useAuth } from '../composables/useAuth';
+import { useUnfinishedGames } from '../composables/useUnfinishedGames';
+import { fetchMyGames, type SavedGameSummary } from '../lib/authApi';
+import { formatPublishedAt } from '../lib/dates';
 
 const router = useRouter();
 const { user, ready, isAuthenticated, logout, saveTeamName, saveTeamLogo } = useAuth();
+const {
+  sessions,
+  refresh: refreshUnfinished,
+  dismiss,
+} = useUnfinishedGames();
 
 const teamName = ref('');
 const message = ref('');
@@ -15,15 +24,31 @@ const saving = ref(false);
 const uploading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-onMounted(() => {
+const history = ref<SavedGameSummary[]>([]);
+const historyLoading = ref(false);
+const historyError = ref('');
+
+const avatarSrc = computed(
+  () => user.value?.teamLogoUrl || user.value?.photoUrl || '',
+);
+
+onMounted(async () => {
   if (ready.value && !isAuthenticated.value) {
     router.replace('/');
+    return;
   }
+  await refreshUnfinished();
+  if (isAuthenticated.value) await loadHistory();
 });
 
-watch(ready, (value) => {
+watch(ready, async (value) => {
   if (value && !isAuthenticated.value) {
     router.replace('/');
+    return;
+  }
+  if (value && isAuthenticated.value) {
+    await refreshUnfinished();
+    await loadHistory();
   }
 });
 
@@ -35,13 +60,27 @@ watch(
   { immediate: true },
 );
 
-async function onSaveName() {
+async function loadHistory() {
+  historyLoading.value = true;
+  historyError.value = '';
+  try {
+    const data = await fetchMyGames();
+    history.value = data.games;
+  } catch (e) {
+    historyError.value = e instanceof Error ? e.message : 'Не удалось загрузить историю';
+    history.value = [];
+  } finally {
+    historyLoading.value = false;
+  }
+}
+
+async function onSave() {
   message.value = '';
   error.value = '';
   saving.value = true;
   try {
     await saveTeamName(teamName.value);
-    message.value = 'Название команды сохранено';
+    message.value = 'Сохранено';
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Не удалось сохранить';
   } finally {
@@ -82,46 +121,84 @@ async function onLogout() {
       <p class="text-muted-sm">Загрузка…</p>
     </div>
 
-    <div v-else-if="user" class="card profile-card">
-      <div class="profile-head">
-        <img
-          v-if="user.teamLogoUrl || user.photoUrl"
-          :src="user.teamLogoUrl || user.photoUrl || ''"
-          alt=""
-          class="profile-avatar"
-          width="72"
-          height="72"
-        />
-        <div class="profile-head-text">
-          <p class="profile-name">
-            {{ user.teamName || user.username || user.firstName || 'Игрок' }}
-          </p>
-          <p v-if="user.username" class="text-muted-sm">@{{ user.username }}</p>
+    <template v-else-if="user">
+      <div class="card profile-card">
+        <div class="profile-logo-row">
+          <img
+            v-if="avatarSrc"
+            :src="avatarSrc"
+            alt=""
+            class="profile-avatar"
+            width="72"
+            height="72"
+          />
+          <div v-else class="profile-avatar profile-avatar--empty" aria-hidden="true" />
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="profile-file"
+            @change="onLogoSelected"
+          />
+          <Button
+            class="profile-logo-btn"
+            variant="secondary"
+            icon="image"
+            compact
+            :disabled="uploading"
+            aria-label="Загрузить картинку команды"
+            @click="fileInput?.click()"
+          />
+        </div>
+        <p v-if="user.username" class="profile-telegram text-muted-sm">@{{ user.username }}</p>
+
+        <label class="profile-label">Название команды</label>
+        <Input v-model="teamName" placeholder="Например: Знатоки" @keyup.enter="onSave" />
+
+        <p v-if="message" class="profile-ok">{{ message }}</p>
+        <p v-if="error" class="profile-error">{{ error }}</p>
+
+        <div class="profile-actions">
+          <Button :disabled="saving" @click="onSave">
+            {{ saving ? 'Сохранение…' : 'Сохранить' }}
+          </Button>
+          <Button variant="secondary" @click="onLogout">Выйти</Button>
         </div>
       </div>
 
-      <label class="profile-label">Название команды</label>
-      <Input v-model="teamName" placeholder="Например: Знатоки" @keyup.enter="onSaveName" />
-      <Button :disabled="saving" @click="onSaveName">Сохранить название</Button>
+      <div v-if="sessions.length" class="card unfinished-games-card">
+        <h2 class="section-title">Незавершённые игры</h2>
+        <p class="section-intro text-muted-sm">
+          Продолжите с того места, где остановились
+        </p>
+        <UnfinishedGamesList :sessions="sessions" @dismiss="dismiss" />
+      </div>
 
-      <label class="profile-label profile-label--spaced">Логотип команды</label>
-      <p class="text-muted-sm profile-hint">JPG или PNG, до 2 МБ</p>
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        class="profile-file"
-        @change="onLogoSelected"
-      />
-      <Button variant="secondary" :disabled="uploading" @click="fileInput?.click()">
-        {{ uploading ? 'Загрузка…' : 'Загрузить картинку' }}
-      </Button>
-
-      <p v-if="message" class="profile-ok">{{ message }}</p>
-      <p v-if="error" class="profile-error">{{ error }}</p>
-
-      <Button variant="secondary" class="profile-logout" @click="onLogout">Выйти</Button>
-    </div>
+      <div class="card history-card">
+        <h2 class="section-title">Результаты игр</h2>
+        <p v-if="historyLoading" class="text-muted-sm">Загрузка…</p>
+        <p v-else-if="historyError" class="profile-error">{{ historyError }}</p>
+        <p v-else-if="!history.length" class="text-muted-sm">
+          Пока нет сохранённых результатов.
+        </p>
+        <ul v-else class="history-list">
+          <li v-for="game in history" :key="game.roomCode" class="history-item">
+            <RouterLink :to="`/series/${game.seriesId}`" class="history-title">
+              #{{ game.seriesNumber }}: {{ game.seriesTitle }}
+            </RouterLink>
+            <p class="history-meta text-muted-sm">
+              {{ game.myTeamName }} — {{ game.myScore }}
+              <template v-if="game.finishedAt">
+                · {{ formatPublishedAt(game.finishedAt) }}
+              </template>
+            </p>
+            <p class="history-scores text-muted-sm">
+              {{ game.teams.map((t) => `${t.name}: ${t.score}`).join(' · ') }}
+            </p>
+          </li>
+        </ul>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -130,8 +207,8 @@ async function onLogout() {
   margin-top: 16px;
 }
 
-.profile-head {
-  margin-bottom: 20px;
+.profile-logo-row {
+  margin-bottom: 12px;
   font-size: 0;
 }
 
@@ -141,21 +218,24 @@ async function onLogout() {
   width: 72px;
   height: 72px;
   object-fit: cover;
-  margin-right: 16px;
+  margin-right: 12px;
   background: #f3f4f6;
 }
 
-.profile-head-text {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 16px;
-  max-width: calc(100% - 88px);
+.profile-avatar--empty {
+  background: #e5e7eb;
 }
 
-.profile-name {
-  margin: 0 0 4px;
-  font-weight: bold;
-  font-size: 1.125rem;
+.profile-logo-btn {
+  vertical-align: middle;
+}
+
+.profile-file {
+  display: none;
+}
+
+.profile-telegram {
+  margin: 0 0 16px;
 }
 
 .profile-label {
@@ -164,30 +244,75 @@ async function onLogout() {
   margin-bottom: 8px;
 }
 
-.profile-label--spaced {
-  margin-top: 24px;
-}
-
-.profile-hint {
-  margin: 0 0 8px;
-}
-
-.profile-file {
-  display: none;
-}
-
 .profile-ok {
-  margin-top: 12px;
+  margin: 0 0 12px;
   color: #059669;
   font-weight: bold;
 }
 
 .profile-error {
-  margin-top: 12px;
+  margin: 0 0 12px;
   color: #dc2626;
 }
 
-.profile-logout {
-  margin-top: 24px;
+.profile-actions {
+  margin-top: 8px;
+  font-size: 0;
+}
+
+.profile-actions > :deep(*) {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.unfinished-games-card {
+  border-left: 4px solid var(--color-accent);
+  margin-top: 16px;
+}
+
+.history-card {
+  margin-top: 16px;
+}
+
+.section-title {
+  margin-bottom: 8px;
+}
+
+.section-intro {
+  margin-bottom: 16px;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-item {
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.history-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.history-title {
+  font-weight: bold;
+  color: inherit;
+  text-decoration: none;
+}
+
+.history-title:hover {
+  color: var(--color-accent);
+}
+
+.history-meta,
+.history-scores {
+  margin: 4px 0 0;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
+import { MAX_ROOM_TEAMS, MAX_TEAM_NAME_LENGTH } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom } from '../lib/api';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import { getPreferredTeamName } from '../lib/teamPreferences';
@@ -133,7 +133,11 @@ function reconnectAs(team: RoomTeam) {
         В комнате уже {{ MAX_ROOM_TEAMS }} команды — новую добавить нельзя.
       </p>
       <template v-else>
-        <Input v-model="teamName" placeholder="Название новой команды" />
+        <Input
+          v-model="teamName"
+          :maxlength="MAX_TEAM_NAME_LENGTH"
+          placeholder="Название новой команды"
+        />
         <p class="join-note text-muted-sm">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>

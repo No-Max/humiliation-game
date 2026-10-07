@@ -3,6 +3,9 @@ import type { AnswerMediaItem, AnswerType, QuestionChoice, QuestionContentType }
 /** Максимум команд в одной игровой комнате */
 export const MAX_ROOM_TEAMS = 4;
 
+/** Максимум символов в названии команды */
+export const MAX_TEAM_NAME_LENGTH = 40;
+
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'FINISHED';
 
 export type ClientRole = 'team' | 'display';

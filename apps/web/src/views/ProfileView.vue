@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+import { MAX_TEAM_NAME_LENGTH } from '@humiliation-game/shared';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
 import UnfinishedGamesList from '../components/UnfinishedGamesList.vue';
@@ -153,13 +154,18 @@ async function onLogout() {
         <p v-if="user.username" class="profile-telegram text-muted-sm">@{{ user.username }}</p>
 
         <label class="profile-label">Название команды</label>
-        <Input v-model="teamName" placeholder="Например: Знатоки" @keyup.enter="onSave" />
+        <Input
+          v-model="teamName"
+          :maxlength="MAX_TEAM_NAME_LENGTH"
+          placeholder="Например: Знатоки"
+          @keyup.enter="onSave"
+        />
 
         <p v-if="message" class="profile-ok">{{ message }}</p>
         <p v-if="error" class="profile-error">{{ error }}</p>
 
         <div class="profile-actions">
-          <Button :disabled="saving" @click="onSave">
+          <Button class="profile-save-btn" :disabled="saving" @click="onSave">
             {{ saving ? 'Сохранение…' : 'Сохранить' }}
           </Button>
           <Button variant="secondary" @click="onLogout">Выйти</Button>
@@ -260,12 +266,23 @@ async function onLogout() {
   font-size: 0;
 }
 
+.profile-actions::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
 .profile-actions > :deep(*) {
   display: inline-block;
   vertical-align: middle;
   margin-right: 8px;
   margin-bottom: 8px;
   font-size: 16px;
+}
+
+.profile-save-btn {
+  float: right;
+  margin-right: 0;
 }
 
 .unfinished-games-card {

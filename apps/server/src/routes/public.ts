@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { parseQuestionChoices } from '@humiliation-game/shared';
+import { MAX_TEAM_NAME_LENGTH, parseQuestionChoices } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { generateUniqueRoomCode } from '../lib/roomCode.js';
 import { buildFinishedRoomState } from '../lib/gameResults.js';
@@ -196,7 +196,8 @@ publicRouter.post('/rooms', async (req, res) => {
     logoUrl?: string;
   };
 
-  if (!seriesId || !teamName) {
+  const trimmedName = typeof teamName === 'string' ? teamName.trim().slice(0, MAX_TEAM_NAME_LENGTH) : '';
+  if (!seriesId || !trimmedName) {
     res.status(400).json({ error: 'seriesId and teamName required' });
     return;
   }
@@ -219,7 +220,7 @@ publicRouter.post('/rooms', async (req, res) => {
     const hostTeam = await tx.gameTeam.create({
       data: {
         roomId: createdRoom.id,
-        name: teamName,
+        name: trimmedName,
         logoUrl,
         sortOrder: 0,
       },

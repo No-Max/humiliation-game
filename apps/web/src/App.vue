@@ -150,7 +150,6 @@ watch(menuOpen, (open) => {
                 to="/profile"
                 variant="secondary"
                 :icon="avatarUrl ? undefined : 'user'"
-                compact
               >
                 <img
                   v-if="avatarUrl"
@@ -164,7 +163,7 @@ watch(menuOpen, (open) => {
               </Button>
             </template>
             <template v-else>
-              <Button class="footer-auth-btn" compact @click="showLoginModal = true">
+              <Button class="footer-auth-btn" @click="showLoginModal = true">
                 Войти
               </Button>
               <span class="footer-auth-hint text-muted-sm">
@@ -496,6 +495,31 @@ watch(menuOpen, (open) => {
   display: inline-block;
   vertical-align: middle;
   margin-right: 12px;
+  height: 44px;
+  padding: 10px 20px;
+  line-height: 24px;
+  box-sizing: border-box;
+}
+
+.footer-auth-btn :deep(.btn__icon) {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  position: static;
+  top: auto;
+}
+
+.footer-auth-btn :deep(.btn__text) {
+  display: inline-block;
+  vertical-align: middle;
+  height: 24px;
+  line-height: 24px;
+  padding-left: 0;
+}
+
+.footer-auth-btn--avatar :deep(.btn__text) {
+  font-size: 0;
 }
 
 .footer-auth-avatar {
@@ -511,15 +535,17 @@ watch(menuOpen, (open) => {
 .footer-auth-name {
   display: inline-block;
   vertical-align: middle;
+  font-size: 16px;
+  line-height: 24px;
 }
 
 .footer-auth-hint {
   display: inline-block;
   vertical-align: middle;
   margin: 0;
-  max-width: calc(100% - 100px);
+  max-width: calc(100% - 120px);
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 44px;
 }
 
 .footer-copy {

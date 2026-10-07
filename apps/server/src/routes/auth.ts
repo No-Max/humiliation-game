@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { MAX_TEAM_NAME_LENGTH } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { resolveUploadDir } from '../lib/paths.js';
 import {
@@ -128,7 +129,9 @@ authRouter.patch('/profile', async (req, res) => {
 
   const body = req.body as { teamName?: string };
   const teamName =
-    typeof body.teamName === 'string' ? body.teamName.trim().slice(0, 64) : undefined;
+    typeof body.teamName === 'string'
+      ? body.teamName.trim().slice(0, MAX_TEAM_NAME_LENGTH)
+      : undefined;
 
   const player = await prisma.player.update({
     where: { id: playerId },

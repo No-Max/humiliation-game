@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { RoomState } from '@humiliation-game/shared';
+import { MAX_TEAM_NAME_LENGTH, type RoomState } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom, onRoomState } from '../lib/api';
 import { removeGameSession, syncFromRoomState, type SavedGameSession } from '../lib/gameStorage';
 import { findUnfinishedForSeries } from '../lib/findUnfinishedForSeries';
@@ -193,6 +193,7 @@ async function copyRoomCode() {
         <label>Название вашей команды</label>
         <Input
           v-model="teamName"
+          :maxlength="MAX_TEAM_NAME_LENGTH"
           placeholder="Например: Знатоки"
           @keyup.enter="createRoom"
         />

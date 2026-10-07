@@ -4,7 +4,7 @@ import type {
   JoinRoomPayload,
   ServerToClientEvents,
 } from '@humiliation-game/shared';
-import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
+import { MAX_ROOM_TEAMS, MAX_TEAM_NAME_LENGTH } from '@humiliation-game/shared';
 import { prisma } from '../lib/prisma.js';
 import { loadSeriesWithTours } from '../lib/seriesContent.js';
 import { buildFinishedRoomState } from '../lib/gameResults.js';
@@ -181,7 +181,7 @@ export function setupSocketHandlers(io: GameServer) {
           const newTeam = await prisma.gameTeam.create({
             data: {
               roomId: room.id,
-              name: payload.teamName.trim(),
+              name: payload.teamName.trim().slice(0, MAX_TEAM_NAME_LENGTH),
               sortOrder: room.teams.length,
             },
           });

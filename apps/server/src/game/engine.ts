@@ -8,7 +8,7 @@ import type {
   RoomState,
   TeamState,
 } from '@humiliation-game/shared';
-import { parseQuestionChoices } from '@humiliation-game/shared';
+import { MAX_TEAM_NAME_LENGTH, parseQuestionChoices } from '@humiliation-game/shared';
 import type { GameTeam, Question, Series, Tour } from '@prisma/client';
 
 type SeriesWithContent = Series & {
@@ -120,7 +120,7 @@ export class GameEngine {
       return { ok: false, error: 'Игра уже завершена' };
     }
 
-    const trimmed = name.trim();
+    const trimmed = name.trim().slice(0, MAX_TEAM_NAME_LENGTH);
     if (!trimmed) {
       return { ok: false, error: 'Введите название команды' };
     }

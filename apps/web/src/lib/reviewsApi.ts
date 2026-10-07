@@ -17,12 +17,20 @@ export type MyReview = {
   updatedAt: string;
 };
 
+export type MyReviewStatus = {
+  review: MyReview | null;
+  monthlyLimit: number;
+  createdThisMonth: number;
+  remainingThisMonth: number;
+  canCreateNew: boolean;
+};
+
 export function fetchPublishedReviews() {
   return api<{ reviews: PublicReview[] }>('/reviews');
 }
 
 export function fetchMyReview() {
-  return api<{ review: MyReview | null }>('/auth/reviews/mine');
+  return api<MyReviewStatus>('/auth/reviews/mine');
 }
 
 export function submitReview(message: string) {

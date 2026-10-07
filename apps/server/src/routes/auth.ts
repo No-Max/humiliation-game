@@ -12,8 +12,11 @@ import {
 } from '../lib/playerSession.js';
 import { type TelegramLoginData, verifyTelegramLogin } from '../lib/telegramAuth.js';
 import {
+  REVIEWS_PER_MONTH_LIMIT,
   normalizeReviewMessage,
   plainTextFromReviewHtml,
+  reviewsRemainingThisMonth,
+  startOfCurrentMonthMinsk,
   telegramAuthorLabel,
 } from '../lib/reviews.js';
 
@@ -277,20 +280,33 @@ authRouter.get('/reviews/mine', async (req, res) => {
     return;
   }
 
-  const review = await prisma.playerReview.findUnique({ where: { playerId } });
-  if (!review) {
-    res.json({ review: null });
-    return;
-  }
+  const monthStart = startOfCurrentMonthMinsk();
+  const [draft, createdThisMonth] = await Promise.all([
+    prisma.playerReview.findFirst({
+      where: { playerId, published: false },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.playerReview.count({
+      where: { playerId, createdAt: { gte: monthStart } },
+    }),
+  ]);
+
+  const remainingThisMonth = reviewsRemainingThisMonth(createdThisMonth);
 
   res.json({
-    review: {
-      id: review.id,
-      message: review.message,
-      published: review.published,
-      createdAt: review.createdAt.toISOString(),
-      updatedAt: review.updatedAt.toISOString(),
-    },
+    review: draft
+      ? {
+          id: draft.id,
+          message: draft.message,
+          published: draft.published,
+          createdAt: draft.createdAt.toISOString(),
+          updatedAt: draft.updatedAt.toISOString(),
+        }
+      : null,
+    monthlyLimit: REVIEWS_PER_MONTH_LIMIT,
+    createdThisMonth,
+    remainingThisMonth,
+    canCreateNew: !draft && remainingThisMonth > 0,
   });
 });
 
@@ -314,11 +330,10 @@ authRouter.post('/reviews', async (req, res) => {
     return;
   }
 
-  const existing = await prisma.playerReview.findUnique({ where: { playerId } });
-  if (existing?.published) {
-    res.status(409).json({ error: 'Ваш отзыв уже опубликован' });
-    return;
-  }
+  const draft = await prisma.playerReview.findFirst({
+    where: { playerId, published: false },
+    orderBy: { createdAt: 'desc' },
+  });
 
   const snapshot = {
     message,
@@ -328,16 +343,38 @@ authRouter.post('/reviews', async (req, res) => {
     published: false,
   };
 
-  const review = existing
-    ? await prisma.playerReview.update({
-        where: { id: existing.id },
-        data: snapshot,
-      })
-    : await prisma.playerReview.create({
-        data: { playerId, ...snapshot },
-      });
+  if (draft) {
+    const review = await prisma.playerReview.update({
+      where: { id: draft.id },
+      data: snapshot,
+    });
+    res.json({
+      review: {
+        id: review.id,
+        message: review.message,
+        published: review.published,
+        createdAt: review.createdAt.toISOString(),
+        updatedAt: review.updatedAt.toISOString(),
+      },
+    });
+    return;
+  }
 
-  res.status(existing ? 200 : 201).json({
+  const createdThisMonth = await prisma.playerReview.count({
+    where: { playerId, createdAt: { gte: startOfCurrentMonthMinsk() } },
+  });
+  if (createdThisMonth >= REVIEWS_PER_MONTH_LIMIT) {
+    res.status(429).json({
+      error: `Не больше ${REVIEWS_PER_MONTH_LIMIT} отзывов в месяц`,
+    });
+    return;
+  }
+
+  const review = await prisma.playerReview.create({
+    data: { playerId, ...snapshot },
+  });
+
+  res.status(201).json({
     review: {
       id: review.id,
       message: review.message,

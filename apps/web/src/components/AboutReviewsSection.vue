@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import Button from './Button.vue';
 import RichTextEditor from './RichTextEditor.vue';
 import TelegramLoginModal from './TelegramLoginModal.vue';
@@ -8,39 +8,24 @@ import {
   fetchMyReview,
   fetchPublishedReviews,
   submitReview,
+  type MyReview,
   type PublicReview,
 } from '../lib/reviewsApi';
 import { formatPublishedAt } from '../lib/dates';
 import { plainTextFromHtml } from '../lib/seo';
-
-const SUCCESS_HIDE_MS = 5000;
 
 const { isAuthenticated, ready } = useAuth();
 
 const reviews = ref<PublicReview[]>([]);
 const loading = ref(true);
 const message = ref('');
-const myReview = ref<{ published: boolean } | null>(null);
+const myReview = ref<MyReview | null>(null);
+const canCreateNew = ref(false);
+const monthlyLimit = ref(2);
 const formError = ref('');
-const formSuccess = ref('');
 const submitting = ref(false);
 const showLogin = ref(false);
-let successHideTimer: ReturnType<typeof setTimeout> | null = null;
-
-function clearSuccessHideTimer() {
-  if (successHideTimer == null) return;
-  clearTimeout(successHideTimer);
-  successHideTimer = null;
-}
-
-function showSuccessTemporarily(text: string) {
-  clearSuccessHideTimer();
-  formSuccess.value = text;
-  successHideTimer = setTimeout(() => {
-    formSuccess.value = '';
-    successHideTimer = null;
-  }, SUCCESS_HIDE_MS);
-}
+const editing = ref(false);
 
 const canSubmit = computed(() => {
   if (!isAuthenticated.value) return false;
@@ -48,14 +33,28 @@ const canSubmit = computed(() => {
   return plainTextFromHtml(message.value).length > 0;
 });
 
+const showEditor = computed(() => {
+  if (!isAuthenticated.value) return false;
+  if (myReview.value && !myReview.value.published) return editing.value;
+  return canCreateNew.value;
+});
+
+const showEditButton = computed(
+  () =>
+    isAuthenticated.value &&
+    !!myReview.value &&
+    !myReview.value.published &&
+    !editing.value,
+);
+
 const formHint = computed(() => {
   if (!ready.value) return '';
   if (!isAuthenticated.value) return 'Войдите через Telegram, чтобы оставить отзыв.';
-  if (myReview.value?.published) {
-    return 'Спасибо! Ваш отзыв уже опубликован на сайте.';
-  }
-  if (myReview.value) {
+  if (myReview.value && !myReview.value.published && !editing.value) {
     return 'Отзыв отправлен на модерацию. Можно обновить текст до публикации.';
+  }
+  if (!myReview.value && !canCreateNew.value) {
+    return `Лимит: не больше ${monthlyLimit.value} отзывов в месяц. Попробуйте в следующем месяце.`;
   }
   return 'Отзыв появится на сайте после проверки.';
 });
@@ -83,25 +82,41 @@ async function loadMine() {
   try {
     const data = await fetchMyReview();
     myReview.value = data.review;
+    canCreateNew.value = data.canCreateNew;
+    monthlyLimit.value = data.monthlyLimit;
     if (data.review && !data.review.published) {
       message.value = data.review.message;
+      editing.value = false;
+    } else {
+      editing.value = false;
+      if (!data.review) message.value = '';
     }
   } catch {
     myReview.value = null;
+    canCreateNew.value = false;
   }
+}
+
+function startEditing() {
+  formError.value = '';
+  if (myReview.value && !myReview.value.published) {
+    message.value = myReview.value.message;
+  } else {
+    message.value = '';
+  }
+  editing.value = true;
 }
 
 async function onSubmit() {
   if (!canSubmit.value) return;
   formError.value = '';
-  clearSuccessHideTimer();
-  formSuccess.value = '';
   submitting.value = true;
   try {
     const data = await submitReview(message.value);
     myReview.value = data.review;
-    message.value = '';
-    showSuccessTemporarily('Отзыв отправлен на модерацию');
+    message.value = data.review.message;
+    editing.value = false;
+    await loadMine();
   } catch (e) {
     formError.value = e instanceof Error ? e.message : 'Не удалось отправить';
   } finally {
@@ -113,10 +128,6 @@ async function onLoginSuccess() {
   showLogin.value = false;
   await loadMine();
 }
-
-onBeforeUnmount(() => {
-  clearSuccessHideTimer();
-});
 </script>
 
 <template>
@@ -155,18 +166,18 @@ onBeforeUnmount(() => {
       <h3 class="review-form-title">Оставить отзыв</h3>
       <p class="text-muted-sm review-form-hint">{{ formHint }}</p>
 
-      <template v-if="isAuthenticated && !myReview?.published">
+      <template v-if="showEditor">
         <RichTextEditor
           v-model="message"
           placeholder="Расскажите, как прошла игра…"
           input-id="about-review-message"
         />
-        <p v-if="formSuccess" class="review-form-ok">{{ formSuccess }}</p>
         <p v-if="formError" class="review-form-error">{{ formError }}</p>
         <Button :disabled="submitting || !canSubmit" @click="onSubmit">
-          {{ submitting ? 'Отправка…' : 'Отправить отзыв' }}
+          {{ submitting ? 'Отправка…' : myReview ? 'Сохранить' : 'Отправить отзыв' }}
         </Button>
       </template>
+      <Button v-else-if="showEditButton" @click="startEditing">Редактировать</Button>
       <Button v-else-if="!isAuthenticated" @click="showLogin = true">Войти</Button>
     </div>
 
@@ -250,12 +261,6 @@ onBeforeUnmount(() => {
 
 .review-form-hint {
   margin: 0 0 12px;
-}
-
-.review-form-ok {
-  margin: 0 0 12px;
-  color: #059669;
-  font-weight: bold;
 }
 
 .review-form-error {

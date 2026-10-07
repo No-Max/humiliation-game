@@ -72,12 +72,12 @@ model Player {
   updatedAt   DateTime @updatedAt
 
   gameTeams GameTeam[]
-  review    PlayerReview?
+  reviews   PlayerReview[]
 }
 
 model PlayerReview {
   id           String   @id @default(cuid())
-  playerId     String   @unique
+  playerId     String
   message      String
   telegramName String
   teamName     String?
@@ -88,6 +88,8 @@ model PlayerReview {
 
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
+  @@index([playerId, createdAt])
+  @@index([playerId, published])
   @@index([published, createdAt])
 }
 

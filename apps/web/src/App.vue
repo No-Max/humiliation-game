@@ -4,17 +4,21 @@ import { RouterLink, RouterView, useRoute } from "vue-router";
 import Button from "./components/Button.vue";
 import ConnectToGameModal from "./components/ConnectToGameModal.vue";
 import RoomCodeQrScannerModal from "./components/RoomCodeQrScannerModal.vue";
+import TelegramLoginModal from "./components/TelegramLoginModal.vue";
 import UnfinishedGamesPrompt from "./components/UnfinishedGamesPrompt.vue";
+import { useAuth } from "./composables/useAuth";
 import { useUnfinishedGames } from "./composables/useUnfinishedGames";
 import LogoAnimation from "./components/LogoAnimation.vue";
 import logoUrl from "./assets/logo.svg";
 
 const showConnectModal = ref(false);
 const showQrScanner = ref(false);
+const showLoginModal = ref(false);
 const menuOpen = ref(false);
 const headerEl = ref<HTMLElement | null>(null);
 const route = useRoute();
 const { hasUnfinished, refresh: refreshUnfinishedGames } = useUnfinishedGames();
+const { isAuthenticated, displayName } = useAuth();
 
 onMounted(refreshUnfinishedGames);
 const isDisplayLayout = computed(() => route.path.startsWith("/display/"));
@@ -135,8 +139,24 @@ watch(menuOpen, (open) => {
             <RouterLink to="/rules">Правила</RouterLink>
             <RouterLink to="/series">Выпуски</RouterLink>
             <RouterLink to="/about">О нас</RouterLink>
-            <RouterLink v-if="hasUnfinished" to="/games">Незавершенные игры</RouterLink>
+            <RouterLink v-if="hasUnfinished || isAuthenticated" to="/games">Игры</RouterLink>
+            <RouterLink v-if="isAuthenticated" to="/profile">Профиль</RouterLink>
           </nav>
+          <div class="footer-auth">
+            <template v-if="isAuthenticated">
+              <Button class="footer-auth-btn" to="/profile" variant="secondary" compact>
+                {{ displayName }}
+              </Button>
+            </template>
+            <template v-else>
+              <Button class="footer-auth-btn" compact @click="showLoginModal = true">
+                Войти
+              </Button>
+              <p class="footer-auth-hint text-muted-sm">
+                Войдите с помощью Telegram, чтобы сохранять прогресс в играх
+              </p>
+            </template>
+          </div>
           <p class="footer-copy">
             © {{ new Date().getFullYear() }} Игра на унижение ·
             <a href="https://ingame.by" target="_blank" rel="noopener noreferrer">ingame.by</a>
@@ -146,6 +166,11 @@ watch(menuOpen, (open) => {
     </div>
     <ConnectToGameModal :open="showConnectModal" @close="showConnectModal = false" />
     <RoomCodeQrScannerModal :open="showQrScanner" @close="showQrScanner = false" />
+    <TelegramLoginModal
+      v-if="showLoginModal"
+      @close="showLoginModal = false"
+      @success="showLoginModal = false"
+    />
   </div>
 </template>
 
@@ -445,6 +470,20 @@ watch(menuOpen, (open) => {
   text-decoration-color: #fec31b;
   text-decoration-thickness: 3px;
   text-underline-offset: 6px;
+}
+
+.footer-auth {
+  margin: 0 0 20px;
+}
+
+.footer-auth-btn {
+  margin-bottom: 8px;
+}
+
+.footer-auth-hint {
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.4;
 }
 
 .footer-copy {

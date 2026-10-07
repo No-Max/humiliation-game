@@ -7,6 +7,7 @@ import { removeGameSession, syncFromRoomState, type SavedGameSession } from '../
 import { findUnfinishedForSeries } from '../lib/findUnfinishedForSeries';
 import { getPreferredTeamName } from '../lib/teamPreferences';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
+import { useAuth } from '../composables/useAuth';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
 import DisplayConnectionHelp from '../components/DisplayConnectionHelp.vue';
@@ -15,6 +16,7 @@ import ResumeSeriesModal from '../components/ResumeSeriesModal.vue';
 
 const route = useRoute();
 const router = useRouter();
+const { user } = useAuth();
 const teamName = ref('');
 const loading = ref(false);
 const initializing = ref(true);
@@ -36,7 +38,7 @@ const setupStep = ref<SetupStep>('teams');
 const roomCodeCopyMessage = ref('');
 
 onMounted(async () => {
-  teamName.value = getPreferredTeamName();
+  teamName.value = user.value?.teamName?.trim() || getPreferredTeamName();
   const existing = await findUnfinishedForSeries(seriesId.value);
   if (existing) {
     pendingSession.value = existing;
@@ -139,6 +141,7 @@ async function createRoom() {
       body: JSON.stringify({
         seriesId: route.params.seriesId,
         teamName: teamName.value.trim(),
+        logoUrl: user.value?.teamLogoUrl || undefined,
       }),
     });
     const name = teamName.value.trim();

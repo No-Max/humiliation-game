@@ -71,9 +71,14 @@ export function leaveRoom(callback: (result: { ok: boolean; error?: string }) =>
 }
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+  if (!headers.has('Content-Type') && !(options?.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
   const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    credentials: 'include',
     ...options,
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));

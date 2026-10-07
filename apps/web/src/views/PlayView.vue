@@ -193,6 +193,8 @@ const headerTitle = computed(() =>
       :teams="tourResultsTeams"
       :table-teams="state.teams"
       :game-results="state.gameResults"
+      :room-code="code"
+      :team-id="teamId"
       @finish="confirmExit"
     />
 

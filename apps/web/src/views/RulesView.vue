@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
+import TelegramLoginModal from '../components/TelegramLoginModal.vue';
+import { useAuth } from '../composables/useAuth';
+
+const { isAuthenticated } = useAuth();
+const showLoginModal = ref(false);
 </script>
 
 <template>
@@ -59,8 +66,23 @@ import { MAX_ROOM_TEAMS } from '@humiliation-game/shared';
         <li>Следите за очередностью и таймером</li>
         <li>Не торопитесь — случайный ответ может помочь сопернику</li>
         <li>Откройте экран на TV, чтобы все видели задание</li>
+        <li>
+          <RouterLink v-if="isAuthenticated" to="/profile">Зарегистрируйтесь</RouterLink>
+          <a
+            v-else
+            href="#"
+            @click.prevent="showLoginModal = true"
+          >Зарегистрируйтесь</a>,
+          чтобы сохранить результаты
+        </li>
       </ul>
     </div>
+
+    <TelegramLoginModal
+      v-if="showLoginModal"
+      @close="showLoginModal = false"
+      @success="showLoginModal = false"
+    />
   </div>
 </template>
 

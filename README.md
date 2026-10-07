@@ -156,3 +156,17 @@ SEED=1 VPS_HOST=root@178.172.236.236 ./deploy/deploy-from-local.sh
 **DNS (панель Hoster.by):** A-записи `ingame.by`, `www`, `admin` → `178.172.236.236`.
 
 После привязки домена обновите `CORS_ORIGIN` в `/opt/humiliation-game/apps/server/.env` и nginx.
+
+## Telegram Login (сохранение результатов)
+
+В `apps/server/.env` на VPS:
+
+```bash
+SESSION_SECRET=...          # openssl rand -hex 32
+TELEGRAM_BOT_TOKEN=...      # от @BotFather
+TELEGRAM_BOT_USERNAME=...   # без @
+```
+
+В BotFather: `/setdomain` → `ingame.by` (и при необходимости `www.ingame.by`).
+
+Без входа незавершённые игры по-прежнему живут в `localStorage`. После логина результат партии можно сохранить в профиле (кнопка в конце игры или «Войти» в футере).

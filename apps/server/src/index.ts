@@ -7,6 +7,7 @@ import { resolveUploadDir } from './lib/paths.js';
 import { Server } from 'socket.io';
 import type { ClientToServerEvents, ServerToClientEvents } from '@humiliation-game/shared';
 import { publicRouter } from './routes/public.js';
+import { authRouter } from './routes/auth.js';
 import { adminAuthRouter } from './routes/admin/auth.js';
 import { adminSeriesRouter } from './routes/admin/series.js';
 import { adminToursRouter } from './routes/admin/tours.js';
@@ -40,6 +41,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api', publicRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/series', adminSeriesRouter);
 app.use('/api/admin/tours', adminToursRouter);

@@ -58,6 +58,22 @@ model TeamAccount {
   gameTeams GameTeam[]
 }
 
+/** Игрок (Telegram Login Widget) */
+model Player {
+  id          String   @id @default(cuid())
+  telegramId  String   @unique
+  username    String?
+  firstName   String?
+  lastName    String?
+  photoUrl    String?
+  teamName    String?
+  teamLogoUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  gameTeams GameTeam[]
+}
+
 model Series {
   id          String       @id @default(cuid())
   title       String
@@ -155,6 +171,7 @@ model GameTeam {
   id            String  @id @default(cuid())
   roomId        String
   teamAccountId String?
+  playerId      String?
   name          String
   logoUrl       String?
   score         Int     @default(0)
@@ -163,8 +180,10 @@ model GameTeam {
 
   room        GameRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   teamAccount TeamAccount? @relation(fields: [teamAccountId], references: [id])
+  player      Player?      @relation(fields: [playerId], references: [id], onDelete: SetNull)
 
   @@index([roomId])
+  @@index([playerId])
 }
 
 model MediaFile {

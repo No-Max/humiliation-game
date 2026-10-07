@@ -8,6 +8,7 @@ import JoinView from '../views/JoinView.vue';
 import DisplayView from '../views/DisplayView.vue';
 import PlayView from '../views/PlayView.vue';
 import GamesView from '../views/GamesView.vue';
+import ProfileView from '../views/ProfileView.vue';
 import SeriesDetailView from '../views/SeriesDetailView.vue';
 import {
   DEFAULT_DESCRIPTION,
@@ -46,6 +47,17 @@ export const router = createRouter({
         seo: {
           title: 'Игры',
           description: 'Продолжите незавершённые игры.',
+          index: false,
+        },
+      },
+    },
+    {
+      path: '/profile',
+      component: ProfileView,
+      meta: {
+        seo: {
+          title: 'Профиль',
+          description: 'Настройки команды и сохранённые результаты.',
           index: false,
         },
       },

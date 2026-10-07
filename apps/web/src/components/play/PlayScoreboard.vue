@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatPoints, type TeamState } from '@humiliation-game/shared';
+import type { TeamState } from '@humiliation-game/shared';
 import AnswerTimer from '../AnswerTimer.vue';
 
 defineProps<{

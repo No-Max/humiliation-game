@@ -25,7 +25,7 @@ const publishedLabel = computed(() => formatPublishedAt(series.value?.publishedA
 
 function applySeriesSeo(item: PublicSeries) {
   const title = `Выпуск ${item.number}: ${item.title}`;
-  let description = `Квиз «${item.title}»: ${item.tours.length} туров.`;
+  let description = `Онлайн квиз «${item.title}»: ${item.tours.length} туров.`;
   if (item.description) {
     const plain = plainTextFromHtml(item.description, 140);
     if (plain) description = plain;

@@ -12,7 +12,6 @@ import ProfileView from '../views/ProfileView.vue';
 import SeriesDetailView from '../views/SeriesDetailView.vue';
 import {
   DEFAULT_DESCRIPTION,
-  SITE_NAME,
   type RouteSeoMeta,
   applyRouteSeo,
 } from '../lib/seo';
@@ -33,9 +32,9 @@ export const router = createRouter({
       component: HomeView,
       meta: {
         seo: {
-          title: SITE_NAME,
+          title: 'Онлайн квиз',
           description:
-            'Квиз для друзей — позоримся вместе! Выберите выпуск, создайте команду и играйте на телефонах с общим экраном.',
+            'Онлайн квиз для друзей — позоримся вместе! Выберите выпуск, создайте команду и играйте на телефонах с общим экраном.',
           index: true,
         },
       },
@@ -81,7 +80,7 @@ export const router = createRouter({
         seo: {
           title: 'О нас',
           description:
-            '«Игра на унижение» создана в 2026 году призёрами SuperQuiz в Минске: от вечерней презентации до интерактивного квиза для всех.',
+            '«Игра на унижение» создана в 2026 году призёрами SuperQuiz в Минске: от вечерней презентации до онлайн квиза для всех.',
           index: true,
         },
       },
@@ -92,7 +91,8 @@ export const router = createRouter({
       meta: {
         seo: {
           title: 'Выпуски',
-          description: 'Список опубликованных выпусков — выберите квиз и начните игру с друзьями.',
+          description:
+            'Список опубликованных выпусков — выберите онлайн квиз и начните игру с друзьями.',
           index: true,
         },
       },

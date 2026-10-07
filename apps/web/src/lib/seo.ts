@@ -4,7 +4,7 @@ export const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined)?.r
   || 'https://ingame.by';
 
 export const DEFAULT_DESCRIPTION =
-  'Квиз для друзей: выбирайте выпуск, собирайте команды, отвечайте на вопросы и соревнуйтесь за баллы.';
+  'Онлайн квиз для друзей: выбирайте выпуск, собирайте команды, отвечайте на вопросы и соревнуйтесь за баллы.';
 
 export function plainTextFromHtml(html: string, maxLength = 160): string {
   const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();

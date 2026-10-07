@@ -33,8 +33,14 @@ onMounted(async () => {
   }
 });
 
-function goToSlot(code: string, teamId: string, name: string, seriesTitle = 'Игра') {
-  rememberTeamSlot(code, teamId, name, seriesTitle, 'WAITING');
+function goToSlot(
+  code: string,
+  teamId: string,
+  name: string,
+  seriesTitle = 'Игра',
+  seriesId?: string,
+) {
+  rememberTeamSlot(code, teamId, name, seriesTitle, 'WAITING', seriesId);
   router.push(getTeamSlotPath(code, teamId));
 }
 
@@ -52,9 +58,11 @@ async function joinNew() {
   const code = route.params.code as string;
 
   let seriesTitle = 'Игра';
+  let seriesId: string | undefined;
   try {
-    const room = await api<{ series: { title: string } }>(`/rooms/${code}`);
+    const room = await api<{ series: { id: string; title: string } }>(`/rooms/${code}`);
     seriesTitle = room.series.title;
+    seriesId = room.series.id;
   } catch {
     // ignore
   }
@@ -68,7 +76,13 @@ async function joinNew() {
         return;
       }
       if (result.teamId) {
-        goToSlot(code, result.teamId, result.teamName ?? teamName.value.trim(), seriesTitle);
+        goToSlot(
+          code,
+          result.teamId,
+          result.teamName ?? teamName.value.trim(),
+          seriesTitle,
+          seriesId,
+        );
       }
     },
   );
@@ -89,13 +103,15 @@ function reconnectAs(team: RoomTeam) {
       }
       if (result.teamId) {
         let seriesTitle = 'Игра';
+        let seriesId: string | undefined;
         try {
-          const room = await api<{ series: { title: string } }>(`/rooms/${code}`);
+          const room = await api<{ series: { id: string; title: string } }>(`/rooms/${code}`);
           seriesTitle = room.series.title;
+          seriesId = room.series.id;
         } catch {
           // ignore
         }
-        goToSlot(code, result.teamId, result.teamName ?? team.name, seriesTitle);
+        goToSlot(code, result.teamId, result.teamName ?? team.name, seriesTitle, seriesId);
       }
     },
   );

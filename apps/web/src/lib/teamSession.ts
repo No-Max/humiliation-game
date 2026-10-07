@@ -20,12 +20,14 @@ export function rememberTeamSlot(
   teamName: string,
   seriesTitle = 'Игра',
   status: 'PLAYING' | 'PAUSED' | 'WAITING' = 'PLAYING',
+  seriesId?: string,
 ) {
   saveGameSession({
     roomCode,
     teamId,
     teamName,
     seriesTitle,
+    seriesId,
     status,
     updatedAt: Date.now(),
   });

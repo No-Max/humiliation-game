@@ -8,6 +8,8 @@ export interface SavedGameSession {
   teamId: string;
   teamName: string;
   seriesTitle: string;
+  /** Может отсутствовать у старых записей — подтягивается при проверке */
+  seriesId?: string;
   status: Exclude<RoomStatus, 'FINISHED'>;
   updatedAt: number;
 }
@@ -128,6 +130,7 @@ export function syncFromRoomState(
     teamId,
     teamName,
     seriesTitle: room.seriesTitle,
+    seriesId: room.seriesId,
     status: room.status as SavedGameSession['status'],
     updatedAt: Date.now(),
   });

@@ -3,13 +3,15 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { RoomState } from '@humiliation-game/shared';
 import { api, connectSocket, joinRoom, onRoomState } from '../lib/api';
-import { syncFromRoomState } from '../lib/gameStorage';
+import { removeGameSession, syncFromRoomState, type SavedGameSession } from '../lib/gameStorage';
+import { findUnfinishedForSeries } from '../lib/findUnfinishedForSeries';
 import { getPreferredTeamName } from '../lib/teamPreferences';
 import { getTeamSlotPath, rememberTeamSlot } from '../lib/teamSession';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
 import DisplayConnectionHelp from '../components/DisplayConnectionHelp.vue';
 import GameConnectionPanel from '../components/GameConnectionPanel.vue';
+import ResumeSeriesModal from '../components/ResumeSeriesModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -22,8 +24,11 @@ const hostTeamId = ref('');
 const seriesTitle = ref('');
 const roomState = ref<RoomState | null>(null);
 const joined = ref(false);
+const showResumeModal = ref(false);
+const pendingSession = ref<SavedGameSession | null>(null);
 let cleanup: (() => void) | undefined;
 
+const seriesId = computed(() => route.params.seriesId as string);
 const roomCreated = computed(() => Boolean(roomCode.value));
 
 type SetupStep = 'teams' | 'display';
@@ -32,6 +37,14 @@ const roomCodeCopyMessage = ref('');
 
 onMounted(async () => {
   teamName.value = getPreferredTeamName();
+  const existing = await findUnfinishedForSeries(seriesId.value);
+  if (existing) {
+    pendingSession.value = existing;
+    seriesTitle.value = existing.seriesTitle;
+    showResumeModal.value = true;
+    initializing.value = false;
+    return;
+  }
   if (teamName.value.trim()) {
     await createRoom();
   }
@@ -44,7 +57,38 @@ onUnmounted(() => {
 
 function onTeamRenamed(name: string) {
   teamName.value = name;
-  rememberTeamSlot(roomCode.value, hostTeamId.value, name, seriesTitle.value, 'WAITING');
+  rememberTeamSlot(
+    roomCode.value,
+    hostTeamId.value,
+    name,
+    seriesTitle.value,
+    'WAITING',
+    seriesId.value,
+  );
+}
+
+function continueExistingGame() {
+  const session = pendingSession.value;
+  if (!session) return;
+  showResumeModal.value = false;
+  router.push(getTeamSlotPath(session.roomCode, session.teamId));
+}
+
+async function startNewGame() {
+  const session = pendingSession.value;
+  if (session) {
+    removeGameSession(session.roomCode);
+  }
+  pendingSession.value = null;
+  showResumeModal.value = false;
+  if (teamName.value.trim()) {
+    await createRoom();
+  }
+}
+
+function closeResumeModal() {
+  showResumeModal.value = false;
+  router.push(`/series/${seriesId.value}`);
 }
 
 function beginSetup(
@@ -104,6 +148,7 @@ async function createRoom() {
       name,
       result.seriesTitle ?? 'Игра',
       'WAITING',
+      seriesId.value,
     );
     beginSetup(result.roomCode, result.teamId, result.seriesTitle ?? 'Игра', name);
   } catch (e) {
@@ -128,7 +173,15 @@ async function copyRoomCode() {
   <div>
     <h1 class="page-title">{{ seriesTitle || 'Создать игру' }}</h1>
 
-    <div class="card lobby-card">
+    <ResumeSeriesModal
+      v-if="showResumeModal && pendingSession"
+      :series-title="pendingSession.seriesTitle"
+      @close="closeResumeModal"
+      @continue="continueExistingGame"
+      @start-new="startNewGame"
+    />
+
+    <div v-if="!showResumeModal" class="card lobby-card">
       <p v-if="initializing || (loading && !roomCreated)" class="hint">
         Создание комнаты…
       </p>

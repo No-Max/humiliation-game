@@ -128,6 +128,7 @@ export function usePlayRoom() {
               result.teamName,
               state.value?.seriesTitle ?? 'Игра',
               state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
+              state.value?.seriesId,
             );
           }
         }
@@ -271,6 +272,7 @@ export function usePlayRoom() {
       name,
       state.value?.seriesTitle ?? 'Игра',
       state.value?.status === 'PAUSED' ? 'PAUSED' : 'PLAYING',
+      state.value?.seriesId,
     );
   }
 

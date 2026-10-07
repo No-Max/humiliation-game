@@ -152,9 +152,9 @@ watch(menuOpen, (open) => {
               <Button class="footer-auth-btn" compact @click="showLoginModal = true">
                 Войти
               </Button>
-              <p class="footer-auth-hint text-muted-sm">
+              <span class="footer-auth-hint text-muted-sm">
                 Войдите с помощью Telegram, чтобы сохранять прогресс в играх
-              </p>
+              </span>
             </template>
           </div>
           <p class="footer-copy">
@@ -474,15 +474,21 @@ watch(menuOpen, (open) => {
 
 .footer-auth {
   margin: 0 0 20px;
+  font-size: 0;
 }
 
 .footer-auth-btn {
-  margin-bottom: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 12px;
 }
 
 .footer-auth-hint {
+  display: inline-block;
+  vertical-align: middle;
   margin: 0;
-  max-width: 320px;
+  max-width: calc(100% - 100px);
+  font-size: 14px;
   line-height: 1.4;
 }
 

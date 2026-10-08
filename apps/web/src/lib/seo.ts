@@ -45,7 +45,7 @@ export function applyRouteSeo(meta: RouteSeoMeta, path: string) {
     meta.title === SITE_NAME ? meta.title : `${meta.title} — ${SITE_NAME}`;
   const robots = meta.index === false ? 'noindex, nofollow' : 'index, follow';
   const canonical = `${SITE_URL}${path}`;
-  const ogImage = `${SITE_URL}/favicon.svg`;
+  const ogImage = `${SITE_URL}/apple-touch-icon.png`;
 
   document.title = documentTitle;
   setMeta(description, 'name', 'description');

@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Allow: /rules
+Allow: /about
 Allow: /series
 Allow: /series/
 Disallow: /games
@@ -9,5 +10,6 @@ Disallow: /join/
 Disallow: /display/
 Disallow: /team/
 Disallow: /play/
+Disallow: /profile
 
 Sitemap: https://ingame.by/sitemap.xml

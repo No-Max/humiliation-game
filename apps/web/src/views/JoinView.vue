@@ -8,6 +8,7 @@ import { getPreferredTeamName } from '../lib/teamPreferences';
 import { useAuth } from '../composables/useAuth';
 import Button from '../components/Button.vue';
 import Input from '../components/Input.vue';
+import ModalShell from '../components/ModalShell.vue';
 
 const { user } = useAuth();
 
@@ -22,6 +23,7 @@ const teamName = ref('');
 const error = ref('');
 const loading = ref(false);
 const existingTeams = ref<RoomTeam[]>([]);
+const pendingReconnectTeam = ref<RoomTeam | null>(null);
 
 const teamsFull = computed(() => existingTeams.value.length >= MAX_ROOM_TEAMS);
 
@@ -96,7 +98,20 @@ async function joinNew() {
   );
 }
 
-function reconnectAs(team: RoomTeam) {
+function askReconnectAs(team: RoomTeam) {
+  error.value = '';
+  pendingReconnectTeam.value = team;
+}
+
+function closeReconnectModal() {
+  if (loading.value) return;
+  pendingReconnectTeam.value = null;
+}
+
+function confirmReconnectAs() {
+  const team = pendingReconnectTeam.value;
+  if (!team) return;
+
   loading.value = true;
   error.value = '';
   const code = route.params.code as string;
@@ -107,6 +122,7 @@ function reconnectAs(team: RoomTeam) {
       loading.value = false;
       if (!result.ok) {
         error.value = result.error ?? 'Не удалось занять слот';
+        pendingReconnectTeam.value = null;
         return;
       }
       if (result.teamId) {
@@ -119,6 +135,7 @@ function reconnectAs(team: RoomTeam) {
         } catch {
           // ignore
         }
+        pendingReconnectTeam.value = null;
         goToSlot(code, result.teamId, result.teamName ?? team.name, seriesTitle, seriesId);
       }
     },
@@ -149,7 +166,7 @@ function reconnectAs(team: RoomTeam) {
         <p class="join-note text-muted-sm">
           Название сохраняется на этом устройстве — его можно изменить перед входом.
         </p>
-        <Button :disabled="loading" @click="joinNew">
+        <Button block :disabled="loading" @click="joinNew">
           {{ loading ? 'Подключение...' : 'Войти' }}
         </Button>
       </template>
@@ -166,7 +183,7 @@ function reconnectAs(team: RoomTeam) {
           :key="team.id"
           variant="secondary"
           :disabled="loading"
-          @click="reconnectAs(team)"
+          @click="askReconnectAs(team)"
         >
           {{ team.name }}
         </Button>
@@ -174,6 +191,29 @@ function reconnectAs(team: RoomTeam) {
     </div>
 
     <p v-if="error" class="join-error text-error">{{ error }}</p>
+
+    <ModalShell
+      v-if="pendingReconnectTeam"
+      title-id="reconnect-slot-title"
+      @close="closeReconnectModal"
+    >
+      <template #header>
+        <h2 id="reconnect-slot-title">Занять слот?</h2>
+        <Button variant="close" aria-label="Закрыть" :disabled="loading" @click="closeReconnectModal" />
+      </template>
+      <p class="reconnect-message">
+        Вы уверены, что хотите занять место команды
+        «{{ pendingReconnectTeam.name }}»?
+      </p>
+      <div class="modal-actions">
+        <Button :disabled="loading" @click="confirmReconnectAs">
+          {{ loading ? 'Подключение...' : 'Занять слот' }}
+        </Button>
+        <Button variant="secondary" :disabled="loading" @click="closeReconnectModal">
+          Отмена
+        </Button>
+      </div>
+    </ModalShell>
   </div>
 </template>
 
@@ -209,5 +249,25 @@ function reconnectAs(team: RoomTeam) {
 
 .join-error {
   margin-top: 16px;
+}
+
+.reconnect-message {
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: block;
+  font-size: 0;
+}
+
+.modal-actions > :deep(*) {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.modal-actions > :deep(*:last-child) {
+  margin-right: 0;
 }
 </style>

@@ -50,13 +50,13 @@ function selectAll(event: FocusEvent) {
 
 <template>
   <div class="link-copy-row">
+    <Button icon="qr" class="link-qr-btn" :aria-label="`QR-код: ${label}`" @click="openQr" />
     <div class="link-copy-field">
       <Input variant="copy" :highlight="highlight" type="text" readonly :model-value="url" @focus="selectAll" />
       <div class="link-copy-btn-wrap">
         <Button variant="ghost" icon="copy" :aria-label="`Копировать ${label}`" @click="copy" />
       </div>
     </div>
-    <Button icon="qr" class="link-qr-btn" :aria-label="`QR-код: ${label}`" @click="openQr" />
   </div>
 
   <Teleport to="body">
@@ -85,7 +85,7 @@ function selectAll(event: FocusEvent) {
   display: inline-block;
   vertical-align: middle;
   position: relative;
-  width: calc(100% - 56px);
+  width: calc(100% - 44px);
   min-width: 0;
   font-size: 14px;
 }
@@ -98,7 +98,8 @@ function selectAll(event: FocusEvent) {
 }
 
 .link-qr-btn {
-  margin-left: 12px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .qr-dialog-body {

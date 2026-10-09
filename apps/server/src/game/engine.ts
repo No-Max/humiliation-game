@@ -145,6 +145,56 @@ export class GameEngine {
     return { ok: true, teamName: trimmed };
   }
 
+  removeTeam(teamId: string): { ok: boolean; error?: string } {
+    if (this.isGameFinished()) {
+      return { ok: false, error: 'Игра уже завершена' };
+    }
+
+    if (!this.teams.has(teamId)) {
+      return { ok: false, error: 'Команда не найдена' };
+    }
+
+    if (this.state.teamOrder.length <= 1) {
+      return { ok: false, error: 'Нельзя удалить последнюю команду' };
+    }
+
+    const removedIndex = this.state.teamOrder.indexOf(teamId);
+    const removedWasActive = this.getActiveTeamId() === teamId;
+
+    this.teams.delete(teamId);
+    this.state.teamOrder = this.state.teamOrder.filter((id) => id !== teamId);
+    this.state.passedTeamIds.delete(teamId);
+    this.state.attemptedTeamIds.delete(teamId);
+
+    if (this.state.scoringTeamId === teamId) {
+      this.state.scoringTeamId = undefined;
+    }
+    if (this.pausedByTeamId === teamId) {
+      this.pausedByTeamId = undefined;
+    }
+
+    if (removedIndex < 0) {
+      return { ok: true };
+    }
+
+    if (removedIndex < this.state.currentTeamIndex) {
+      this.state.currentTeamIndex -= 1;
+    }
+    if (this.state.currentTeamIndex >= this.state.teamOrder.length) {
+      this.state.currentTeamIndex = Math.max(0, this.state.teamOrder.length - 1);
+    }
+
+    if (removedWasActive || this.shouldRunTimer()) {
+      if (this.getActiveTeamId()) {
+        this.refreshTurnTimer();
+      } else {
+        this.clearTurnTimer();
+      }
+    }
+
+    return { ok: true };
+  }
+
   isGameFinished(): boolean {
     return this.state.phase === 'FINISHED';
   }

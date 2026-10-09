@@ -87,18 +87,28 @@ watch(menuOpen, (open) => {
           <LogoAnimation class="logo__img" />
           <span class="logo__name">Игра<br />на унижение</span>
         </RouterLink>
-        <button
-          type="button"
-          class="burger"
-          :aria-expanded="menuOpen"
-          aria-controls="header-menu"
-          aria-label="Меню"
-          @click="toggleMenu"
-        >
-          <span class="burger-line" />
-          <span class="burger-line" />
-          <span class="burger-line" />
-        </button>
+        <div class="header-toolbar">
+          <Button
+            class="header-qr-btn"
+            icon="scan"
+            aria-label="Сканировать QR-код"
+            @click="openQrScanner"
+          >
+            QR
+          </Button>
+          <button
+            type="button"
+            class="burger"
+            :aria-expanded="menuOpen"
+            aria-controls="header-menu"
+            aria-label="Меню"
+            @click="toggleMenu"
+          >
+            <span class="burger-line" />
+            <span class="burger-line" />
+            <span class="burger-line" />
+          </button>
+        </div>
         <div id="header-menu" class="header-panel" :class="{ 'header-panel--open': menuOpen }">
           <nav>
             <RouterLink to="/">Главная</RouterLink>
@@ -107,14 +117,6 @@ watch(menuOpen, (open) => {
             <RouterLink to="/about">О нас</RouterLink>
           </nav>
           <div class="header-buttons">
-            <Button
-              class="header-qr-btn"
-              icon="scan"
-              aria-label="Сканировать QR-код"
-              @click="openQrScanner"
-            >
-              QR
-            </Button>
             <Button class="header-play-btn" to="/series" icon="play" @click="closeMenu">
               Играть
             </Button>
@@ -251,11 +253,18 @@ watch(menuOpen, (open) => {
   text-transform: uppercase;
 }
 
-.burger {
+.header-toolbar {
   display: none;
   float: right;
   position: relative;
   z-index: 2;
+  font-size: 0;
+}
+
+.burger {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
   width: 40px;
   height: 36px;
   padding: 0;
@@ -358,13 +367,11 @@ watch(menuOpen, (open) => {
   margin-left: 8px;
 }
 
-.header :deep(.header-watch-btn.btn),
-.header :deep(.header-qr-btn.btn) {
+.header :deep(.header-watch-btn.btn) {
   background: #52b685;
 }
 
-.header :deep(.header-watch-btn.btn:not(:disabled):hover),
-.header :deep(.header-qr-btn.btn:not(:disabled):hover) {
+.header :deep(.header-watch-btn.btn:not(:disabled):hover) {
   background: #3a9a6a;
 }
 
@@ -376,7 +383,34 @@ watch(menuOpen, (open) => {
   background: var(--color-accent-hover);
 }
 
-.header :deep(.header-qr-btn),
+.header :deep(.header-qr-btn.btn) {
+  display: inline-block;
+  vertical-align: middle;
+  height: 36px;
+  padding: 0 10px;
+  margin: 0 8px 0 0;
+  background: #52b685;
+  color: #fff;
+  box-shadow: none;
+  line-height: 36px;
+}
+
+.header :deep(.header-qr-btn.btn:not(:disabled):hover) {
+  background: #3a9a6a;
+  color: #fff;
+}
+
+.header :deep(.header-qr-btn .btn__icon) {
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+}
+
+.header :deep(.header-qr-btn .btn__text) {
+  line-height: 36px;
+  height: 36px;
+}
+
 .header :deep(.header-play-btn) {
   display: none;
 }
@@ -559,8 +593,8 @@ watch(menuOpen, (open) => {
     padding: 12px 16px;
   }
 
-  .burger {
-    display: inline-block;
+  .header-toolbar {
+    display: block;
   }
 
   .header-panel {
@@ -612,7 +646,6 @@ watch(menuOpen, (open) => {
     margin: 0 8px 8px 0;
   }
 
-  .header :deep(.header-qr-btn),
   .header :deep(.header-play-btn) {
     display: inline-block;
   }

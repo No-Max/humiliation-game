@@ -16,6 +16,7 @@ import {
   getFinishedGameSnapshot,
   roomStateFromFinishedSnapshot,
   saveFinishedGameSnapshot,
+  removeGameSession,
   syncFromRoomState,
 } from '../lib/gameStorage';
 import {
@@ -323,6 +324,29 @@ export function usePlayRoom() {
     }
   }
 
+  function leaveAfterTeamRemoved() {
+    const socket = connectSocket();
+    if (code.value) {
+      removeGameSession(code.value);
+    }
+    disableAutoRejoin();
+    joined.value = false;
+    showConnectionModal.value = false;
+    showExitModal.value = false;
+    socket.disconnect();
+    router.push('/series');
+  }
+
+  watch(
+    () => state.value?.teams,
+    (teams) => {
+      if (!joined.value || !teamId.value || isViewOnly.value || !teams) return;
+      if (!teams.some((team) => team.id === teamId.value)) {
+        leaveAfterTeamRemoved();
+      }
+    },
+  );
+
   return {
     state,
     answer,
@@ -363,5 +387,6 @@ export function usePlayRoom() {
     openExit,
     closeExit,
     confirmExit,
+    leaveAfterTeamRemoved,
   };
 }

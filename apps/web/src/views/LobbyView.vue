@@ -69,6 +69,18 @@ function onTeamRenamed(name: string) {
   );
 }
 
+function onTeamLeft() {
+  if (roomCode.value) {
+    removeGameSession(roomCode.value);
+  }
+  cleanup?.();
+  joined.value = false;
+  roomCode.value = '';
+  hostTeamId.value = '';
+  roomState.value = null;
+  router.push('/series');
+}
+
 function continueExistingGame() {
   const session = pendingSession.value;
   if (!session) return;
@@ -225,6 +237,7 @@ async function copyRoomCode() {
           :state="roomState"
           section="teams"
           @team-renamed="onTeamRenamed"
+          @team-left="onTeamLeft"
         />
         <div v-else-if="!joined && roomCode && setupStep === 'teams'" class="room-code-row">
           <span class="room-code-label">Код комнаты:</span>

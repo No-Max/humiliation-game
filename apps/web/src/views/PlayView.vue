@@ -54,6 +54,7 @@ const {
   openExit,
   closeExit,
   confirmExit,
+  leaveAfterTeamRemoved,
 } = usePlayRoom();
 
 const showQuestionCard = computed(
@@ -144,6 +145,7 @@ const headerTitle = computed(() =>
       :state="state"
       @close="closeConnection"
       @team-renamed="onTeamRenamed"
+      @team-left="leaveAfterTeamRemoved"
     />
 
     <PlayTourResultsCard

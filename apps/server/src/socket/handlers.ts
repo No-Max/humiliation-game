@@ -355,6 +355,54 @@ export function setupSocketHandlers(io: GameServer) {
       callback(result);
     });
 
+    socket.on('removeTeam', async (targetTeamId, callback) => {
+      const engine = roomCode ? rooms.get(roomCode) : undefined;
+      if (!engine || !teamId || !roomCode) {
+        callback({ ok: false, error: 'Not in room' });
+        return;
+      }
+
+      const result = engine.removeTeam(targetTeamId);
+      if (!result.ok) {
+        callback(result);
+        return;
+      }
+
+      const room = await prisma.gameRoom.findUnique({
+        where: { code: roomCode },
+        select: { id: true, hostTeamId: true },
+      });
+
+      await prisma.gameTeam.delete({ where: { id: targetTeamId } }).catch(() => undefined);
+
+      if (room?.hostTeamId === targetTeamId) {
+        const nextHost = await prisma.gameTeam.findFirst({
+          where: { roomId: room.id },
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true },
+        });
+        await prisma.gameRoom.update({
+          where: { id: room.id },
+          data: { hostTeamId: nextHost?.id ?? null },
+        });
+      }
+
+      const removedSocketId = teamConnections.get(targetTeamId);
+      if (removedSocketId) {
+        teamConnections.delete(targetTeamId);
+      }
+
+      io.to(roomCode).emit('roomState', engine.getPublicState());
+
+      if (teamId === targetTeamId) {
+        void socket.leave(roomCode);
+        teamId = null;
+        roomCode = null;
+      }
+
+      callback({ ok: true });
+    });
+
     socket.on('syncExpiredTurn', (callback) => {
       const engine = roomCode ? rooms.get(roomCode) : undefined;
       if (!engine) {

@@ -22,6 +22,8 @@ export interface ClientToServerEvents {
   resumeGame: (callback: (result: ActionResult) => void) => void;
   leaveRoom: (callback: (result: ActionResult) => void) => void;
   renameTeam: (name: string, callback: (result: ActionResult) => void) => void;
+  /** Удалить команду из комнаты (покинуть игру / убрать слот) */
+  removeTeam: (teamId: string, callback: (result: ActionResult) => void) => void;
   /** Клиент: локальный таймер истёк — сервер сверит дедлайн и передаст ход */
   syncExpiredTurn: (callback: (result: ActionResult) => void) => void;
 }
@@ -72,5 +74,6 @@ export const SOCKET_EVENTS = {
   RESUME_GAME: 'resumeGame',
   LEAVE_ROOM: 'leaveRoom',
   RENAME_TEAM: 'renameTeam',
+  REMOVE_TEAM: 'removeTeam',
   SYNC_EXPIRED_TURN: 'syncExpiredTurn',
 } as const;

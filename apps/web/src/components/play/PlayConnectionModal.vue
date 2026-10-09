@@ -16,6 +16,7 @@ const teamName = defineModel<string>('teamName', { required: true });
 defineEmits<{
   close: [];
   teamRenamed: [name: string];
+  teamLeft: [];
 }>();
 </script>
 
@@ -33,6 +34,7 @@ defineEmits<{
       v-model:team-name="teamName"
       :state="state"
       @team-renamed="$emit('teamRenamed', $event)"
+      @team-left="$emit('teamLeft')"
     />
   </ModalShell>
 </template>

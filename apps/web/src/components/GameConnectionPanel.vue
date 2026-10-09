@@ -6,6 +6,7 @@ import { connectSocket } from '../lib/api';
 import LinkCopyField from './LinkCopyField.vue';
 import Button from './Button.vue';
 import Input from './Input.vue';
+import ModalShell from './ModalShell.vue';
 import {
   getJoinUrl,
   getTeamSlotUrl,
@@ -31,6 +32,7 @@ const showOwnTeamTransfer = ref(false);
 const emit = defineEmits<{
   'update:teamName': [name: string];
   teamRenamed: [name: string];
+  teamLeft: [];
 }>();
 
 const connectionMessage = ref('');
@@ -38,6 +40,13 @@ const renamingTeam = ref(false);
 const renameDraft = ref('');
 const renameError = ref('');
 const renameLoading = ref(false);
+const removingTeamId = ref<string | null>(null);
+const pendingRemove = ref<{ teamId: string; name: string } | null>(null);
+const removeError = ref('');
+
+const pendingRemoveIsSelf = computed(
+  () => pendingRemove.value?.teamId === props.teamId,
+);
 
 const joinUrl = computed(() => getJoinUrl(props.roomCode));
 const mySlotUrl = computed(() =>
@@ -95,10 +104,47 @@ function revealOwnTeamTransfer() {
   showOwnTeamTransfer.value = true;
 }
 
+function askRemoveTeam(targetTeamId: string, targetName: string) {
+  removeError.value = '';
+  pendingRemove.value = { teamId: targetTeamId, name: targetName };
+}
+
+function closeRemoveModal() {
+  if (removingTeamId.value) return;
+  pendingRemove.value = null;
+  removeError.value = '';
+}
+
+function confirmRemoveTeam() {
+  const pending = pendingRemove.value;
+  if (!pending) return;
+
+  const isSelf = pending.teamId === props.teamId;
+  removingTeamId.value = pending.teamId;
+  connectionMessage.value = '';
+  removeError.value = '';
+  connectSocket().emit('removeTeam', pending.teamId, (result) => {
+    removingTeamId.value = null;
+    if (!result.ok) {
+      removeError.value = result.error ?? 'Не удалось удалить команду';
+      return;
+    }
+    pendingRemove.value = null;
+    if (isSelf) {
+      emit('teamLeft');
+      return;
+    }
+    connectionMessage.value = `Команда «${pending.name}» удалена`;
+  });
+}
+
 function reset() {
   connectionMessage.value = '';
   renamingTeam.value = false;
   renameError.value = '';
+  removingTeamId.value = null;
+  pendingRemove.value = null;
+  removeError.value = '';
   showOwnTeamTransfer.value = false;
 }
 
@@ -110,7 +156,7 @@ defineExpose({ reset });
     <p v-if="introText" class="connection-intro text-muted-sm">{{ introText }}</p>
 
     <div v-if="showTeams && (state?.teamSlots?.length || mySlotUrl)" class="link-block">
-      <strong class="connection-section-heading">Ваша команда</strong>
+      <strong class="connection-section-heading">Команды</strong>
 
       <template v-if="state?.teamSlots?.length">
         <div v-for="slot in state.teamSlots" :key="slot.teamId" class="team-slot-row">
@@ -135,11 +181,36 @@ defineExpose({ reset });
               </div>
             </div>
             <div v-else class="team-name-row">
+              <div class="team-name-actions">
+                <Button
+                  icon="pencil"
+                  class="rename-team-btn"
+                  aria-label="Переименовать команду"
+                  @click="startRenameTeam"
+                />
+                <Button
+                  icon="trash"
+                  class="remove-team-btn"
+                  aria-label="Покинуть игру"
+                  :disabled="removingTeamId === slot.teamId || (state?.teamSlots.length ?? 0) <= 1"
+                  @click="askRemoveTeam(slot.teamId, slot.name)"
+                />
+              </div>
               <span class="team-name">{{ slot.name }} <span class="team-you text-muted">(Вы)</span></span>
-              <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
             </div>
           </template>
-          <span v-else class="team-slot-name">{{ slot.name }}</span>
+          <div v-else class="team-name-row team-name-row--other">
+            <div class="team-name-actions">
+              <Button
+                icon="trash"
+                class="remove-team-btn"
+                :aria-label="`Удалить команду ${slot.name}`"
+                :disabled="removingTeamId === slot.teamId || (state?.teamSlots.length ?? 0) <= 1"
+                @click="askRemoveTeam(slot.teamId, slot.name)"
+              />
+            </div>
+            <span class="team-slot-name">{{ slot.name }}</span>
+          </div>
 
           <template v-if="slot.teamId === teamId && collapseOwnTeamLink && !showOwnTeamTransfer">
             <Button variant="secondary" block class="transfer-control-btn" @click="revealOwnTeamTransfer">
@@ -177,8 +248,22 @@ defineExpose({ reset });
           </div>
         </div>
         <div v-else-if="teamName" class="team-name-row">
+          <div class="team-name-actions">
+            <Button
+              icon="pencil"
+              class="rename-team-btn"
+              aria-label="Переименовать команду"
+              @click="startRenameTeam"
+            />
+            <Button
+              icon="trash"
+              class="remove-team-btn"
+              aria-label="Покинуть игру"
+              :disabled="removingTeamId === teamId"
+              @click="askRemoveTeam(teamId, teamName)"
+            />
+          </div>
           <span class="team-name">{{ teamName }} <span class="team-you text-muted">(Вы)</span></span>
-          <Button variant="ghost" icon="pencil" aria-label="Переименовать команду" @click="startRenameTeam" />
         </div>
 
         <Button
@@ -214,6 +299,47 @@ defineExpose({ reset });
     <p v-if="connectionMessage" class="connection-copy-message">
       {{ connectionMessage }}
     </p>
+
+    <ModalShell
+      v-if="pendingRemove"
+      title-id="remove-team-title"
+      @close="closeRemoveModal"
+    >
+      <template #header>
+        <h2 id="remove-team-title">
+          {{ pendingRemoveIsSelf ? 'Покинуть игру?' : 'Удалить команду?' }}
+        </h2>
+        <Button
+          variant="close"
+          aria-label="Закрыть"
+          :disabled="!!removingTeamId"
+          @click="closeRemoveModal"
+        />
+      </template>
+      <p class="remove-team-message">
+        <template v-if="pendingRemoveIsSelf">
+          Покинуть игру и удалить вашу команду из комнаты?
+        </template>
+        <template v-else>
+          Удалить команду «{{ pendingRemove.name }}» из игры?
+        </template>
+      </p>
+      <p v-if="removeError" class="remove-team-error text-error">{{ removeError }}</p>
+      <div class="modal-actions">
+        <Button :disabled="!!removingTeamId" @click="confirmRemoveTeam">
+          {{
+            removingTeamId
+              ? 'Удаление...'
+              : pendingRemoveIsSelf
+                ? 'Покинуть'
+                : 'Удалить'
+          }}
+        </Button>
+        <Button variant="secondary" :disabled="!!removingTeamId" @click="closeRemoveModal">
+          Отмена
+        </Button>
+      </div>
+    </ModalShell>
   </div>
 </template>
 
@@ -231,17 +357,14 @@ defineExpose({ reset });
 }
 
 .team-slot-row {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .team-slot-row:first-of-type {
   margin-top: 0;
 }
 
-.team-slot-name {
-  display: block;
-  font-size: 14px;
-  font-weight: bold;
+.team-name-row--other {
   margin-bottom: 5.6px;
 }
 
@@ -270,7 +393,7 @@ defineExpose({ reset });
 
 .rename-team-actions {
   display: block;
-  margin-top: 12px;
+  margin: 0 0 12px;
   font-size: 0;
 }
 
@@ -283,19 +406,41 @@ defineExpose({ reset });
 
 .team-name-row {
   display: block;
-  font-size: 0;
   margin: 0 0 5.6px;
 }
 
-.team-name-row>* {
+.team-name-row::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.team-name-actions {
+  float: right;
+  font-size: 0;
+  margin-left: 8px;
+}
+
+.team-name-actions > :deep(*) {
   display: inline-block;
   vertical-align: middle;
-  font-size: 16px;
   margin-left: 6px;
 }
 
-.team-name-row>*:first-child {
+.team-name-actions > :deep(*:first-child) {
   margin-left: 0;
+}
+
+.team-name,
+.team-slot-name {
+  display: block;
+  overflow: hidden;
+  line-height: 32px;
+  font-weight: bold;
+}
+
+.team-slot-name {
+  font-size: 16px;
 }
 
 .rename-team-error {
@@ -304,7 +449,6 @@ defineExpose({ reset });
 
 .team-name {
   font-size: 15px;
-  font-weight: bold;
   color: var(--color-accent);
 }
 
@@ -330,5 +474,61 @@ defineExpose({ reset });
 
 .teams-limit-notice {
   margin-top: 12px;
+}
+
+.remove-team-message {
+  margin-bottom: 16px;
+}
+
+.remove-team-error {
+  margin: -8px 0 16px;
+}
+
+.modal-actions {
+  display: block;
+  font-size: 0;
+}
+
+.modal-actions > :deep(*) {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.modal-actions > :deep(*:last-child) {
+  margin-right: 0;
+}
+
+.rename-team-btn,
+.remove-team-btn {
+  box-shadow: none;
+  padding: 6px;
+  height: 32px;
+  color: #1a1a2e;
+}
+
+.rename-team-btn {
+  background: #e5e7eb;
+}
+
+.rename-team-btn:not(:disabled):hover {
+  background: #d1d5db;
+  color: #1a1a2e;
+}
+
+.remove-team-btn {
+  background: #fec31b;
+}
+
+.remove-team-btn:not(:disabled):hover {
+  background: #eeb50f;
+  color: #1a1a2e;
+}
+
+.rename-team-btn :deep(.btn__icon),
+.remove-team-btn :deep(.btn__icon) {
+  width: 18px;
+  height: 18px;
 }
 </style>
